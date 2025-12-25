@@ -1,12 +1,7 @@
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { Request } from 'express';
 import { ServiceName } from '../enums';
-import { HEADERS } from '../constants';
-
-const SERVICE_MAP: Record<ServiceName, string> = {
-  [ServiceName.AUTH]: 'http://localhost:3001',
-  [ServiceName.USER]: 'http://localhost:3002',
-};
+import { HEADERS,SERVICE_MAP } from '../constants';
 
 export function createServiceProxy(service: ServiceName) {
   return createProxyMiddleware({
