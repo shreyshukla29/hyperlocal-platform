@@ -8,9 +8,9 @@ export function createApp() {
 
   app.use(express.json());
   app.use(cookieParser());
-  app.use(healthRouter)
+  app.use(healthRouter);
   app.use(requestContextMiddleware);
-  app.use(rateLimitMiddleware)
+  app.use(rateLimitMiddleware);
   app.use(rootRouter);
 
   app.use(errorMiddleware);

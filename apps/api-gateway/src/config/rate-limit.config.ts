@@ -7,10 +7,7 @@ export interface RateLimitConfig {
   readonly maxRequests: number;
 }
 
-function numberFromEnv(
-  name: string,
-  defaultValue: number,
-): number {
+function numberFromEnv(name: string, defaultValue: number): number {
   const raw = process.env[name];
 
   if (raw === undefined) {

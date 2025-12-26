@@ -1,4 +1,4 @@
-import { createLogger, format, transports, type Logger } from "winston";
+import { createLogger, format, transports, type Logger } from 'winston';
 
 const { combine, timestamp, printf } = format;
 
@@ -9,16 +9,11 @@ interface LogInfo {
   error?: unknown;
 }
 
-const customFormat = printf(
-  ({ level, message, timestamp }: LogInfo): string => {
-    return `${timestamp} : ${level}: ${message}`;
-  },
-);
+const customFormat = printf(({ level, message, timestamp }: LogInfo): string => {
+  return `${timestamp} : ${level}: ${message}`;
+});
 
 export const logger: Logger = createLogger({
-  format: combine(timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), customFormat),
-  transports: [
-    new transports.Console(),
-    new transports.File({ filename: "combined.log" }),
-  ],
+  format: combine(timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), customFormat),
+  transports: [new transports.Console(), new transports.File({ filename: 'combined.log' })],
 });
