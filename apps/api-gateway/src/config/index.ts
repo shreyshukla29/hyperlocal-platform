@@ -1,2 +1,2 @@
-export * from './server_config'
-export * from './rate-limit.config'
+export * from './server_config';
+export * from './rate-limit.config';

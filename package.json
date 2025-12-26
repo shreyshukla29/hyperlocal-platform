@@ -13,6 +13,7 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
+    "format": "turbo run format",
     "dev:gateway": "turbo run dev --filter=api-gateway"
   },
   "devDependencies": {
