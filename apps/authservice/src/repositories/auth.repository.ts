@@ -1,44 +1,30 @@
-import { prisma } from '../config';
+import { prisma } from '../database/prisma';
 import {
   Identity,
   IdentityVerification,
   VerificationType,
-} from '@prisma/client';
-import { normalizeEmail, normalizePhone } from './utils';
+} from '../generated/prisma/client';
+
+import {
+  CreateIdentityInput,
+  LoginLookupInput,
+} from '../types/auth.types';
+
+import {
+  normalizeEmail,
+  normalizePhone,
+} from '../utils/normalization';
 
 export class AuthRepository {
-  /* ============================
-     Identity Queries
-  ============================ */
 
-  async createIdentity(data: {
-    email?: string;
-    phone?: string;
-    passwordHash: string;
-    accountTypes: string[];
-  }): Promise<Identity> {
+
+  async createIdentity(input: CreateIdentityInput): Promise<Identity> {
     return prisma.identity.create({
       data: {
-        email: data.email ? normalizeEmail(data.email) : null,
-        phone: data.phone ? normalizePhone(data.phone) : null,
-        passwordHash: data.passwordHash,
-        accountTypes: data.accountTypes,
-      },
-    });
-  }
-
-  async findByEmail(email: string): Promise<Identity | null> {
-    return prisma.identity.findUnique({
-      where: {
-        email: normalizeEmail(email),
-      },
-    });
-  }
-
-  async findByPhone(phone: string): Promise<Identity | null> {
-    return prisma.identity.findUnique({
-      where: {
-        phone: normalizePhone(phone),
+        email: input.email ? normalizeEmail(input.email) : null,
+        phone: input.phone ? normalizePhone(input.phone) : null,
+        passwordHash: input.passwordHash,
+        accountTypes: input.accountTypes,
       },
     });
   }
@@ -49,6 +35,33 @@ export class AuthRepository {
     });
   }
 
+  async findByEmail(email: string): Promise<Identity | null> {
+    return prisma.identity.findUnique({
+      where: { email: normalizeEmail(email) },
+    });
+  }
+
+  async findByPhone(phone: string): Promise<Identity | null> {
+    return prisma.identity.findUnique({
+      where: { phone: normalizePhone(phone) },
+    });
+  }
+
+ 
+  async findForLogin(input: LoginLookupInput): Promise<Identity | null> {
+    if (input.email) {
+      return this.findByEmail(input.email);
+    }
+
+    if (input.phone) {
+      return this.findByPhone(input.phone);
+    }
+
+    return null;
+  }
+
+
+
   async deactivateIdentity(identityId: string): Promise<void> {
     await prisma.identity.update({
       where: { id: identityId },
@@ -56,9 +69,26 @@ export class AuthRepository {
     });
   }
 
-  /* ============================
-     Verification Queries
-  ============================ */
+  async activateIdentity(identityId: string): Promise<void> {
+    await prisma.identity.update({
+      where: { id: identityId },
+      data: { isActive: true },
+    });
+  }
+
+  async updateAccountTypes(
+    identityId: string,
+    accountTypes: string[]
+  ): Promise<void> {
+    await prisma.identity.update({
+      where: { id: identityId },
+      data: { accountTypes },
+    });
+  }
+
+  /* ======================================================
+     VERIFICATION – CREATION & CHECKS
+  ====================================================== */
 
   async createVerification(
     identityId: string,
@@ -74,6 +104,10 @@ export class AuthRepository {
     });
   }
 
+  /**
+   * FAST verification check
+   * Minimal select, index-friendly
+   */
   async isVerified(
     identityId: string,
     type: VerificationType
@@ -84,12 +118,16 @@ export class AuthRepository {
         type,
         verifiedAt: { not: null },
       },
-      select: { id: true }, // FAST: minimal select
+      select: { id: true },
     });
 
     return Boolean(record);
   }
 
+  /**
+   * Idempotent verification update
+   * Safe for retries
+   */
   async markVerified(
     identityId: string,
     type: VerificationType
@@ -106,37 +144,9 @@ export class AuthRepository {
     });
   }
 
-  /* ============================
-     Optimized Composite Queries
-  ============================ */
-
-  async findForLogin(params: {
-    email?: string;
-    phone?: string;
-  }): Promise<Identity | null> {
-    if (params.email) {
-      return this.findByEmail(params.email);
-    }
-
-    if (params.phone) {
-      return this.findByPhone(params.phone);
-    }
-
-    return null;
-  }
-
-  async findIdentityWithVerifications(identityId: string) {
-    return prisma.identity.findUnique({
-      where: { id: identityId },
-      include: {
-        verifications: true,
-      },
-    });
-  }
-
-  /* ============================
-     Safety / Constraints
-  ============================ */
+  /* ======================================================
+     SAFETY / PRE-CONSTRAINT CHECKS
+  ====================================================== */
 
   async existsByEmail(email: string): Promise<boolean> {
     const record = await prisma.identity.findUnique({
@@ -154,5 +164,18 @@ export class AuthRepository {
     });
 
     return Boolean(record);
+  }
+
+  /* ======================================================
+     RARE / ADMIN READS
+  ====================================================== */
+
+  async getIdentityWithVerifications(identityId: string) {
+    return prisma.identity.findUnique({
+      where: { id: identityId },
+      include: {
+        verifications: true,
+      },
+    });
   }
 }
