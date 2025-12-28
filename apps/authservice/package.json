@@ -1,0 +1,38 @@
+{
+  "name": "authservice",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -b",
+    "test": "jest",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\""
+  },
+  "dependencies": {
+    "@hyperlocal/shared": "*",
+    "@prisma/adapter-pg": "^7.2.0",
+    "@prisma/client": "^7.2.0",
+    "@types/bcrypt": "^6.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.3",
+    "express": "^4.22.1",
+    "http-status-codes": "^2.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.16.3",
+    "uuid": "^9.0.0",
+    "winston": "^3.13.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.19.27",
+    "@types/pg": "^8.16.0",
+    "nodemon": "^3.0.2",
+    "prisma": "^7.2.0",
+    "tsx": "^3.12.7",
+    "typescript": "^5.2.2"
+  }
+}

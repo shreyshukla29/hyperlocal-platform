@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum VerificationType {
+  EMAIL
+  PHONE
+}
+
+model Identity{
+  id           String   @id @default(uuid())
+
+  email        String?  @unique
+  phone        String?  @unique
+  password     String
+
+
+  accountTypes Json
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  verifications IdentityVerification[]
+    @@map("identities")
+}
+
+model IdentityVerification {
+  id         String   @id @default(uuid())
+
+  identityId String
+  type       VerificationType
+  value      String
+  verifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  identity Identity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@index([identityId])
+  @@map("identity_verifications")
+}
