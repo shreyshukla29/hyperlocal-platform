@@ -52,3 +52,5 @@ coverage/
 *.swp
 *.tmp
 *.bak
+
+.turbo
