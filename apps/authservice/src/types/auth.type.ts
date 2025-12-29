@@ -1,4 +1,5 @@
 import { VerificationType } from '../generated/prisma/client';
+import { AccountType } from '../enums';
 
 export interface CreateIdentityInput {
   email?: string;
@@ -10,6 +11,13 @@ export interface CreateIdentityInput {
 export interface LoginLookupInput {
   email?: string;
   phone?: string;
+}
+
+export interface SignupRequest {
+  email?: string;
+  phone?: string;
+  password: string;
+  accountTypes: AccountType;
 }
 
 export { VerificationType };

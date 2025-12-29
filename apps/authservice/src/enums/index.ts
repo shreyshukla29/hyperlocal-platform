@@ -1,2 +1,2 @@
-export * from './service_name.enums'
-export * from './account_type.enum'
+export * from './auth.enum';
+export * from './service_name.enums';

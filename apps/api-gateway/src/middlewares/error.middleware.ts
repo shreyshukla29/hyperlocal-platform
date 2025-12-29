@@ -1,12 +1,8 @@
 import { Request, Response } from 'express';
 import { GatewayError } from '../errors';
-import {logger} from '@hyperlocal/shared/logger';
+import { logger } from '@hyperlocal/shared/logger';
 
-export function errorMiddleware(
-  err: unknown,
-  req: Request,
-  res: Response,
-): void {
+export function errorMiddleware(err: unknown, req: Request, res: Response): void {
   let statusCode = 500;
   let message = 'Internal gateway error';
 
