@@ -1,37 +1,46 @@
-import { Request, Response } from 'express';
-
 import { AuthRepository } from '../repositories/auth.repository';
-import { signupSchema, loginSchema } from '../validators/auth.validator';
+
+import {
+  SignupRequest,
+  LoginWithEmailRequest,
+  LoginWithPhoneRequest,
+  SignupResponse,
+  LoginResponse,
+} from '../types/auth.types';
+
+import { signupSchema, loginWithEmailSchema, loginWithPhoneSchema } from '../validators/auth.validator';
 
 import { hashPassword, verifyPassword } from '../utils/password';
-import { success, created, error } from '../utils/response';
 
 import { AUTH_ERRORS } from '../constants/error.constants';
-import { AUTH_SUCCESS } from '../constants/success.constants';
 import { AUTH_METHOD } from '../constants/auth.constants';
 
+import { AppError } from '../errors/app.error';
+
 export class AuthService {
-  private readonly repo: AuthRepository;
+  constructor(private readonly repo: AuthRepository = new AuthRepository()) {}
 
-  constructor(repo?: AuthRepository) {
-    this.repo = repo ?? new AuthRepository();
-  }
 
-  signup = async (req: Request, res: Response) => {
-    const parsed = signupSchema.safeParse(req.body);
-
+  async signup(
+    payload: SignupRequest,
+  ): Promise<SignupResponse> {
+    const parsed = signupSchema.safeParse(payload);
     if (!parsed.success) {
-      return error(res, 400, AUTH_ERRORS.INVALID_PAYLOAD);
+      throw new AppError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
     }
 
     const { email, phone, password, accountType } = parsed.data;
 
+    if (!email && !phone) {
+      throw new AppError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
+    }
+
     if (email && await this.repo.existsByEmail(email)) {
-      return error(res, 409, AUTH_ERRORS.EMAIL_EXISTS);
+      throw new AppError(AUTH_ERRORS.EMAIL_EXISTS, 409);
     }
 
     if (phone && await this.repo.existsByPhone(phone)) {
-      return error(res, 409, AUTH_ERRORS.PHONE_EXISTS);
+      throw new AppError(AUTH_ERRORS.PHONE_EXISTS, 409);
     }
 
     const passwordHash = await hashPassword(password);
@@ -40,67 +49,102 @@ export class AuthService {
       email,
       phone,
       passwordHash,
-      accountTypes: [accountType],
+      accountType,
     });
 
     if (email) {
-      await this.repo.createVerification(identity.id, 'EMAIL', email);
+      await this.repo.createVerification(identity.id, AUTH_METHOD.EMAIL, email);
     }
 
     if (phone) {
-      await this.repo.createVerification(identity.id, 'PHONE', phone);
+      await this.repo.createVerification(identity.id, AUTH_METHOD.PHONE, phone);
     }
 
-    return created(res, {
-      id: identity.id,
+    return {
+      userId: identity.id,
       email: identity.email,
       phone: identity.phone,
-    }, AUTH_SUCCESS.SIGNUP_SUCCESS);
-  };
+      accountType: identity.accountType,
+    };
+  }
 
 
-  login = async (req: Request, res: Response) => {
-    const parsed = loginSchema.safeParse(req.body);
-
+  async loginWithEmail(
+    payload: LoginWithEmailRequest,
+  ): Promise<LoginResponse> {
+    const parsed = loginWithEmailSchema.safeParse(payload);
     if (!parsed.success) {
-      return error(res, 400, AUTH_ERRORS.INVALID_PAYLOAD);
+      throw new AppError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
     }
 
-    const { method, email, phone, password, loginAs } = parsed.data;
+    const { email, password, loginAs } = parsed.data;
 
-    const identity =
-      method === AUTH_METHOD.EMAIL
-        ? await this.repo.findByEmail(email!)
-        : await this.repo.findByPhone(phone!);
-
+    const identity = await this.repo.findByEmail(email);
     if (!identity) {
-      return error(res, 401, AUTH_ERRORS.INVALID_CREDENTIALS);
+      throw new AppError(AUTH_ERRORS.EMAIL_NOT_FOUND, 404);
     }
 
     if (!identity.isActive) {
-      return error(res, 403, AUTH_ERRORS.ACCOUNT_INACTIVE);
+      throw new AppError(AUTH_ERRORS.ACCOUNT_INACTIVE, 403);
     }
 
-    if (!identity.accountTypes.includes(loginAs)) {
-      return error(res, 403, AUTH_ERRORS.ACCOUNT_TYPE_NOT_ALLOWED);
+    if (identity.accountType !== loginAs) {
+      throw new AppError(AUTH_ERRORS.ACCOUNT_TYPE_NOT_ALLOWED, 403);
     }
 
     const validPassword = await verifyPassword(password, identity.passwordHash);
-
     if (!validPassword) {
-      return error(res, 401, AUTH_ERRORS.INVALID_CREDENTIALS);
+      throw new AppError(AUTH_ERRORS.INVALID_CREDENTIALS, 401);
     }
 
-    if (method === AUTH_METHOD.EMAIL) {
-      const verified = await this.repo.isVerified(identity.id, 'EMAIL');
-      if (!verified) {
-        return error(res, 403, AUTH_ERRORS.EMAIL_NOT_VERIFIED);
-      }
+    const isVerified = await this.repo.isVerified(identity.id, AUTH_METHOD.EMAIL);
+    if (!isVerified) {
+      throw new AppError(AUTH_ERRORS.EMAIL_NOT_VERIFIED, 403);
     }
 
-    return success(res, {
-      identityId: identity.id,
-      loginAs,
-    }, AUTH_SUCCESS.LOGIN_SUCCESS);
-  };
+    return {
+      userId: identity.id,
+      accountType: identity.accountType,
+    };
+  }
+
+
+  async loginWithPhone(
+    payload: LoginWithPhoneRequest,
+  ): Promise<LoginResponse> {
+    const parsed = loginWithPhoneSchema.safeParse(payload);
+    if (!parsed.success) {
+      throw new AppError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
+    }
+
+    const { phone, password, loginAs } = parsed.data;
+
+    const identity = await this.repo.findByPhone(phone);
+    if (!identity) {
+      throw new AppError(AUTH_ERRORS.PHONE_NOT_FOUND, 404);
+    }
+
+    if (!identity.isActive) {
+      throw new AppError(AUTH_ERRORS.ACCOUNT_INACTIVE, 403);
+    }
+
+    if (identity.accountType !== loginAs) {
+      throw new AppError(AUTH_ERRORS.ACCOUNT_TYPE_NOT_ALLOWED, 403);
+    }
+
+    const validPassword = await verifyPassword(password, identity.passwordHash);
+    if (!validPassword) {
+      throw new AppError(AUTH_ERRORS.INVALID_CREDENTIALS, 401);
+    }
+
+    const isVerified = await this.repo.isVerified(identity.id, AUTH_METHOD.PHONE);
+    if (!isVerified) {
+      throw new AppError(AUTH_ERRORS.PHONE_NOT_VERIFIED, 403);
+    }
+
+    return {
+      userId: identity.id,
+      accountType: identity.accountType,
+    };
+  }
 }

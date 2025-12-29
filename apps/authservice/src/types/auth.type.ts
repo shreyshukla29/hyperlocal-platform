@@ -12,4 +12,14 @@ export interface LoginLookupInput {
   phone?: string;
 }
 
+export interface SignupRequest {
+
+  email? : string
+  phone? : string
+  password: string
+  accountTypes : Jso
+
+}
+}
+
 export { VerificationType };
