@@ -6,8 +6,9 @@ export interface GatewayAuthConfig {
   validApiKey: string;
 }
 
+const apiKeyHeader = 'x-gateway-api-key'
 export function createGatewayAuthMiddleware(config: GatewayAuthConfig) {
-  const { apiKeyHeader, validApiKey } = config;
+  const { validApiKey } = config;
 
   if (!apiKeyHeader || !validApiKey) {
     throw new Error('GatewayAuthMiddleware misconfigured');

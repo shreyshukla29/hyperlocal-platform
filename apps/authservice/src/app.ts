@@ -22,7 +22,6 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 app.use(
   createGatewayAuthMiddleware({
-    apiKeyHeader: 'x-gateway-api-key',
     validApiKey: ServiceConfig.GATEWAY_API_KEY,
   }),
 );
