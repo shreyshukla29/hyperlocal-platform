@@ -20,7 +20,7 @@ const required = (key: string): string => {
   return value;
 };
 
-export const ServerConfig = {
+export const ServerConfig: ServerConfigType = {
   PORT: process.env.PORT,
   NODE_ENV: process.env.NODE_ENV ?? 'development',
   JWT_SECRET: required('JWT_SECRET'),
@@ -28,4 +28,5 @@ export const ServerConfig = {
     AUTH: process.env.SERVICE_AUTH_URL,
     USER: process.env.SERVICE_USER_URL,
   },
+  GATEWAY_API_KEY : required('GATEWAY_API_KEY')
 } as const;

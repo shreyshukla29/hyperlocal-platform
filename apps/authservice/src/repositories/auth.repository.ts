@@ -1,23 +1,11 @@
 import { prisma } from '../config';
-import {
-  Identity,
-  IdentityVerification,
-  VerificationType,
-} from '../generated/prisma/client';
+import { Identity, IdentityVerification, VerificationType } from '../generated/prisma/client';
 
-import {
-  CreateIdentityInput,
-  LoginLookupInput,
-} from '../types/auth.types';
+import { CreateIdentityInput, LoginLookupInput } from '../types/auth.types';
 
-import {
-  normalizeEmail,
-  normalizePhone,
-} from '../utils';
+import { normalizeEmail, normalizePhone } from '../utils';
 
 export class AuthRepository {
-
-
   async createIdentity(input: CreateIdentityInput): Promise<Identity> {
     return prisma.identity.create({
       data: {
@@ -47,7 +35,6 @@ export class AuthRepository {
     });
   }
 
- 
   async findForLogin(input: LoginLookupInput): Promise<Identity | null> {
     if (input.email) {
       return this.findByEmail(input.email);
@@ -59,8 +46,6 @@ export class AuthRepository {
 
     return null;
   }
-
-
 
   async deactivateIdentity(identityId: string): Promise<void> {
     await prisma.identity.update({
@@ -76,10 +61,7 @@ export class AuthRepository {
     });
   }
 
-  async updateAccountTypes(
-    identityId: string,
-    accountTypes: string[]
-  ): Promise<void> {
+  async updateAccountTypes(identityId: string, accountTypes: string[]): Promise<void> {
     await prisma.identity.update({
       where: { id: identityId },
       data: { accountTypes },
@@ -93,7 +75,7 @@ export class AuthRepository {
   async createVerification(
     identityId: string,
     type: VerificationType,
-    value: string
+    value: string,
   ): Promise<IdentityVerification> {
     return prisma.identityVerification.create({
       data: {
@@ -108,10 +90,7 @@ export class AuthRepository {
    * FAST verification check
    * Minimal select, index-friendly
    */
-  async isVerified(
-    identityId: string,
-    type: VerificationType
-  ): Promise<boolean> {
+  async isVerified(identityId: string, type: VerificationType): Promise<boolean> {
     const record = await prisma.identityVerification.findFirst({
       where: {
         identityId,
@@ -128,10 +107,7 @@ export class AuthRepository {
    * Idempotent verification update
    * Safe for retries
    */
-  async markVerified(
-    identityId: string,
-    type: VerificationType
-  ): Promise<void> {
+  async markVerified(identityId: string, type: VerificationType): Promise<void> {
     await prisma.identityVerification.updateMany({
       where: {
         identityId,

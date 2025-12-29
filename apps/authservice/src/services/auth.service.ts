@@ -20,10 +20,7 @@ import { AppError as ValidationError } from '@hyperlocal/shared';
 export class AuthService {
   constructor(private readonly repo: AuthRepository = new AuthRepository()) {}
 
-
-  async signup(
-    payload: SignupRequest,
-  ): Promise<SignupResponse> {
+  async signup(payload: SignupRequest): Promise<SignupResponse> {
     const parsed = signupSchema.safeParse(payload);
     if (!parsed.success) {
       throw new AppError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
@@ -35,11 +32,11 @@ export class AuthService {
       throw new AppError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
     }
 
-    if (email && await this.repo.existsByEmail(email)) {
+    if (email && (await this.repo.existsByEmail(email))) {
       throw new AppError(AUTH_ERRORS.EMAIL_EXISTS, 409);
     }
 
-    if (phone && await this.repo.existsByPhone(phone)) {
+    if (phone && (await this.repo.existsByPhone(phone))) {
       throw new AppError(AUTH_ERRORS.PHONE_EXISTS, 409);
     }
 
@@ -68,10 +65,7 @@ export class AuthService {
     };
   }
 
-
-  async loginWithEmail(
-    payload: LoginWithEmailRequest,
-  ): Promise<LoginResponse> {
+  async loginWithEmail(payload: LoginWithEmailRequest): Promise<LoginResponse> {
     const parsed = loginWithEmailSchema.safeParse(payload);
     if (!parsed.success) {
       throw new AppError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
@@ -108,10 +102,7 @@ export class AuthService {
     };
   }
 
-
-  async loginWithPhone(
-    payload: LoginWithPhoneRequest,
-  ): Promise<LoginResponse> {
+  async loginWithPhone(payload: LoginWithPhoneRequest): Promise<LoginResponse> {
     const parsed = loginWithPhoneSchema.safeParse(payload);
     if (!parsed.success) {
       throw new AppError(AUTH_ERRORS.INVALID_PAYLOAD, 400);

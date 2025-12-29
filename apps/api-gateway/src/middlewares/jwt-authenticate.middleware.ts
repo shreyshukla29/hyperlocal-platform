@@ -3,12 +3,7 @@ import jwt from 'jsonwebtoken';
 import { ServerConfig } from '../config';
 import { JwtPayload } from '../types';
 
-
-export function jwtAuthMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void {
+export function jwtAuthMiddleware(req: Request, res: Response, next: NextFunction): void {
   const token = req.cookies?.access_token as string | undefined;
 
   if (!token) {
@@ -26,7 +21,7 @@ export function jwtAuthMiddleware(
     });
     next();
   } catch {
-     logger.warn('JWT verification failed', {
+    logger.warn('JWT verification failed', {
       correlationId: req.context?.correlationId,
       sessionId: req.context?.sessionId,
       error: error instanceof Error ? error.message : 'Unknown error',
