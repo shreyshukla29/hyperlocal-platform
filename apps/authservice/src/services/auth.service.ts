@@ -8,14 +8,14 @@ import {
   LoginResponse,
 } from '../types/auth.types';
 
-import { signupSchema, loginWithEmailSchema, loginWithPhoneSchema } from '../validators/auth.validator';
+import { signupSchema, loginWithEmailSchema, loginWithPhoneSchema } from '../validators';
 
 import { hashPassword, verifyPassword } from '../utils/password';
 
-import { AUTH_ERRORS } from '../constants/error.constants';
-import { AUTH_METHOD } from '../constants/auth.constants';
+import { AUTH_ERRORS } from '../constants';
+import { AuthMethod } from '../enums';
 
-import { AppError } from '../errors/app.error';
+import { AppError as ValidationError } from '@hyperlocal/shared';
 
 export class AuthService {
   constructor(private readonly repo: AuthRepository = new AuthRepository()) {}
@@ -53,11 +53,11 @@ export class AuthService {
     });
 
     if (email) {
-      await this.repo.createVerification(identity.id, AUTH_METHOD.EMAIL, email);
+      await this.repo.createVerification(identity.id, AuthMethod.EMAIL, email);
     }
 
     if (phone) {
-      await this.repo.createVerification(identity.id, AUTH_METHOD.PHONE, phone);
+      await this.repo.createVerification(identity.id, AuthMethod.PHONE, phone);
     }
 
     return {
@@ -97,7 +97,7 @@ export class AuthService {
       throw new AppError(AUTH_ERRORS.INVALID_CREDENTIALS, 401);
     }
 
-    const isVerified = await this.repo.isVerified(identity.id, AUTH_METHOD.EMAIL);
+    const isVerified = await this.repo.isVerified(identity.id, AuthMethod.EMAIL);
     if (!isVerified) {
       throw new AppError(AUTH_ERRORS.EMAIL_NOT_VERIFIED, 403);
     }
@@ -137,7 +137,7 @@ export class AuthService {
       throw new AppError(AUTH_ERRORS.INVALID_CREDENTIALS, 401);
     }
 
-    const isVerified = await this.repo.isVerified(identity.id, AUTH_METHOD.PHONE);
+    const isVerified = await this.repo.isVerified(identity.id, AuthMethod.PHONE);
     if (!isVerified) {
       throw new AppError(AUTH_ERRORS.PHONE_NOT_VERIFIED, 403);
     }

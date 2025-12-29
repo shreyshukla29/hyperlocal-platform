@@ -1,4 +1,4 @@
-import { prisma } from '../database/prisma';
+import { prisma } from '../config';
 import {
   Identity,
   IdentityVerification,
@@ -13,7 +13,7 @@ import {
 import {
   normalizeEmail,
   normalizePhone,
-} from '../utils/normalization';
+} from '../utils';
 
 export class AuthRepository {
 

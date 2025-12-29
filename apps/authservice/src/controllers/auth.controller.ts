@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-
-import { logger } from '@hyperlocal';
+import { logger } from '@hyperlocal/shared/logger';
 import { AuthService } from '../services';
 
 import {
