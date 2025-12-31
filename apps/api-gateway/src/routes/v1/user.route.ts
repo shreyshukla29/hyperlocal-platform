@@ -6,5 +6,5 @@ export const userRouter = Router();
 
 userRouter.use(
   '/',
-  createServiceProxy(ServiceName.USER),
+  createServiceProxy(ServiceName.USER,'v1'),
 );

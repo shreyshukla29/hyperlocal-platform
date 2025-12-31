@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { logger } from '@hyperlocal/shared/logger';
 import { AuthService } from '../services';
@@ -8,8 +8,9 @@ import { SignupRequest, LoginWithEmailRequest, LoginWithPhoneRequest } from '../
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  async signup(req: Request, res: Response): Promise<Response> {
-    const context = req.context;
+  async signup(req: Request, res: Response, next : NextFunction): Promise<Response> {
+   try {
+     const context = req.context;
 
     const payload: SignupRequest = req.body;
 
@@ -25,10 +26,14 @@ export class AuthController {
       data: result,
       error: null,
     });
+   } catch (error) {
+    next(error)
+   }
   }
 
-  async loginWithEmail(req: Request, res: Response): Promise<Response> {
-    const context = req.context;
+  async loginWithEmail(req: Request, res: Response, next: NextFunction): Promise<Response> {
+   try {
+     const context = req.context;
 
     const payload: LoginWithEmailRequest = req.body;
 
@@ -44,10 +49,14 @@ export class AuthController {
       data: result,
       error: null,
     });
+   } catch (error) {
+    next(error)
+   }
   }
 
-  async loginWithPhone(req: Request, res: Response): Promise<Response> {
-    const context = req.context;
+  async loginWithPhone(req: Request, res: Response, next: NextFunction): Promise<Response> {
+   try {
+     const context = req.context;
 
     const payload: LoginWithPhoneRequest = req.body;
 
@@ -63,5 +72,9 @@ export class AuthController {
       data: result,
       error: null,
     });
-  }
+  
+   } catch (error) {
+    next(error)
+   }
+}
 }

@@ -1,12 +1,12 @@
 import express from 'express';
 
-import { createGatewayAuthMiddleware } from '@hyperlocal/middlewares';
-import { globalErrorHandler } from '@hyperlocal/middlewares';
+import { createGatewayAuthMiddleware } from '@hyperlocal/shared/middlewares';
+import { globalErrorHandler } from '@hyperlocal/shared/middlewares';
 
-import { ServiceConfig } from './config';
+import { ServerConfig } from './config';
 import { router } from './routes';
 
-const app = express();
+const app: typeApplication = express();
 
 app.use(express.json());
 app.get('/health', (_req: Request, res: Response) => {
@@ -22,7 +22,7 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 app.use(
   createGatewayAuthMiddleware({
-    validApiKey: ServiceConfig.GATEWAY_API_KEY,
+    validApiKey: ServerConfig.GATEWAY_API_KEY,
   }),
 );
 

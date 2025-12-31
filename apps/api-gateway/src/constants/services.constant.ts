@@ -4,3 +4,4 @@ export const SERVICE_MAP: Record<ServiceName, string> = {
   [ServiceName.AUTH]: ServerConfig.services.AUTH,
   [ServiceName.USER]: ServerConfig.services.USER,
 };
+
