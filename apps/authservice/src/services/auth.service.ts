@@ -15,7 +15,7 @@ import { hashPassword, verifyPassword } from '../utils/password';
 import { AUTH_ERRORS } from '../constants';
 import { AuthMethod } from '../enums';
 
-import { AppError as ValidationError } from '@hyperlocal/shared';
+import {  ValidationError,BadRequestError } from '@hyperlocal/shared/errors';
 
 export class AuthService {
   constructor(private readonly repo: AuthRepository = new AuthRepository()) {}
@@ -23,21 +23,21 @@ export class AuthService {
   async signup(payload: SignupRequest): Promise<SignupResponse> {
     const parsed = signupSchema.safeParse(payload);
     if (!parsed.success) {
-      throw new AppError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
+      throw new ValidationError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
     }
 
     const { email, phone, password, accountType } = parsed.data;
 
     if (!email && !phone) {
-      throw new AppError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
+      throw new BadRequestError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
     }
 
     if (email && (await this.repo.existsByEmail(email))) {
-      throw new AppError(AUTH_ERRORS.EMAIL_EXISTS, 409);
+      throw new BadRequestError(AUTH_ERRORS.EMAIL_EXISTS, 409);
     }
 
     if (phone && (await this.repo.existsByPhone(phone))) {
-      throw new AppError(AUTH_ERRORS.PHONE_EXISTS, 409);
+      throw new BadRequestError(AUTH_ERRORS.PHONE_EXISTS, 409);
     }
 
     const passwordHash = await hashPassword(password);
@@ -68,33 +68,33 @@ export class AuthService {
   async loginWithEmail(payload: LoginWithEmailRequest): Promise<LoginResponse> {
     const parsed = loginWithEmailSchema.safeParse(payload);
     if (!parsed.success) {
-      throw new AppError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
+      throw new ValidationError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
     }
 
     const { email, password, loginAs } = parsed.data;
 
     const identity = await this.repo.findByEmail(email);
     if (!identity) {
-      throw new AppError(AUTH_ERRORS.EMAIL_NOT_FOUND, 404);
+      throw new BadRequestError(AUTH_ERRORS.EMAIL_NOT_FOUND, 404);
     }
 
     if (!identity.isActive) {
-      throw new AppError(AUTH_ERRORS.ACCOUNT_INACTIVE, 403);
+      throw new BadRequestError(AUTH_ERRORS.ACCOUNT_INACTIVE, 403);
     }
 
     if (identity.accountType !== loginAs) {
-      throw new AppError(AUTH_ERRORS.ACCOUNT_TYPE_NOT_ALLOWED, 403);
+      throw new BadRequestError(AUTH_ERRORS.ACCOUNT_TYPE_NOT_ALLOWED, 403);
     }
 
     const validPassword = await verifyPassword(password, identity.passwordHash);
     if (!validPassword) {
-      throw new AppError(AUTH_ERRORS.INVALID_CREDENTIALS, 401);
+      throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS, 401);
     }
 
-    const isVerified = await this.repo.isVerified(identity.id, AuthMethod.EMAIL);
-    if (!isVerified) {
-      throw new AppError(AUTH_ERRORS.EMAIL_NOT_VERIFIED, 403);
-    }
+    // const isVerified = await this.repo.isVerified(identity.id, AuthMethod.EMAIL);
+    // if (!isVerified) {
+    //   throw new AppError(AUTH_ERRORS.EMAIL_NOT_VERIFIED, 403);
+    // }
 
     return {
       userId: identity.id,
@@ -105,33 +105,33 @@ export class AuthService {
   async loginWithPhone(payload: LoginWithPhoneRequest): Promise<LoginResponse> {
     const parsed = loginWithPhoneSchema.safeParse(payload);
     if (!parsed.success) {
-      throw new AppError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
+      throw new ValidationError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
     }
 
     const { phone, password, loginAs } = parsed.data;
 
     const identity = await this.repo.findByPhone(phone);
     if (!identity) {
-      throw new AppError(AUTH_ERRORS.PHONE_NOT_FOUND, 404);
+      throw new BadRequestError(AUTH_ERRORS.PHONE_NOT_FOUND, 404);
     }
 
     if (!identity.isActive) {
-      throw new AppError(AUTH_ERRORS.ACCOUNT_INACTIVE, 403);
+      throw new BadRequestError(AUTH_ERRORS.ACCOUNT_INACTIVE, 403);
     }
 
     if (identity.accountType !== loginAs) {
-      throw new AppError(AUTH_ERRORS.ACCOUNT_TYPE_NOT_ALLOWED, 403);
+      throw new BadRequestError(AUTH_ERRORS.ACCOUNT_TYPE_NOT_ALLOWED, 403);
     }
 
     const validPassword = await verifyPassword(password, identity.passwordHash);
     if (!validPassword) {
-      throw new AppError(AUTH_ERRORS.INVALID_CREDENTIALS, 401);
+      throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS, 401);
     }
 
-    const isVerified = await this.repo.isVerified(identity.id, AuthMethod.PHONE);
-    if (!isVerified) {
-      throw new AppError(AUTH_ERRORS.PHONE_NOT_VERIFIED, 403);
-    }
+    // const isVerified = await this.repo.isVerified(identity.id, AuthMethod.PHONE);
+    // if (!isVerified) {
+    //   throw new BadRequestError(AUTH_ERRORS.PHONE_NOT_VERIFIED, 403);
+    // }
 
     return {
       userId: identity.id,

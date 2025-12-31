@@ -3,5 +3,5 @@ export const HEADERS = {
   SESSION_ID: 'x-session-id',
   USER_ID: 'x-user-id',
   USER_ROLES: 'x-user-roles',
-  GATEWAY_API_KEY =  'x-gateway-api-key'
+  GATEWAY_API_KEY: 'x-gateway-api-key',
 } as const;
