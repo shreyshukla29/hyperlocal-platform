@@ -11,7 +11,7 @@ export function createGatewayAuthMiddleware(config: GatewayAuthConfig) {
   const { validApiKey } = config;
 
   if (!apiKeyHeader || !validApiKey) {
-   return next( new Error('GatewayAuthMiddleware misconfigured'));
+    return next(new Error('GatewayAuthMiddleware misconfigured'));
   }
 
   return function gatewayAuthMiddleware(req: Request, _res: Response, next: NextFunction): void {

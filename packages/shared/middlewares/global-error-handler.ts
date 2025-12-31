@@ -3,9 +3,14 @@ import { BaseError } from '../errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 
-export function globalErrorHandler(err: Error, req: Request, res: Response, _next : NextFunction): Response {
+export function globalErrorHandler(
+  err: Error,
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+): Response {
   const context = req.context;
- 
+
   if (err instanceof BaseError) {
     logger.error('Operational error', {
       context,

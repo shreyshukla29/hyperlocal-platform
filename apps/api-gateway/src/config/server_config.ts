@@ -28,5 +28,5 @@ export const ServerConfig: ServerConfigType = {
     AUTH: process.env.SERVICE_AUTH_URL,
     USER: process.env.SERVICE_USER_URL,
   },
-  GATEWAY_API_KEY : required('GATEWAY_API_KEY')
+  GATEWAY_API_KEY: required('GATEWAY_API_KEY'),
 } as const;
