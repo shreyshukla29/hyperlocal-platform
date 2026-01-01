@@ -11,8 +11,8 @@ export class AuthRepository {
       data: {
         email: input.email ? normalizeEmail(input.email) : null,
         phone: input.phone ? normalizePhone(input.phone) : null,
-        passwordHash: input.passwordHash,
-        accountTypes: input.accountTypes,
+        password: input.password,
+        accountType: input.accountType,
       },
     });
   }

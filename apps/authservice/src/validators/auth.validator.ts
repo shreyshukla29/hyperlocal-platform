@@ -6,8 +6,8 @@ export const signupSchema = z
     email: z.string().email().optional(),
     phone: z
       .string()
-      .min(8, 'Phone number is too short')
-      .max(15, 'Phone number is too long')
+      .min(10, 'Phone number is too short')
+      .max(10, 'Phone number is too long')
       .optional(),
 
     password: z.string().min(8, 'Password must be at least 8 characters').max(128),

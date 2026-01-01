@@ -4,6 +4,7 @@ import { logger } from '@hyperlocal/shared/logger';
 import { AuthService } from '../services';
 
 import { SignupRequest, LoginWithEmailRequest, LoginWithPhoneRequest } from '../types';
+import { ServerConfig } from '../config';
 
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -14,16 +15,23 @@ export class AuthController {
 
       const payload: SignupRequest = req.body;
 
-      const result = await this.authService.signup(payload, context);
+      const result = await this.authService.signup(payload);
 
       logger.info('Signup successful', {
         context,
         userId: result.userId,
       });
 
+        res.cookie('access_token', result.token, {
+      httpOnly: true,
+      secure: ServerConfig.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000, 
+    });
+
       return res.status(StatusCodes.CREATED).json({
         success: true,
-        data: result,
+        data: result.data,
         error: null,
       });
     } catch (error) {
@@ -34,22 +42,29 @@ export class AuthController {
   async loginWithEmail(req: Request, res: Response, next: NextFunction): Promise<Response> {
     try {
       const context = req.context;
-
       const payload: LoginWithEmailRequest = req.body;
 
-      const result = await this.authService.loginWithEmail(payload, context);
+      const result = await this.authService.loginWithEmail(payload);
 
       logger.info('Login with email successful', {
         context,
         userId: result.userId,
       });
 
+        res.cookie('access_token', result.token, {
+      httpOnly: true,
+      secure: ServerConfig.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
       return res.status(StatusCodes.OK).json({
         success: true,
-        data: result,
+        data: result.data,
         error: null,
       });
     } catch (error) {
+      console.log(error)
       next(error);
     }
   }
@@ -57,19 +72,25 @@ export class AuthController {
   async loginWithPhone(req: Request, res: Response, next: NextFunction): Promise<Response> {
     try {
       const context = req.context;
-
       const payload: LoginWithPhoneRequest = req.body;
 
-      const result = await this.authService.loginWithPhone(payload, context);
+      const result = await this.authService.loginWithPhone(payload);
 
       logger.info('Login with phone successful', {
         context,
         userId: result.userId,
       });
 
+        res.cookie('access_token', result.token, {
+      httpOnly: true,
+      secure: ServerConfig.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
       return res.status(StatusCodes.OK).json({
         success: true,
-        data: result,
+        data: result.data,
         error: null,
       });
     } catch (error) {

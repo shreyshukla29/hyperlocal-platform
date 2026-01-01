@@ -8,14 +8,12 @@ export function createServiceProxy(
   service: ServiceName,
   version: 'v1' | 'v2'
 ) {
-  console.log('here')
   return createProxyMiddleware({
     target: SERVICE_MAP[service],
     changeOrigin: true,
     pathRewrite: (path) => path.replace('', `/api/${version}/${service}`),
     on:{
       proxyReq(proxyReq, req:Request ) {
-        console.log('🔥 onProxyReq fired for:', req.originalUrl);
       proxyReq.setHeader(HEADERS.GATEWAY_API_KEY,ServerConfig.GATEWAY_API_KEY);
 
       if (req.context.user) {
