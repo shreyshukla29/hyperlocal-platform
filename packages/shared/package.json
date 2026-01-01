@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "lint": "eslint  --ext .ts",
-     "format": "prettier --write \"**/*.ts\" \"tests/**/*.ts\""
+    "format": "prettier --write \"**/*.ts\""
   },
   "dependencies": {
     "winston": "^3.13.0"

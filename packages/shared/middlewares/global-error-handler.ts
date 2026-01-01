@@ -10,7 +10,6 @@ export function globalErrorHandler(
   _next: NextFunction,
 ): Response {
   const context = req.context;
-
   if (err instanceof BaseError) {
     logger.error('Operational error', {
       context,
@@ -29,7 +28,7 @@ export function globalErrorHandler(
   logger.error('Unhandled exception', {
     context,
     error: HTTP_STATUS.INTERNAL_SERVER_ERROR,
-    message: 'something went wrong',
+    message: `something went wrong: ${err}`,
   });
 
   return res.status(500).json({
