@@ -1,11 +1,12 @@
 import { VerificationType } from '../generated/prisma/client';
 import { AccountType, AuthMethod } from '../enums';
+import { AccountType } from './../generated/prisma/enums';
 
 export interface CreateIdentityInput {
   email?: string;
   phone?: string;
-  passwordHash: string;
-  accountTypes: string[];
+  password: string;
+  accountType: AccountType;
 }
 
 export interface LoginWithEmailRequest {
@@ -26,21 +27,28 @@ export interface SignupRequest {
   email?: string;
   phone?: string;
   password: string;
-  accountTypes: AccountType;
+  accountType: AccountType;
 }
 
 
-export interface SignupResponse {
- email?: string;
+interface SignupResponseData {
+  email?: string;
   phone?: string;
   password: string;
   accountTypes: AccountType;
+}
+
+export interface SignupResponse {
+ data : SignupResponseData,
   token: string
 }
 
-export interface LoginResponse {
-   userId: string,
+interface LoginResponseData{
+  userId: string,
    accountType: AccountType,
+}
+export interface LoginResponse {
+ data :LoginResponseData,
     token: string
 }
 

@@ -31,7 +31,7 @@ export class AuthController {
 
       return res.status(StatusCodes.CREATED).json({
         success: true,
-        data: result,
+        data: result.data,
         error: null,
       });
     } catch (error) {
@@ -60,7 +60,7 @@ export class AuthController {
 
       return res.status(StatusCodes.OK).json({
         success: true,
-        data: result,
+        data: result.data,
         error: null,
       });
     } catch (error) {
@@ -90,7 +90,7 @@ export class AuthController {
 
       return res.status(StatusCodes.OK).json({
         success: true,
-        data: result,
+        data: result.data,
         error: null,
       });
     } catch (error) {

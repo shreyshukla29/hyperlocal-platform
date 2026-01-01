@@ -11,7 +11,7 @@ import {
 
 import { signupSchema, loginWithEmailSchema, loginWithPhoneSchema } from '../validators';
 
-import { hashPassword, verifyPassword } from '../utils/password';
+import { hashPassword, verifyPassword,createToken } from '../utils';
 
 import { AUTH_ERRORS } from '../constants';
 import { AuthMethod } from '../enums';
@@ -47,7 +47,7 @@ export class AuthService {
     const identity = await this.repo.createIdentity({
       email,
       phone,
-      passwordHash,
+      password:passwordHash,
       accountType,
     });
 
@@ -74,10 +74,12 @@ export class AuthService {
   });
 
     return {
-      userId: identity.id,
+      data : {
+        userId: identity.id,
       email: identity.email,
       phone: identity.phone,
       accountType: identity.accountType,
+       },
       token 
     };
   }
@@ -101,8 +103,7 @@ export class AuthService {
     if (identity.accountType !== loginAs) {
       throw new BadRequestError(AUTH_ERRORS.ACCOUNT_TYPE_NOT_ALLOWED);
     }
-
-    const validPassword = await verifyPassword(password, identity.passwordHash);
+    const validPassword = await verifyPassword(password, identity.password);
     if (!validPassword) {
       throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
     }
@@ -127,8 +128,10 @@ export class AuthService {
   });
 
     return {
-      userId: identity.id,
+     data : {
+       userId: identity.id,
       accountType: identity.accountType,
+     },
       token
     };
   }
@@ -154,7 +157,7 @@ export class AuthService {
       throw new BadRequestError(AUTH_ERRORS.ACCOUNT_TYPE_NOT_ALLOWED);
     }
 
-    const validPassword = await verifyPassword(password, identity.passwordHash);
+    const validPassword = await verifyPassword(password, identity.password);
     if (!validPassword) {
       throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
     }
@@ -179,8 +182,10 @@ export class AuthService {
   });
 
     return {
-      userId: identity.id,
+     data : {
+       userId: identity.id,
       accountType: identity.accountType,
+     },
       token
     };
   }

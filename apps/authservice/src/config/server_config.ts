@@ -7,6 +7,7 @@ interface ServerConfigType {
   DATABASE_URL: string;
   NODE_ENV: string;
   GATEWAY_API_KEY: string;
+  JWT_SECRET: string;
 }
 
 const required = (key: string): string => {
@@ -20,4 +21,5 @@ export const ServerConfig: ServerConfigType = {
   NODE_ENV: process.env.NODE_ENV ?? 'development',
   DATABASE_URL: required('DATABASE_URL'),
   GATEWAY_API_KEY: required('GATEWAY_API_KEY'),
+  JWT_SECRET: required("JWT_SECRET")
 };
