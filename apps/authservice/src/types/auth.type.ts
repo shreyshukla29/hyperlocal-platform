@@ -28,6 +28,8 @@ export interface SignupRequest {
   phone?: string;
   password: string;
   accountType: AccountType;
+  firstName: string;
+  lastName: string;
 }
 
 

@@ -18,7 +18,7 @@ import { AuthMethod } from '../enums';
 
 import {  ValidationError,BadRequestError,ForbiddenError, NotFoundError } from '@hyperlocal/shared/errors';
 import { ServerConfig } from './../config/server_config';
-
+import {publishUserSignedUpEvent} from '../events'
 export class AuthService {
   constructor(private readonly repo: AuthRepository = new AuthRepository()) {}
 
@@ -28,7 +28,8 @@ export class AuthService {
       throw new ValidationError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
     }
 
-    const { email, phone, password, accountType } = parsed.data;
+    const { email, phone, password, accountType, firstName,
+  lastName } = parsed.data;
 
     if (!email && !phone) {
       throw new BadRequestError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
@@ -58,6 +59,17 @@ export class AuthService {
     if (phone) {
       await this.repo.createVerification(identity.id, AuthMethod.PHONE, phone);
     }
+
+    await publishUserSignedUpEvent({
+  event: USER_SIGNED_UP_EVENT,
+  authIdentityId: identity.id,
+  firstName,
+  lastName,
+  email,
+  phone,
+  accountType,
+  occurredAt: new Date().toISOString(),
+});
 
     const token = createToken<AuthTokenPayload>({
     payload: {
