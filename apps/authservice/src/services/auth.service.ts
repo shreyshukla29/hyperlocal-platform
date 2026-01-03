@@ -19,6 +19,7 @@ import { AuthMethod } from '../enums';
 import {  ValidationError,BadRequestError,ForbiddenError, NotFoundError } from '@hyperlocal/shared/errors';
 import { ServerConfig } from './../config/server_config';
 import {publishUserSignedUpEvent} from '../events'
+import {USER_SIGNED_UP_EVENT} from '@hyperlocal/shared/events'
 export class AuthService {
   constructor(private readonly repo: AuthRepository = new AuthRepository()) {}
 

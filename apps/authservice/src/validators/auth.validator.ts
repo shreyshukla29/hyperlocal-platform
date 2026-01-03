@@ -13,6 +13,8 @@ export const signupSchema = z
     password: z.string().min(8, 'Password must be at least 8 characters').max(128),
 
     accountType: z.nativeEnum(AccountType),
+    firstName:z.string(),
+    lastName: z.string(),
   })
   .refine((data) => Boolean(data.email || data.phone), {
     message: 'Either email or phone is required',
