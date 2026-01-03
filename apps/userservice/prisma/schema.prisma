@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+   output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -22,8 +22,8 @@ model User {
   lastName         String
   username         String?  @unique
   avatarUrl        String?
-  email            String?
-  phone            String?
+  email            String?  @unique
+  phone            String?  @unique
   isActive         Boolean  @default(true)
   isDeleted        Boolean  @default(false)
   createdAt        DateTime @default(now())

@@ -1,8 +1,4 @@
-import express from 'express';
-import { InfoController } from '../../controllers';
+import { Router } from 'express';
 
-const router = express.Router();
+export const v1Router = Router();
 
-router.get('/info', InfoController.info);
-
-export default router;

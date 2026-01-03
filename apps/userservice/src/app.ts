@@ -5,7 +5,7 @@ import {
   globalErrorHandler,
 } from '@hyperlocal/shared/middlewares';
 import { ServerConfig } from './config';
-import  router  from './routes';
+import  {router}  from './routes';
 import cookieParser  from 'cookie-parser';
 
 export function createApp(): Application {

@@ -1,3 +1,2 @@
-import ServerConfig from './server_config.ts';
-
-export { ServerConfig };
+export * from './db.config'
+export * from './server_config'
