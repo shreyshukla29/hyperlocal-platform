@@ -7,6 +7,7 @@ interface ServerConfigType {
   DATABASE_URL: string;
   NODE_ENV: string;
   GATEWAY_API_KEY: string;
+  RABBITMQ_URL: string;
 }
 
 const required = (key: string): string => {
@@ -18,6 +19,8 @@ const required = (key: string): string => {
 export const ServerConfig: ServerConfigType = {
   PORT: process.env.PORT,
   NODE_ENV: process.env.NODE_ENV ?? 'development',
-  GATEWAY_API_KEY: required('GATEWAY_API_KEY')
+  GATEWAY_API_KEY: required('GATEWAY_API_KEY'),
+  RABBITMQ_URL : required("RABBITMQ_URL"),
+  DATABASE_URL: required('DATABASE_URL')
 };
 
