@@ -36,8 +36,7 @@ Thumbs.db
 
 # Docker
 *.dockerignore
-Dockerfile.*
-docker-compose*.yml
+
 
 # Shared package 
 shared/logger/dist/
