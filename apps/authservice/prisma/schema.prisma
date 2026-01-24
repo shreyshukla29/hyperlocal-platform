@@ -21,34 +21,42 @@ enum VerificationType {
 enum AccountType {
   USER
   PROVIDER
+  ADMIN
 }
 
-model Identity{
-  id           String   @id @default(uuid())
+model Identity {
+  id          String      @id @default(uuid())
 
-  email        String?  @unique
-  phone        String?  @unique
-  password     String
+  email       String?
+  phone       String?
+  password    String
+
   accountType AccountType
-  isActive Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isActive    Boolean     @default(true)
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
   verifications IdentityVerification[]
-    @@map("identities")
+
+  @@unique([email, accountType])
+  @@unique([phone, accountType])
+
+  @@map("identities")
 }
-
 model IdentityVerification {
-  id         String   @id @default(uuid())
+  id          String            @id @default(uuid())
 
-  identityId String
-  type       VerificationType
-  value      String
-  verifiedAt DateTime?
+  identityId  String
+  type        VerificationType
+  value       String
+  verifiedAt  DateTime?
 
-  createdAt DateTime @default(now())
+  createdAt   DateTime          @default(now())
 
-  identity Identity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  identity    Identity     @relation(fields: [identityId],references: [id], onDelete: Cascade )
 
   @@index([identityId])
+  @@index([type, value])
   @@map("identity_verifications")
 }

@@ -16,7 +16,7 @@ import { hashPassword, verifyPassword,createToken } from '../utils';
 import { AUTH_ERRORS } from '../constants';
 import { AuthMethod } from '../enums';
 
-import {  ValidationError,BadRequestError,ForbiddenError, NotFoundError } from '@hyperlocal/shared/errors';
+import {  ValidationError,BadRequestError,ForbiddenError } from '@hyperlocal/shared/errors';
 import { ServerConfig } from './../config/server_config';
 import {publishUserSignedUpEvent} from '../events'
 import {USER_SIGNED_UP_EVENT} from '@hyperlocal/shared/events'
@@ -36,13 +36,13 @@ export class AuthService {
       throw new BadRequestError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
     }
 
-    if (email && (await this.repo.existsByEmail(email))) {
-      throw new BadRequestError(AUTH_ERRORS.EMAIL_EXISTS, 409);
-    }
+    if (email && (await this.repo.existsByEmail(email, accountType))) {
+  throw new BadRequestError(AUTH_ERRORS.EMAIL_EXISTS, 409);
+}
 
-    if (phone && (await this.repo.existsByPhone(phone))) {
-      throw new BadRequestError(AUTH_ERRORS.PHONE_EXISTS, 409);
-    }
+if (phone && (await this.repo.existsByPhone(phone, accountType))) {
+  throw new BadRequestError(AUTH_ERRORS.PHONE_EXISTS, 409);
+}
 
     const passwordHash = await hashPassword(password);
 
@@ -103,23 +103,21 @@ export class AuthService {
       throw new ValidationError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
     }
 
-    const { email, password, loginAs } = parsed.data;
-    const identity = await this.repo.findByEmail(email);
-    if (!identity) {
-      throw new NotFoundError(AUTH_ERRORS.INVALID_CREDENTIALS);
-    }
+const { email, password, loginAs } = parsed.data;
 
-    if (!identity.isActive) {
-      throw new ForbiddenError(AUTH_ERRORS.ACCOUNT_INACTIVE);
-    }
+const identity = await this.repo.findByEmail(email, loginAs);
+if (!identity) {
+  throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
+}
 
-    if (identity.accountType !== loginAs) {
-      throw new BadRequestError(AUTH_ERRORS.ACCOUNT_TYPE_NOT_ALLOWED);
-    }
-    const validPassword = await verifyPassword(password, identity.password);
-    if (!validPassword) {
-      throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
-    }
+if (!identity.isActive) {
+  throw new ForbiddenError(AUTH_ERRORS.ACCOUNT_INACTIVE);
+}
+
+const validPassword = await verifyPassword(password, identity.password);
+if (!validPassword) {
+  throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
+}
 
     // const isVerified = await this.repo.isVerified(identity.id, AuthMethod.EMAIL);
     // if (!isVerified) {
@@ -157,23 +155,20 @@ export class AuthService {
 
     const { phone, password, loginAs } = parsed.data;
 
-    const identity = await this.repo.findByPhone(phone);
-    if (!identity) {
-      throw new BadRequestError(AUTH_ERRORS.PHONE_NOT_FOUND);
-    }
+const identity = await this.repo.findByPhone(phone, loginAs);
+if (!identity) {
+  throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
+}
 
-    if (!identity.isActive) {
-      throw new BadRequestError(AUTH_ERRORS.ACCOUNT_INACTIVE);
-    }
+if (!identity.isActive) {
+  throw new ForbiddenError(AUTH_ERRORS.ACCOUNT_INACTIVE);
+}
 
-    if (identity.accountType !== loginAs) {
-      throw new BadRequestError(AUTH_ERRORS.ACCOUNT_TYPE_NOT_ALLOWED);
-    }
+const validPassword = await verifyPassword(password, identity.password);
+if (!validPassword) {
+  throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
+}
 
-    const validPassword = await verifyPassword(password, identity.password);
-    if (!validPassword) {
-      throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
-    }
 
     // const isVerified = await this.repo.isVerified(identity.id, AuthMethod.PHONE);
     // if (!isVerified) {
