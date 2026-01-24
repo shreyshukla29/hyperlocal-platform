@@ -16,7 +16,7 @@ import { hashPassword, verifyPassword,createToken } from '../utils';
 import { AUTH_ERRORS } from '../constants';
 import { AuthMethod } from '../enums';
 
-import {  ValidationError,BadRequestError,ForbiddenError, NotFoundError } from '@hyperlocal/shared/errors';
+import {  ValidationError,BadRequestError,ForbiddenError } from '@hyperlocal/shared/errors';
 import { ServerConfig } from './../config/server_config';
 import {publishUserSignedUpEvent} from '../events'
 import {USER_SIGNED_UP_EVENT} from '@hyperlocal/shared/events'
