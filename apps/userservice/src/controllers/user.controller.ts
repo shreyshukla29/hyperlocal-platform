@@ -13,9 +13,10 @@ export class UserController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const { id: userId } = req.params;
+      console.log(req)
+      const  authIdentityId= req.headers['x-user-id'] as string | undefined;
 
-      const user = await this.userService.getUserById(userId);
+      const user = await this.userService.getUserById(authIdentityId);
 
       return res.status(StatusCodes.OK).json({
         data: user,

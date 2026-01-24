@@ -19,16 +19,14 @@ _next: NextFunction,
   if (err instanceof Error && statusCode === 500) {
     message = err.message;
   }
-
+console.log(err)
   logger.error('Gateway request failed', {
     statusCode,
     errorMessage: err instanceof Error ? err.message : 'Unknown error',
     stack: err instanceof Error ? err.stack : undefined,
-
     correlationId: req.context?.correlationId,
     sessionId: req.context?.sessionId,
     userId: req.context?.user?.sub,
-
     method: req.method,
     path: req.originalUrl,
   });

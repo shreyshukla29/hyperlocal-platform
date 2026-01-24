@@ -56,6 +56,8 @@ export class UserRepository {
     });
   }
 
+  
+
   async findByAuthIdentityId(authIdentityId: string): Promise<User | null> {
     return prisma.user.findUnique({
       where: { authIdentityId },
