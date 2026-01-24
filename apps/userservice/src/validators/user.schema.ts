@@ -11,3 +11,16 @@ export const updateUserProfileSchema = z
     timezone: z.string().max(50).optional(),
   })
   .strict();
+
+  export type UpdateUserProfilePayload =
+  z.infer<typeof updateUserProfileSchema>;
+
+
+export const uploadAvatarSchema = z
+  .object({
+    avatarUrl: z.string().url(),
+  })
+  .strict();
+
+export type UploadAvatarPayload =
+  z.infer<typeof uploadAvatarSchema>;
