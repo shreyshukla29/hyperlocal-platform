@@ -6,9 +6,9 @@ import {
 } from '@hyperlocal/shared/errors';
 
 import {
-  UpdateUserProfilePayload,
   CreateUserPayload,
 } from '../repositories';
+import {UpdateUserProfilePayload} from '../validators'
 
 export class UserService {
   constructor(

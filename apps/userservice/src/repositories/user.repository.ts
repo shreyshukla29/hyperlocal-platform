@@ -11,16 +11,6 @@ export interface CreateUserPayload {
   phone?: string | null;
 }
 
-export interface UpdateUserProfilePayload {
-  firstName?: string;
-  lastName?: string | null;
-  bio?: string | null;
-  dateOfBirth?: Date | null;
-  gender?: string | null;
-  language?: string | null;
-  timezone?: string | null;
-}
-
 
 
 export class UserRepository {
@@ -56,7 +46,7 @@ export class UserRepository {
     });
   }
 
-  
+
 
   async findByAuthIdentityId(authIdentityId: string): Promise<User | null> {
     return prisma.user.findUnique({
@@ -79,7 +69,7 @@ export class UserRepository {
 
   async updateProfile(
     userId: string,
-    payload: UpdateUserProfilePayload,
+    payload: Upd,
   ): Promise<User> {
     return prisma.user.update({
       where: { id: userId },
