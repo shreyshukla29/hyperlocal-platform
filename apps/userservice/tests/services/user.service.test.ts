@@ -10,6 +10,13 @@ import { createMockUser, createMockUserPayload, createMockPrismaError } from '..
 import { Prisma } from '../../src/generated/prisma/client';
 
 jest.mock('../../src/repositories/user.repository');
+jest.mock('../../src/utils', () => ({
+  uploadImage: jest.fn(),
+  deleteImage: jest.fn(),
+  extractPublicIdFromUrl: jest.fn(),
+  validateImageFile: jest.fn(),
+  optimizeImage: jest.fn(),
+}));
 jest.mock('@hyperlocal/shared/logger', () => ({
   logger: {
     info: jest.fn(),
@@ -142,6 +149,10 @@ describe('UserService', () => {
       await expect(service.getUserById('', 'auth-123')).rejects.toThrow(BadRequestError);
     });
 
+    it('should throw BadRequestError when requestingAuthId is empty', async () => {
+      await expect(service.getUserById('user-123', '')).rejects.toThrow(BadRequestError);
+    });
+
     it('should throw NotFoundError when user not found', async () => {
       mockRepository.findById.mockResolvedValue(null);
 
@@ -180,6 +191,10 @@ describe('UserService', () => {
       await expect(service.updateUserProfile('', {}, 'auth-123')).rejects.toThrow(BadRequestError);
     });
 
+    it('should throw BadRequestError when requestingAuthId is empty', async () => {
+      await expect(service.updateUserProfile('user-123', {}, '')).rejects.toThrow(BadRequestError);
+    });
+
     it('should throw BadRequestError when payload is empty', async () => {
       await expect(service.updateUserProfile('user-123', {}, 'auth-123')).rejects.toThrow(BadRequestError);
       await expect(service.updateUserProfile('user-123', {}, 'auth-123')).rejects.toThrow('No fields provided to update');
@@ -210,58 +225,153 @@ describe('UserService', () => {
     });
   });
 
-  describe('updateUserAvatar', () => {
-    it('should update user avatar successfully', async () => {
+  describe('uploadUserAvatar', () => {
+    const { uploadImage, validateImageFile, optimizeImage, extractPublicIdFromUrl, deleteImage } = require('../../src/utils');
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should upload avatar successfully', async () => {
       const userId = 'user-123';
       const requestingAuthId = 'auth-123';
-      const avatarUrl = 'https://example.com/avatar.jpg';
+      const fileBuffer = Buffer.from('fake-image');
       const mockUser = createMockUser();
-      const updatedUser = createMockUser({ avatarUrl });
+      const updatedUser = createMockUser({ avatarUrl: 'https://cloudinary.com/avatar.jpg' });
 
+      validateImageFile.mockResolvedValue({ isValid: true });
+      optimizeImage.mockResolvedValue(Buffer.from('optimized'));
       mockRepository.findById.mockResolvedValue(mockUser);
+      extractPublicIdFromUrl.mockReturnValue(null);
+      uploadImage.mockResolvedValue({
+        secureUrl: 'https://cloudinary.com/avatar.jpg',
+      });
       mockRepository.updateAvatar.mockResolvedValue(updatedUser);
 
-      const result = await service.updateUserAvatar(userId, avatarUrl, requestingAuthId);
+      const result = await service.uploadUserAvatar({
+        userId,
+        fileBuffer,
+        requestingAuthId,
+      });
 
-      expect(mockRepository.updateAvatar).toHaveBeenCalledWith(userId, avatarUrl);
+      expect(validateImageFile).toHaveBeenCalledWith(fileBuffer);
+      expect(optimizeImage).toHaveBeenCalledWith(fileBuffer);
+      expect(uploadImage).toHaveBeenCalled();
       expect(result).toEqual(updatedUser);
     });
 
     it('should throw BadRequestError when userId is empty', async () => {
-      await expect(service.updateUserAvatar('', 'url', 'auth-123')).rejects.toThrow(BadRequestError);
+      await expect(service.uploadUserAvatar({
+        userId: '',
+        fileBuffer: Buffer.from('test'),
+        requestingAuthId: 'auth-123',
+      })).rejects.toThrow(BadRequestError);
     });
 
-    it('should throw BadRequestError when avatarUrl is empty', async () => {
-      await expect(service.updateUserAvatar('user-123', '', 'auth-123')).rejects.toThrow(BadRequestError);
+    it('should throw BadRequestError when requestingAuthId is empty', async () => {
+      await expect(service.uploadUserAvatar({
+        userId: 'user-123',
+        fileBuffer: Buffer.from('test'),
+        requestingAuthId: '',
+      })).rejects.toThrow(BadRequestError);
+    });
+
+    it('should throw BadRequestError when fileBuffer is empty', async () => {
+      await expect(service.uploadUserAvatar({
+        userId: 'user-123',
+        fileBuffer: Buffer.alloc(0),
+        requestingAuthId: 'auth-123',
+      })).rejects.toThrow(BadRequestError);
+    });
+
+    it('should throw BadRequestError when image validation fails', async () => {
+      const fileBuffer = Buffer.from('invalid');
+
+      validateImageFile.mockResolvedValue({
+        isValid: false,
+        error: 'Invalid file type',
+      });
+
+      await expect(service.uploadUserAvatar({
+        userId: 'user-123',
+        fileBuffer,
+        requestingAuthId: 'auth-123',
+      })).rejects.toThrow(BadRequestError);
+    });
+
+    it('should delete old avatar before uploading new one', async () => {
+      const userId = 'user-123';
+      const requestingAuthId = 'auth-123';
+      const fileBuffer = Buffer.from('fake-image');
+      const mockUser = createMockUser({
+        avatarUrl: 'https://cloudinary.com/old-avatar.jpg',
+      });
+      const updatedUser = createMockUser({ avatarUrl: 'https://cloudinary.com/new-avatar.jpg' });
+
+      validateImageFile.mockResolvedValue({ isValid: true });
+      optimizeImage.mockResolvedValue(Buffer.from('optimized'));
+      mockRepository.findById.mockResolvedValue(mockUser);
+      extractPublicIdFromUrl.mockReturnValue('old-public-id');
+      deleteImage.mockResolvedValue(undefined);
+      uploadImage.mockResolvedValue({
+        secureUrl: 'https://cloudinary.com/new-avatar.jpg',
+      });
+      mockRepository.updateAvatar.mockResolvedValue(updatedUser);
+
+      await service.uploadUserAvatar({
+        userId,
+        fileBuffer,
+        requestingAuthId,
+      });
+
+      expect(deleteImage).toHaveBeenCalledWith('old-public-id');
     });
 
     it('should throw ForbiddenError when unauthorized', async () => {
+      const fileBuffer = Buffer.from('fake-image');
       const mockUser = createMockUser({ authIdentityId: 'different-auth' });
 
+      validateImageFile.mockResolvedValue({ isValid: true });
       mockRepository.findById.mockResolvedValue(mockUser);
 
-      await expect(service.updateUserAvatar('user-123', 'url', 'auth-123')).rejects.toThrow(ForbiddenError);
+      await expect(service.uploadUserAvatar({
+        userId: 'user-123',
+        fileBuffer,
+        requestingAuthId: 'auth-123',
+      })).rejects.toThrow(ForbiddenError);
     });
   });
 
   describe('deleteUserAvatar', () => {
-    it('should delete user avatar successfully', async () => {
+    const { extractPublicIdFromUrl, deleteImage } = require('../../src/utils');
+
+    it('should delete avatar successfully', async () => {
       const userId = 'user-123';
       const requestingAuthId = 'auth-123';
-      const mockUser = createMockUser();
+      const mockUser = createMockUser({
+        avatarUrl: 'https://cloudinary.com/avatar.jpg',
+      });
       const updatedUser = createMockUser({ avatarUrl: null });
 
       mockRepository.findById.mockResolvedValue(mockUser);
+      extractPublicIdFromUrl.mockReturnValue('public-id-123');
+      deleteImage.mockResolvedValue(undefined);
       mockRepository.deleteAvatar.mockResolvedValue(updatedUser);
 
       const result = await service.deleteUserAvatar(userId, requestingAuthId);
 
+      expect(extractPublicIdFromUrl).toHaveBeenCalledWith(mockUser.avatarUrl);
+      expect(deleteImage).toHaveBeenCalledWith('public-id-123');
       expect(mockRepository.deleteAvatar).toHaveBeenCalledWith(userId);
       expect(result).toEqual(updatedUser);
     });
 
     it('should throw BadRequestError when userId is empty', async () => {
       await expect(service.deleteUserAvatar('', 'auth-123')).rejects.toThrow(BadRequestError);
+    });
+
+    it('should throw BadRequestError when requestingAuthId is empty', async () => {
+      await expect(service.deleteUserAvatar('user-123', '')).rejects.toThrow(BadRequestError);
     });
 
     it('should throw ForbiddenError when unauthorized', async () => {

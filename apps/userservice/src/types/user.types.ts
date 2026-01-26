@@ -1,5 +1,5 @@
 import { UserModel } from '../generated/prisma/models/User';
-import { UpdateUserProfilePayload, UploadAvatarPayload } from '../validators';
+import { UpdateUserProfilePayload } from '../validators';
 
 export type UserResponse = UserModel;
 
@@ -17,4 +17,10 @@ export interface UpdateUserRepositoryPayload {
   lastName?: string | null;
   username?: string | null;
   avatarUrl?: string | null;
+}
+
+export interface UploadAvatarParams {
+  userId: string;
+  fileBuffer?: Buffer;
+  requestingAuthId?: string;
 }

@@ -9,9 +9,17 @@ import {
 import {
   CreateUserPayload,
   UpdateUserRepositoryPayload,
+  UploadAvatarParams,
 } from '../types';
 import { UpdateUserProfilePayload } from '../validators';
 import { Prisma } from '../generated/prisma/client';
+import {
+  uploadImage,
+  extractPublicIdFromUrl,
+  deleteImage,
+  validateImageFile,
+  optimizeImage,
+} from '../utils';
 
 export class UserService {
   constructor(
@@ -48,7 +56,7 @@ export class UserService {
     }
   }
 
-  async getUserByAuthIdentityId(authIdentityId: string) {
+  async getUserByAuthIdentityId(authIdentityId?: string) {
     if (!authIdentityId) {
       throw new BadRequestError('Auth identity ID is required');
     }
@@ -66,9 +74,13 @@ export class UserService {
     return user;
   }
 
-  async getUserById(userId: string, requestingAuthId: string) {
+  async getUserById(userId: string, requestingAuthId?: string) {
     if (!userId) {
       throw new BadRequestError('User ID is required');
+    }
+
+    if (!requestingAuthId) {
+      throw new BadRequestError('Auth identity ID is required');
     }
 
     const user = await this.userRepo.findById(userId);
@@ -91,10 +103,14 @@ export class UserService {
   async updateUserProfile(
     userId: string,
     payload: UpdateUserProfilePayload,
-    requestingAuthId: string,
+    requestingAuthId?: string,
   ) {
     if (!userId) {
       throw new BadRequestError('User ID is required');
+    }
+
+    if (!requestingAuthId) {
+      throw new BadRequestError('Auth identity ID is required');
     }
 
     if (!Object.keys(payload).length) {
@@ -150,17 +166,24 @@ export class UserService {
     }
   }
 
-  async updateUserAvatar(
-    userId: string,
-    avatarUrl: string,
-    requestingAuthId: string,
-  ) {
+  async uploadUserAvatar(params: UploadAvatarParams) {
+    const { userId, fileBuffer, requestingAuthId } = params;
+
     if (!userId) {
       throw new BadRequestError('User ID is required');
     }
 
-    if (!avatarUrl) {
-      throw new BadRequestError('Avatar URL is required');
+    if (!requestingAuthId) {
+      throw new BadRequestError('Auth identity ID is required');
+    }
+
+    if (!fileBuffer || fileBuffer.length === 0) {
+      throw new BadRequestError('Avatar image file is required');
+    }
+
+    const validation = await validateImageFile(fileBuffer);
+    if (!validation.isValid) {
+      throw new BadRequestError(validation.error || 'Invalid image file');
     }
 
     const user = await this.userRepo.findById(userId);
@@ -176,7 +199,36 @@ export class UserService {
       throw new ForbiddenError('User account is inactive or deleted');
     }
 
-    const updatedUser = await this.userRepo.updateAvatar(userId, avatarUrl);
+    let optimizedBuffer = fileBuffer;
+    try {
+      optimizedBuffer = await optimizeImage(fileBuffer);
+    } catch (error: any) {
+      logger.warn('Image optimization failed, using original', {
+        error: error.message,
+        userId,
+      });
+    }
+
+    if (user.avatarUrl) {
+      const oldPublicId = extractPublicIdFromUrl(user.avatarUrl);
+      if (oldPublicId) {
+        try {
+          await deleteImage(oldPublicId);
+        } catch (error: any) {
+          logger.warn('Failed to delete old avatar from Cloudinary', {
+            error: error.message,
+            publicId: oldPublicId,
+          });
+        }
+      }
+    }
+
+    const uploadResult = await uploadImage(optimizedBuffer, {
+      folder: 'avatars',
+      userId,
+    });
+
+    const updatedUser = await this.userRepo.updateAvatar(userId, uploadResult.secureUrl);
 
     logger.info('User avatar updated', {
       userId,
@@ -185,9 +237,13 @@ export class UserService {
     return updatedUser;
   }
 
-  async deleteUserAvatar(userId: string, requestingAuthId: string) {
+  async deleteUserAvatar(userId: string, requestingAuthId?: string) {
     if (!userId) {
       throw new BadRequestError('User ID is required');
+    }
+
+    if (!requestingAuthId) {
+      throw new BadRequestError('Auth identity ID is required');
     }
 
     const user = await this.userRepo.findById(userId);
@@ -201,6 +257,20 @@ export class UserService {
 
     if (!user.isActive || user.isDeleted) {
       throw new ForbiddenError('User account is inactive or deleted');
+    }
+
+    if (user.avatarUrl) {
+      const publicId = extractPublicIdFromUrl(user.avatarUrl);
+      if (publicId) {
+        try {
+          await deleteImage(publicId);
+        } catch (error: any) {
+          logger.warn('Failed to delete avatar from Cloudinary', {
+            error: error.message,
+            publicId,
+          });
+        }
+      }
     }
 
     const updatedUser = await this.userRepo.deleteAvatar(userId);

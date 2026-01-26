@@ -10,20 +10,6 @@ import {
 } from '@hyperlocal/shared/errors';
 
 jest.mock('../../src/service/user.service');
-jest.mock('../../src/utils', () => ({
-  uploadImage: jest.fn(),
-  deleteImage: jest.fn(),
-  extractPublicIdFromUrl: jest.fn(),
-  validateImageFile: jest.fn(),
-  optimizeImage: jest.fn(),
-}));
-jest.mock('@hyperlocal/shared/logger', () => ({
-  logger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
 
 describe('UserController', () => {
   let controller: UserController;
@@ -37,7 +23,7 @@ describe('UserController', () => {
       getUserByAuthIdentityId: jest.fn(),
       getUserById: jest.fn(),
       updateUserProfile: jest.fn(),
-      updateUserAvatar: jest.fn(),
+      uploadUserAvatar: jest.fn(),
       deleteUserAvatar: jest.fn(),
     } as any;
 
@@ -82,24 +68,6 @@ describe('UserController', () => {
       });
     });
 
-    it('should return 401 when authIdentityId is missing', async () => {
-      mockRequest.headers = {};
-
-      await controller.getUserProfile(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
-
-      expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.UNAUTHORIZED);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'UNAUTHORIZED',
-        message: 'User ID is required',
-        data: null,
-      });
-    });
-
     it('should call next with error when service throws', async () => {
       mockRequest.headers = { 'x-user-id': 'auth-123' };
       const error = new NotFoundError('User not found');
@@ -139,9 +107,12 @@ describe('UserController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
     });
 
-    it('should return 401 when authIdentityId is missing', async () => {
-      mockRequest.headers = {};
+    it('should call next with error when service throws', async () => {
+      mockRequest.headers = { 'x-user-id': 'auth-123' };
       mockRequest.params = { id: 'user-123' };
+      const error = new ForbiddenError('Access denied');
+
+      mockService.updateUserProfile.mockRejectedValue(error);
 
       await controller.updateUserProfile(
         mockRequest as Request,
@@ -149,106 +120,72 @@ describe('UserController', () => {
         mockNext,
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.UNAUTHORIZED);
+      expect(mockNext).toHaveBeenCalledWith(error);
     });
   });
 
   describe('uploadUserAvatar', () => {
     it('should upload avatar successfully', async () => {
-      const { uploadImage, validateImageFile, optimizeImage, extractPublicIdFromUrl, deleteImage } = require('../../src/utils');
-      const mockUser = createMockUser();
       const mockFile = {
         buffer: Buffer.from('fake-image'),
         mimetype: 'image/jpeg',
       };
-
-      mockRequest.headers = { 'x-user-id': 'auth-123' };
-      mockRequest.params = { id: 'user-123' };
-      mockRequest.file = mockFile as Express.Multer.File;
-
-      validateImageFile.mockResolvedValue({ isValid: true });
-      optimizeImage.mockResolvedValue(Buffer.from('optimized'));
-      mockService.getUserById.mockResolvedValue(mockUser);
-      uploadImage.mockResolvedValue({
-        secureUrl: 'https://cloudinary.com/avatar.jpg',
-      });
-      mockService.updateUserAvatar.mockResolvedValue(
-        createMockUser({ avatarUrl: 'https://cloudinary.com/avatar.jpg' }),
-      );
-
-      await controller.uploadUserAvatar(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
-
-      expect(validateImageFile).toHaveBeenCalledWith(mockFile.buffer);
-      expect(uploadImage).toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
-    });
-
-    it('should return 400 when file is missing', async () => {
-      mockRequest.headers = { 'x-user-id': 'auth-123' };
-      mockRequest.params = { id: 'user-123' };
-      mockRequest.file = undefined;
-
-      await controller.uploadUserAvatar(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
-
-      expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.BAD_REQUEST);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'BAD_REQUEST',
-        message: 'Avatar image file is required',
-        data: null,
-      });
-    });
-
-    it('should return 400 when image validation fails', async () => {
-      const { validateImageFile } = require('../../src/utils');
-      const mockFile = {
-        buffer: Buffer.from('fake-image'),
-        mimetype: 'image/jpeg',
-      };
-
-      mockRequest.headers = { 'x-user-id': 'auth-123' };
-      mockRequest.params = { id: 'user-123' };
-      mockRequest.file = mockFile as Express.Multer.File;
-
-      validateImageFile.mockResolvedValue({
-        isValid: false,
-        error: 'Invalid file type',
-      });
-
-      await controller.uploadUserAvatar(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
-
-      expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.BAD_REQUEST);
-    });
-  });
-
-  describe('deleteUserAvatar', () => {
-    it('should delete avatar successfully', async () => {
-      const { extractPublicIdFromUrl, deleteImage } = require('../../src/utils');
       const mockUser = createMockUser({
         avatarUrl: 'https://cloudinary.com/avatar.jpg',
       });
 
       mockRequest.headers = { 'x-user-id': 'auth-123' };
       mockRequest.params = { id: 'user-123' };
+      mockRequest.file = mockFile as Express.Multer.File;
 
-      mockService.getUserById.mockResolvedValue(mockUser);
-      extractPublicIdFromUrl.mockReturnValue('public-id-123');
-      deleteImage.mockResolvedValue(undefined);
-      mockService.deleteUserAvatar.mockResolvedValue(
-        createMockUser({ avatarUrl: null }),
+      mockService.uploadUserAvatar.mockResolvedValue(mockUser);
+
+      await controller.uploadUserAvatar(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext,
       );
+
+      expect(mockService.uploadUserAvatar).toHaveBeenCalledWith({
+        userId: 'user-123',
+        fileBuffer: mockFile.buffer,
+        requestingAuthId: 'auth-123',
+      });
+      expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
+    });
+
+    it('should call next with error when service throws', async () => {
+      const mockFile = {
+        buffer: Buffer.from('fake-image'),
+        mimetype: 'image/jpeg',
+      };
+
+      mockRequest.headers = { 'x-user-id': 'auth-123' };
+      mockRequest.params = { id: 'user-123' };
+      mockRequest.file = mockFile as Express.Multer.File;
+
+      const error = new BadRequestError('Invalid image file');
+
+      mockService.uploadUserAvatar.mockRejectedValue(error);
+
+      await controller.uploadUserAvatar(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext,
+      );
+
+      expect(mockNext).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('deleteUserAvatar', () => {
+    it('should delete avatar successfully', async () => {
+      const mockUser = createMockUser({ avatarUrl: null });
+
+      mockRequest.headers = { 'x-user-id': 'auth-123' };
+      mockRequest.params = { id: 'user-123' };
+
+      mockService.deleteUserAvatar.mockResolvedValue(mockUser);
 
       await controller.deleteUserAvatar(
         mockRequest as Request,
@@ -256,14 +193,17 @@ describe('UserController', () => {
         mockNext,
       );
 
-      expect(deleteImage).toHaveBeenCalledWith('public-id-123');
       expect(mockService.deleteUserAvatar).toHaveBeenCalledWith('user-123', 'auth-123');
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
     });
 
-    it('should return 401 when authIdentityId is missing', async () => {
-      mockRequest.headers = {};
+    it('should call next with error when service throws', async () => {
+      mockRequest.headers = { 'x-user-id': 'auth-123' };
       mockRequest.params = { id: 'user-123' };
+
+      const error = new ForbiddenError('Access denied');
+
+      mockService.deleteUserAvatar.mockRejectedValue(error);
 
       await controller.deleteUserAvatar(
         mockRequest as Request,
@@ -271,8 +211,7 @@ describe('UserController', () => {
         mockNext,
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.UNAUTHORIZED);
+      expect(mockNext).toHaveBeenCalledWith(error);
     });
   });
 });
-
