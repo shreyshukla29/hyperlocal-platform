@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
-
-
-import { UserService } from '../services/user.service';
+import { UserService } from '../service';
+import { UpdateUserProfilePayload } from '../validators';
 
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -13,36 +12,47 @@ export class UserController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      console.log(req)
-      const  authIdentityId= req.headers['x-user-id'] as string | undefined;
+      const authIdentityId = req.headers['x-user-id'] as string | undefined;
 
-      const user = await this.userService.getUserById(authIdentityId);
+      const user = await this.userService.getUserByAuthIdentityId(
+        authIdentityId,
+      );
 
       return res.status(StatusCodes.OK).json({
+        success: true,
         data: user,
+        error: null,
       });
     } catch (error) {
-   
       next(error);
     }
   }
 
+  async updateUserProfile(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> {
+    try {
+      const { id: userId } = req.params;
+      const authIdentityId = req.headers['x-user-id'] as string | undefined;
+      const payload = req.body as UpdateUserProfilePayload;
 
-  async updateUserProfile(req, res, next) {
-  try {
-    const { id: userId } = req.params;
+      const user = await this.userService.updateUserProfile(
+        userId,
+        payload,
+        authIdentityId,
+      );
 
-    const user = await this.userService.updateUserProfile(
-      userId,
-      req.body,
-    );
-
-    return res.status(200).json({ data: user });
-  } catch (error) {
-    next(error);
+      return res.status(StatusCodes.OK).json({
+        success: true,
+        data: user,
+        error: null,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-}
-
 
   async uploadUserAvatar(
     req: Request,
@@ -51,18 +61,21 @@ export class UserController {
   ): Promise<Response | void> {
     try {
       const { id: userId } = req.params;
-      const { avatarUrl } = req.body;
+      const authIdentityId = req.headers['x-user-id'] as string | undefined;
+      const file = req.file;
 
-      const user = await this.userService.updateUserAvatar(
+      const user = await this.userService.uploadUserAvatar({
         userId,
-        avatarUrl,
-      );
+        fileBuffer: file?.buffer,
+        requestingAuthId: authIdentityId,
+      });
 
       return res.status(StatusCodes.OK).json({
+        success: true,
         data: user,
+        error: null,
       });
     } catch (error) {
-  
       next(error);
     }
   }
@@ -74,11 +87,17 @@ export class UserController {
   ): Promise<Response | void> {
     try {
       const { id: userId } = req.params;
+      const authIdentityId = req.headers['x-user-id'] as string | undefined;
 
-      const user = await this.userService.deleteUserAvatar(userId);
+      const user = await this.userService.deleteUserAvatar(
+        userId,
+        authIdentityId,
+      );
 
       return res.status(StatusCodes.OK).json({
+        success: true,
         data: user,
+        error: null,
       });
     } catch (error) {
       next(error);

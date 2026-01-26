@@ -1,26 +1,49 @@
 import { z } from 'zod';
 
+const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
+
+const trimString = (val: string) => val.trim();
+const toLowerCase = (val: string) => val.toLowerCase();
+
+const usernameSchema = z
+  .string()
+  .min(3, 'Username must be at least 3 characters')
+  .max(30, 'Username must be at most 30 characters')
+  .regex(
+    usernameRegex,
+    'Username can only contain letters, numbers, and underscores',
+  )
+  .transform(toLowerCase)
+  .transform(trimString);
+
+const firstNameSchema = z
+  .string()
+  .min(1, 'First name is required')
+  .max(100, 'First name must be at most 100 characters')
+  .transform(trimString)
+  .refine(
+    (val) => val.length > 0,
+    'First name cannot be empty after trimming',
+  );
+
+const lastNameSchema = z
+  .string()
+  .max(100, 'Last name must be at most 100 characters')
+  .transform(trimString)
+  .nullable();
+
 export const updateUserProfileSchema = z
   .object({
-    firstName: z.string().min(1).max(100).optional(),
-    lastName: z.string().max(100).nullable().optional(),
-    bio: z.string().max(500).nullable().optional(),
-    dateOfBirth: z.coerce.date().nullable().optional(),
-    gender: z.enum(['male', 'female', 'other']).nullable().optional(),
-    language: z.string().max(10).optional(),
-    timezone: z.string().max(50).optional(),
+    firstName: firstNameSchema.optional(),
+    lastName: lastNameSchema.optional(),
+    username: usernameSchema.optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (data) => Object.keys(data).length > 0,
+    'At least one field must be provided for update',
+  );
 
-  export type UpdateUserProfilePayload =
-  z.infer<typeof updateUserProfileSchema>;
-
-
-export const uploadAvatarSchema = z
-  .object({
-    avatarUrl: z.string().url(),
-  })
-  .strict();
-
-export type UploadAvatarPayload =
-  z.infer<typeof uploadAvatarSchema>;
+export type UpdateUserProfilePayload = z.infer<
+  typeof updateUserProfileSchema
+>;

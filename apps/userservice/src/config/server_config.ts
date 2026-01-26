@@ -8,6 +8,9 @@ interface ServerConfigType {
   NODE_ENV: string;
   GATEWAY_API_KEY: string;
   RABBITMQ_URL: string;
+  CLOUDINARY_CLOUD_NAME: string;
+  CLOUDINARY_API_KEY: string;
+  CLOUDINARY_API_SECRET: string;
 }
 
 const required = (key: string): string => {
@@ -20,7 +23,9 @@ export const ServerConfig: ServerConfigType = {
   PORT: process.env.PORT,
   NODE_ENV: process.env.NODE_ENV ?? 'development',
   GATEWAY_API_KEY: required('GATEWAY_API_KEY'),
-  RABBITMQ_URL : required("RABBITMQ_URL"),
-  DATABASE_URL: required('DATABASE_URL')
+  RABBITMQ_URL: required('RABBITMQ_URL'),
+  DATABASE_URL: required('DATABASE_URL'),
+  CLOUDINARY_CLOUD_NAME: required('CLOUDINARY_CLOUD_NAME'),
+  CLOUDINARY_API_KEY: required('CLOUDINARY_API_KEY'),
+  CLOUDINARY_API_SECRET: required('CLOUDINARY_API_SECRET'),
 };
-
