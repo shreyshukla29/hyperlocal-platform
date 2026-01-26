@@ -1,4 +1,3 @@
-import { UserService } from '../../src/service/user.service';
 import { UserRepository } from '../../src/repositories/user.repository';
 import {
   NotFoundError,
@@ -7,16 +6,12 @@ import {
   ForbiddenError,
 } from '@hyperlocal/shared/errors';
 import { createMockUser, createMockUserPayload, createMockPrismaError } from '../helpers/test-helpers';
-import { Prisma } from '../../src/generated/prisma/client';
+import { jest } from '@jest/globals';
 
-jest.mock('../../src/repositories/user.repository');
-jest.mock('../../src/utils', () => ({
-  uploadImage: jest.fn(),
-  deleteImage: jest.fn(),
-  extractPublicIdFromUrl: jest.fn(),
-  validateImageFile: jest.fn(),
-  optimizeImage: jest.fn(),
-}));
+await jest.unstable_mockModule('../../src/utils', async () => {
+  return await import('../__mocks__/util.mock');
+});
+
 jest.mock('@hyperlocal/shared/logger', () => ({
   logger: {
     info: jest.fn(),
@@ -24,6 +19,9 @@ jest.mock('@hyperlocal/shared/logger', () => ({
     error: jest.fn(),
   },
 }));
+
+const utils = await import('../../src/utils');
+const { UserService } = await import('../../src/service/user.service');
 
 describe('UserService', () => {
   let service: UserService;
@@ -226,7 +224,7 @@ describe('UserService', () => {
   });
 
   describe('uploadUserAvatar', () => {
-    const { uploadImage, validateImageFile, optimizeImage, extractPublicIdFromUrl, deleteImage } = require('../../src/utils');
+  
 
     beforeEach(() => {
       jest.clearAllMocks();
@@ -239,11 +237,11 @@ describe('UserService', () => {
       const mockUser = createMockUser();
       const updatedUser = createMockUser({ avatarUrl: 'https://cloudinary.com/avatar.jpg' });
 
-      validateImageFile.mockResolvedValue({ isValid: true });
-      optimizeImage.mockResolvedValue(Buffer.from('optimized'));
+      utils.validateImageFile.mockResolvedValue({ isValid: true });
+      utils.optimizeImage.mockResolvedValue(Buffer.from('optimized'));
       mockRepository.findById.mockResolvedValue(mockUser);
-      extractPublicIdFromUrl.mockReturnValue(null);
-      uploadImage.mockResolvedValue({
+      utils.extractPublicIdFromUrl.mockReturnValue(null);
+      utils.uploadImage.mockResolvedValue({
         secureUrl: 'https://cloudinary.com/avatar.jpg',
       });
       mockRepository.updateAvatar.mockResolvedValue(updatedUser);
@@ -254,9 +252,9 @@ describe('UserService', () => {
         requestingAuthId,
       });
 
-      expect(validateImageFile).toHaveBeenCalledWith(fileBuffer);
-      expect(optimizeImage).toHaveBeenCalledWith(fileBuffer);
-      expect(uploadImage).toHaveBeenCalled();
+      expect(utils.validateImageFile).toHaveBeenCalledWith(fileBuffer);
+      expect(utils.optimizeImage).toHaveBeenCalledWith(fileBuffer);
+      expect(utils.uploadImage).toHaveBeenCalled();
       expect(result).toEqual(updatedUser);
     });
 
@@ -287,7 +285,7 @@ describe('UserService', () => {
     it('should throw BadRequestError when image validation fails', async () => {
       const fileBuffer = Buffer.from('invalid');
 
-      validateImageFile.mockResolvedValue({
+      utils.validateImageFile.mockResolvedValue({
         isValid: false,
         error: 'Invalid file type',
       });
@@ -308,12 +306,12 @@ describe('UserService', () => {
       });
       const updatedUser = createMockUser({ avatarUrl: 'https://cloudinary.com/new-avatar.jpg' });
 
-      validateImageFile.mockResolvedValue({ isValid: true });
-      optimizeImage.mockResolvedValue(Buffer.from('optimized'));
+      utils.validateImageFile.mockResolvedValue({ isValid: true });
+      utils.optimizeImage.mockResolvedValue(Buffer.from('optimized'));
       mockRepository.findById.mockResolvedValue(mockUser);
-      extractPublicIdFromUrl.mockReturnValue('old-public-id');
-      deleteImage.mockResolvedValue(undefined);
-      uploadImage.mockResolvedValue({
+      utils.extractPublicIdFromUrl.mockReturnValue('old-public-id');
+      utils.deleteImage.mockResolvedValue(undefined);
+      utils.uploadImage.mockResolvedValue({
         secureUrl: 'https://cloudinary.com/new-avatar.jpg',
       });
       mockRepository.updateAvatar.mockResolvedValue(updatedUser);
@@ -324,14 +322,14 @@ describe('UserService', () => {
         requestingAuthId,
       });
 
-      expect(deleteImage).toHaveBeenCalledWith('old-public-id');
+      expect(utils.deleteImage).toHaveBeenCalledWith('old-public-id');
     });
 
     it('should throw ForbiddenError when unauthorized', async () => {
       const fileBuffer = Buffer.from('fake-image');
       const mockUser = createMockUser({ authIdentityId: 'different-auth' });
 
-      validateImageFile.mockResolvedValue({ isValid: true });
+      utils.validateImageFile.mockResolvedValue({ isValid: true });
       mockRepository.findById.mockResolvedValue(mockUser);
 
       await expect(service.uploadUserAvatar({
@@ -343,7 +341,7 @@ describe('UserService', () => {
   });
 
   describe('deleteUserAvatar', () => {
-    const { extractPublicIdFromUrl, deleteImage } = require('../../src/utils');
+
 
     it('should delete avatar successfully', async () => {
       const userId = 'user-123';
@@ -354,14 +352,14 @@ describe('UserService', () => {
       const updatedUser = createMockUser({ avatarUrl: null });
 
       mockRepository.findById.mockResolvedValue(mockUser);
-      extractPublicIdFromUrl.mockReturnValue('public-id-123');
-      deleteImage.mockResolvedValue(undefined);
+      utils.extractPublicIdFromUrl.mockReturnValue('public-id-123');
+      utils.deleteImage.mockResolvedValue(undefined);
       mockRepository.deleteAvatar.mockResolvedValue(updatedUser);
 
       const result = await service.deleteUserAvatar(userId, requestingAuthId);
 
-      expect(extractPublicIdFromUrl).toHaveBeenCalledWith(mockUser.avatarUrl);
-      expect(deleteImage).toHaveBeenCalledWith('public-id-123');
+      expect(utils.extractPublicIdFromUrl).toHaveBeenCalledWith(mockUser.avatarUrl);
+      expect(utils.deleteImage).toHaveBeenCalledWith('public-id-123');
       expect(mockRepository.deleteAvatar).toHaveBeenCalledWith(userId);
       expect(result).toEqual(updatedUser);
     });

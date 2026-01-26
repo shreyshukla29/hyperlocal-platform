@@ -7,19 +7,43 @@ import { UserService } from '../service';
 import { UserRepository } from '../repositories';
 import { MessageMetadata } from '../types';
 
-const QUEUE_NAME = 'user-service.user-signed-up';
-const DLQ_NAME = 'user-service.user-signed-up.dlq';
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 5000;
 
-function parseMessageWithMetadata(msg: Buffer): {
+const MAIN_QUEUE = 'user-service.user-signed-up';
+const DLQ_QUEUE = 'user-service.user-signed-up.dlq';
+
+const RETRY_QUEUES = [
+  {
+    name: 'user-service.user-signed-up.retry.1',
+    ttl: 5_000,
+  },
+  {
+    name: 'user-service.user-signed-up.retry.2',
+    ttl: 10_000,
+  },
+  {
+    name: 'user-service.user-signed-up.retry.3',
+    ttl: 20_000,
+  },
+];
+
+const MAX_RETRIES = RETRY_QUEUES.length;
+
+function parseMessage(msg: Buffer): {
   payload: UserSignedUpEvent;
   metadata: MessageMetadata;
 } {
   const content = JSON.parse(msg.toString());
+
+  if (!content || !content.payload) {
+    throw new Error('Invalid message format');
+  }
+
   return {
-    payload: content.payload || content,
-    metadata: content.metadata || { retryCount: 0, originalTimestamp: Date.now() },
+    payload: content.payload,
+    metadata: content.metadata ?? {
+      retryCount: 0,
+      originalTimestamp: Date.now(),
+    },
   };
 }
 
@@ -38,15 +62,13 @@ function createRetryMessage(
   );
 }
 
-async function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 export async function startUserSignedUpConsumer(): Promise<void> {
   const userRepository = new UserRepository();
   const userService = new UserService(userRepository);
 
   let channel;
+
   try {
     channel = await createChannel(ServerConfig.RABBITMQ_URL);
 
@@ -55,36 +77,56 @@ export async function startUserSignedUpConsumer(): Promise<void> {
     });
 
     channel.on('close', () => {
-      logger.warn('RabbitMQ channel closed, attempting to reconnect...');
-      setTimeout(() => startUserSignedUpConsumer(), 5000);
+      logger.warn('RabbitMQ channel closed, restarting consumer...');
+      setTimeout(startUserSignedUpConsumer, 5000);
     });
 
     await channel.assertExchange(AUTH_EXCHANGE, 'topic', { durable: true });
 
-    await channel.assertQueue(QUEUE_NAME, {
+ 
+    await channel.assertQueue(MAIN_QUEUE, {
       durable: true,
       arguments: {
         'x-dead-letter-exchange': '',
-        'x-dead-letter-routing-key': DLQ_NAME,
-        'x-message-ttl': 300000,
+        'x-dead-letter-routing-key': DLQ_QUEUE,
       },
     });
 
-    await channel.assertQueue(DLQ_NAME, {
+  
+    for (const retryQueue of RETRY_QUEUES) {
+      await channel.assertQueue(retryQueue.name, {
+        durable: true,
+        arguments: {
+          'x-message-ttl': retryQueue.ttl,
+          'x-dead-letter-exchange': '',
+          'x-dead-letter-routing-key': MAIN_QUEUE,
+        },
+      });
+    }
+
+ 
+    await channel.assertQueue(DLQ_QUEUE, {
       durable: true,
     });
 
-    await channel.bindQueue(QUEUE_NAME, AUTH_EXCHANGE, ROUTING_KEYS.USER_SIGNED_UP);
+ 
+    await channel.bindQueue(
+      MAIN_QUEUE,
+      AUTH_EXCHANGE,
+      ROUTING_KEYS.USER_SIGNED_UP,
+    );
+
 
     await channel.prefetch(10);
 
+ 
     channel.consume(
-      QUEUE_NAME,
+      MAIN_QUEUE,
       async (msg) => {
         if (!msg) return;
 
         try {
-          const { payload, metadata } = parseMessageWithMetadata(msg.content);
+          const { payload, metadata } = parseMessage(msg.content);
 
           try {
             await userService.createUser({
@@ -95,75 +137,63 @@ export async function startUserSignedUpConsumer(): Promise<void> {
               phone: payload.phone,
             });
 
-            logger.info('User created from event', {
+            logger.info('User created from USER_SIGNED_UP event', {
               authIdentityId: payload.authIdentityId,
               retryCount: metadata.retryCount,
             });
 
             channel.ack(msg);
-          } catch (error: any) {
-            logger.error('Failed to process USER_SIGNED_UP event', {
-              error: error.message,
+          } catch (err: unknwon) {
+            const retryCount = metadata.retryCount;
+
+            logger.error('USER_SIGNED_UP processing failed', {
+              error: err.message,
               authIdentityId: payload.authIdentityId,
-              retryCount: metadata.retryCount,
+              retryCount,
             });
 
-            if (metadata.retryCount >= MAX_RETRIES) {
-              logger.error('Max retries reached, sending to DLQ', {
+            if (retryCount >= MAX_RETRIES) {
+              logger.error('Max retries exceeded, sending to DLQ', {
                 authIdentityId: payload.authIdentityId,
-                retryCount: metadata.retryCount,
               });
 
-              channel.sendToQueue(DLQ_NAME, msg.content, {
-                persistent: true,
-                headers: {
-                  'x-original-queue': QUEUE_NAME,
-                  'x-failure-reason': error.message,
-                  'x-failed-at': new Date().toISOString(),
-                },
-              });
-
-              channel.ack(msg);
-            } else {
-              await sleep(RETRY_DELAY_MS * (metadata.retryCount + 1));
-
-              const retryMessage = createRetryMessage(payload, metadata);
-
-              channel.sendToQueue(QUEUE_NAME, retryMessage, {
-                persistent: true,
-              });
-
-              channel.ack(msg);
+              channel.nack(msg, false, false);
+              return;
             }
+
+            const retryQueue = RETRY_QUEUES[retryCount];
+            const retryMessage = createRetryMessage(payload, metadata);
+
+            channel.sendToQueue(retryQueue.name, retryMessage, {
+              persistent: true,
+              headers: {
+                'x-original-queue': MAIN_QUEUE,
+                'x-retry-count': retryCount + 1,
+              },
+            });
+
+            channel.ack(msg);
           }
-        } catch (parseError: any) {
-          logger.error('Failed to parse message', {
+        } catch (parseError: unknown) {
+          logger.error('Message parsing failed, sending to DLQ', {
             error: parseError.message,
-            content: msg.content.toString(),
+            raw: msg.content.toString(),
           });
 
-          channel.sendToQueue(DLQ_NAME, msg.content, {
-            persistent: true,
-            headers: {
-              'x-original-queue': QUEUE_NAME,
-              'x-failure-reason': 'Message parsing failed',
-              'x-failed-at': new Date().toISOString(),
-            },
-          });
-
-          channel.ack(msg);
+          channel.nack(msg, false, false);
         }
       },
       { noAck: false },
     );
 
     logger.info('UserSignedUp consumer started', {
-      queue: QUEUE_NAME,
-      dlq: DLQ_NAME,
-      maxRetries: MAX_RETRIES,
+      queue: MAIN_QUEUE,
+      retryQueues: RETRY_QUEUES.map((q) => q.name),
+      dlq: DLQ_QUEUE,
     });
-  } catch (error: any) {
+  } catch (error: unknwon) {
+    console.log(error)
     logger.error('Failed to start UserSignedUp consumer', error);
-    setTimeout(() => startUserSignedUpConsumer(), 10000);
+    setTimeout(startUserSignedUpConsumer, 10_000);
   }
 }

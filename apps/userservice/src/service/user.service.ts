@@ -38,8 +38,8 @@ export class UserService {
 
       return user;
     } catch (error: any) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
+     
+        if (error?.code === 'P2002') {
           const target = error.meta?.target as string[] | undefined;
           if (target?.includes('username')) {
             throw new ConflictError('Username already taken');
@@ -50,7 +50,7 @@ export class UserService {
           if (target?.includes('phone')) {
             throw new ConflictError('Phone number already in use');
           }
-        }
+        
       }
       throw error;
     }
@@ -154,14 +154,13 @@ export class UserService {
 
       return updatedUser;
     } catch (error: any) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
+        if (error?.code === 'P2002') {
           const target = error.meta?.target as string[] | undefined;
           if (target?.includes('username')) {
             throw new ConflictError('Username already taken');
           }
         }
-      }
+      
       throw error;
     }
   }

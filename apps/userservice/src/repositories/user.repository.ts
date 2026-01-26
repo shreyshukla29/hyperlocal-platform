@@ -1,8 +1,9 @@
-import { prisma } from '../config';
+import { prisma as defaultPrisma} from '../config';
 import { User } from '../generated/prisma/client';
 import { CreateUserPayload, UpdateUserRepositoryPayload } from '../types';
 
 export class UserRepository {
+   constructor(private prisma = defaultPrisma) {}
   async createUser(payload: CreateUserPayload): Promise<User> {
     const {
       authIdentityId,
@@ -13,7 +14,7 @@ export class UserRepository {
       username = null,
     } = payload;
 
-    return prisma.user.upsert({
+    return this.prisma.user.upsert({
       where: {
         authIdentityId,
       },
@@ -30,25 +31,25 @@ export class UserRepository {
   }
 
   async findById(userId: string): Promise<User | null> {
-    return prisma.user.findUnique({
+    return this.prisma.user.findUnique({
       where: { id: userId },
     });
   }
 
   async findByAuthIdentityId(authIdentityId: string): Promise<User | null> {
-    return prisma.user.findUnique({
+    return this.prisma.user.findUnique({
       where: { authIdentityId },
     });
   }
 
   async findByUsername(username: string): Promise<User | null> {
-    return prisma.user.findUnique({
+    return this.prisma.user.findUnique({
       where: { username },
     });
   }
 
   async usernameExists(username: string): Promise<boolean> {
-    const user = await prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { username },
       select: { id: true },
     });
@@ -59,7 +60,7 @@ export class UserRepository {
     userId: string,
     payload: UpdateUserRepositoryPayload,
   ): Promise<User> {
-    return prisma.user.update({
+    return this.prisma.user.update({
       where: { id: userId },
       data: {
         ...payload,
@@ -69,7 +70,7 @@ export class UserRepository {
   }
 
   async updateAvatar(userId: string, avatarUrl: string): Promise<User> {
-    return prisma.user.update({
+    return this.prisma.user.update({
       where: { id: userId },
       data: {
         avatarUrl,
@@ -79,7 +80,7 @@ export class UserRepository {
   }
 
   async deleteAvatar(userId: string): Promise<User> {
-    return prisma.user.update({
+    return this.prisma.user.update({
       where: { id: userId },
       data: {
         avatarUrl: null,

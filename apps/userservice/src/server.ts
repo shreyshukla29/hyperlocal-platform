@@ -6,13 +6,9 @@ import { logger } from '@hyperlocal/shared/logger';
 const app = createApp();
 
 async function bootstrap() {
-  try {
-    await startUserSignedUpConsumer();
-  } catch (error: any) {
-    logger.error('Failed to start event consumer', error);
-    setTimeout(() => bootstrap(), 10000);
-  }
+  await startUserSignedUpConsumer();
 }
+
 
 bootstrap().catch((error) => {
   logger.error('Bootstrap failed', error);

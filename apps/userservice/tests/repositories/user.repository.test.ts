@@ -1,25 +1,15 @@
-import { UserRepository } from '../../src/repositories/user.repository';
-import { prisma } from '../../src/config';
+import { UserRepository } from '../../src/repositories';
+
 import { createMockUser, createMockUserPayload } from '../helpers/test-helpers';
+import { jest } from '@jest/globals';
+import { mockedPrisma } from '../__mocks__/prisma.mock';
 
-jest.mock('../../src/config', () => ({
-  prisma: {
-    user: {
-      upsert: jest.fn(),
-      findUnique: jest.fn(),
-      findFirst: jest.fn(),
-      update: jest.fn(),
-    },
-  },
-}));
-
-const mockedPrisma = prisma as jest.Mocked<typeof prisma>;
 
 describe('UserRepository', () => {
   let repository: UserRepository;
 
   beforeEach(() => {
-    repository = new UserRepository();
+    repository = new UserRepository(mockedPrisma);
     jest.clearAllMocks();
   });
 
@@ -28,7 +18,7 @@ describe('UserRepository', () => {
       const payload = createMockUserPayload();
       const mockUser = createMockUser();
 
-      mockedPrisma.user.upsert.mockResolvedValue(mockUser as any);
+      mockedPrisma.user.upsert.mockResolvedValue(mockUser as unknown);
 
       const result = await repository.createUser(payload);
 
@@ -55,7 +45,7 @@ describe('UserRepository', () => {
       };
       const mockUser = createMockUser();
 
-      mockedPrisma.user.upsert.mockResolvedValue(mockUser as any);
+      mockedPrisma.user.upsert.mockResolvedValue(mockUser as unknown);
 
       await repository.createUser(payload);
 

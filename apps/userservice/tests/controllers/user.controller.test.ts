@@ -3,6 +3,8 @@ import { StatusCodes } from 'http-status-codes';
 import { UserController } from '../../src/controllers/user.controller';
 import { UserService } from '../../src/service/user.service';
 import { createMockUser } from '../helpers/test-helpers';
+import { jest } from '@jest/globals';
+
 import {
   NotFoundError,
   BadRequestError,

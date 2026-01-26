@@ -1,11 +1,10 @@
-export const mockPrisma = {
+import { jest } from '@jest/globals';
+import type { PrismaClient } from '@prisma/client';
+
+export const mockedPrisma = {
   user: {
     upsert: jest.fn(),
     findUnique: jest.fn(),
-    findFirst: jest.fn(),
     update: jest.fn(),
-    create: jest.fn(),
-    delete: jest.fn(),
   },
-};
-
+} as unknown as jest.Mocked<PrismaClient>;
