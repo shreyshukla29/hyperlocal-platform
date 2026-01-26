@@ -1,20 +1,8 @@
 import { prisma } from '../config';
 import { User } from '../generated/prisma/client';
-
-
-
-export interface CreateUserPayload {
-  authIdentityId: string;
-  firstName: string;
-  lastName?: string | null;
-  email?: string | null;
-  phone?: string | null;
-}
-
-
+import { CreateUserPayload, UpdateUserRepositoryPayload } from '../types';
 
 export class UserRepository {
-
   async createUser(payload: CreateUserPayload): Promise<User> {
     const {
       authIdentityId,
@@ -22,23 +10,24 @@ export class UserRepository {
       lastName = null,
       email = null,
       phone = null,
+      username = null,
     } = payload;
 
     return prisma.user.upsert({
       where: {
         authIdentityId,
       },
-      update: {}, 
+      update: {},
       create: {
         authIdentityId,
         firstName,
         lastName,
         email,
         phone,
+        username,
       },
     });
   }
-
 
   async findById(userId: string): Promise<User | null> {
     return prisma.user.findUnique({
@@ -46,72 +35,55 @@ export class UserRepository {
     });
   }
 
-
-
   async findByAuthIdentityId(authIdentityId: string): Promise<User | null> {
     return prisma.user.findUnique({
       where: { authIdentityId },
     });
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findByUsername(username: string): Promise<User | null> {
     return prisma.user.findUnique({
-      where: { email },
+      where: { username },
     });
   }
 
-  async findByPhone(phone: string): Promise<User | null> {
-    return prisma.user.findUnique({
-      where: { phone },
+  async usernameExists(username: string): Promise<boolean> {
+    const user = await prisma.user.findUnique({
+      where: { username },
+      select: { id: true },
     });
+    return user !== null;
   }
-
 
   async updateProfile(
     userId: string,
-    payload: Upd,
+    payload: UpdateUserRepositoryPayload,
   ): Promise<User> {
     return prisma.user.update({
       where: { id: userId },
       data: {
         ...payload,
+        updatedAt: new Date(),
       },
     });
   }
 
- 
-  async updateAvatar(
-    userId: string,
-    avatarUrl: string,
-  ): Promise<User> {
+  async updateAvatar(userId: string, avatarUrl: string): Promise<User> {
     return prisma.user.update({
       where: { id: userId },
       data: {
         avatarUrl,
+        updatedAt: new Date(),
       },
     });
   }
 
- 
   async deleteAvatar(userId: string): Promise<User> {
     return prisma.user.update({
       where: { id: userId },
       data: {
         avatarUrl: null,
-      },
-    });
-  }
-
-
-  async findPublicProfile(userId: string) {
-    return prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        avatarUrl: true,
-        bio: true,
+        updatedAt: new Date(),
       },
     });
   }
