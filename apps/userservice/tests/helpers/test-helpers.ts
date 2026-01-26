@@ -32,7 +32,7 @@ export const createMockUserPayload = (
 
 export const createMockPrismaError = (code: string, target?: string[]): Prisma.PrismaClientKnownRequestError => {
   const error = new Error('Prisma error') as Prisma.PrismaClientKnownRequestError;
-  error.code = code as any;
+  error.code = code as unknown;
   error.meta = { target };
   error.clientVersion = 'test';
   return error;

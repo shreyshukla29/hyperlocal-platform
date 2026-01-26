@@ -37,7 +37,7 @@ describe('UserService', () => {
       updateProfile: jest.fn(),
       updateAvatar: jest.fn(),
       deleteAvatar: jest.fn(),
-    } as any;
+    } as unknown;
 
     service = new UserService(mockRepository);
     jest.clearAllMocks();

@@ -69,7 +69,7 @@ describe('UserRepository', () => {
       const userId = 'user-123';
       const mockUser = createMockUser();
 
-      mockedPrisma.user.findUnique.mockResolvedValue(mockUser as any);
+      mockedPrisma.user.findUnique.mockResolvedValue(mockUser as unknown);
 
       const result = await repository.findById(userId);
 
@@ -96,7 +96,7 @@ describe('UserRepository', () => {
       const authIdentityId = 'auth-123';
       const mockUser = createMockUser();
 
-      mockedPrisma.user.findUnique.mockResolvedValue(mockUser as any);
+      mockedPrisma.user.findUnique.mockResolvedValue(mockUser as unknown);
 
       const result = await repository.findByAuthIdentityId(authIdentityId);
 
@@ -113,7 +113,7 @@ describe('UserRepository', () => {
       const username = 'johndoe';
       const mockUser = createMockUser();
 
-      mockedPrisma.user.findUnique.mockResolvedValue(mockUser as any);
+      mockedPrisma.user.findUnique.mockResolvedValue(mockUser as unknown);
 
       const result = await repository.findByUsername(username);
 
@@ -129,7 +129,7 @@ describe('UserRepository', () => {
     it('should return true if username exists', async () => {
       const username = 'johndoe';
 
-      mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-123' } as any);
+      mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-123' } as unknown);
 
       const result = await repository.usernameExists(username);
 
@@ -162,7 +162,7 @@ describe('UserRepository', () => {
       };
       const mockUser = createMockUser(payload);
 
-      mockedPrisma.user.update.mockResolvedValue(mockUser as any);
+      mockedPrisma.user.update.mockResolvedValue(mockUser as unknown);
 
       const result = await repository.updateProfile(userId, payload);
 
@@ -184,7 +184,7 @@ describe('UserRepository', () => {
       const avatarUrl = 'https://example.com/avatar.jpg';
       const mockUser = createMockUser({ avatarUrl });
 
-      mockedPrisma.user.update.mockResolvedValue(mockUser as any);
+      mockedPrisma.user.update.mockResolvedValue(mockUser as unknown);
 
       const result = await repository.updateAvatar(userId, avatarUrl);
 
@@ -205,7 +205,7 @@ describe('UserRepository', () => {
       const userId = 'user-123';
       const mockUser = createMockUser({ avatarUrl: null });
 
-      mockedPrisma.user.update.mockResolvedValue(mockUser as any);
+      mockedPrisma.user.update.mockResolvedValue(mockUser as unknown);
 
       const result = await repository.deleteAvatar(userId);
 

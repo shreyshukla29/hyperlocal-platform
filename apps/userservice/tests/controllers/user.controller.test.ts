@@ -27,7 +27,7 @@ describe('UserController', () => {
       updateUserProfile: jest.fn(),
       uploadUserAvatar: jest.fn(),
       deleteUserAvatar: jest.fn(),
-    } as any;
+    } as unknown;
 
     controller = new UserController(mockService);
 
