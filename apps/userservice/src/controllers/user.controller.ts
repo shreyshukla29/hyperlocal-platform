@@ -13,9 +13,10 @@ export class UserController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const { id: userId } = req.params;
+      console.log(req)
+      const  authIdentityId= req.headers['x-user-id'] as string | undefined;
 
-      const user = await this.userService.getUserById(userId);
+      const user = await this.userService.getUserById(authIdentityId);
 
       return res.status(StatusCodes.OK).json({
         data: user,
@@ -27,27 +28,20 @@ export class UserController {
   }
 
 
-  async updateUserProfile(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
-    try {
-      const { id: userId } = req.params;
+  async updateUserProfile(req, res, next) {
+  try {
+    const { id: userId } = req.params;
 
-      const updatedUser = await this.userService.updateUserProfile(
-        userId,
-        req.body,
-      );
+    const user = await this.userService.updateUserProfile(
+      userId,
+      req.body,
+    );
 
-      return res.status(StatusCodes.OK).json({
-        data: updatedUser,
-      });
-    } catch (error) {
-
-      next(error);
-    }
+    return res.status(200).json({ data: user });
+  } catch (error) {
+    next(error);
   }
+}
 
 
   async uploadUserAvatar(

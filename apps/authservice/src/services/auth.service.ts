@@ -74,21 +74,21 @@ if (phone && (await this.repo.existsByPhone(phone, accountType))) {
 
     const token = createToken<AuthTokenPayload>({
     payload: {
-      userId: identity.id,
+      authId: identity.id,
       email: identity.email ?? undefined,
       phone: identity.phone ?? undefined,
       accountType: identity.accountType,
     },
-     secretKey: ServerConfig.JWT_SECRET!,
+     secretKey: ServerConfig.JWT_SECRET,
     options: {
       expiresIn: '24h',
-      issuer: 'auth-service',
+  
     },
   });
 
     return {
       data : {
-        userId: identity.id,
+      authId: identity.id,
       email: identity.email,
       phone: identity.phone,
       accountType: identity.accountType,
@@ -126,21 +126,20 @@ if (!validPassword) {
 
     const token = createToken<AuthTokenPayload>({
     payload: {
-      userId: identity.id,
+       authId: identity.id,
       email: identity.email ?? undefined,
       phone: identity.phone ?? undefined,
       accountType: identity.accountType,
     },
-    secretKey: ServerConfig.JWT_SECRET!,
+    secretKey: ServerConfig.JWT_SECRET,
     options: {
-      expiresIn: '24h',
-      issuer: 'auth-service',
+      expiresIn: '48h',
     },
   });
 
     return {
      data : {
-       userId: identity.id,
+      authId: identity.id,
       accountType: identity.accountType,
      },
       token
@@ -177,21 +176,21 @@ if (!validPassword) {
 
      const token = createToken<AuthTokenPayload>({
     payload: {
-      userId: identity.id,
+       authId: identity.id,
       email: identity.email ?? undefined,
       phone: identity.phone ?? undefined,
       accountType: identity.accountType,
     },
-    secretKey: ServerConfig.JWT_SECRET!,
+    secretKey: ServerConfig.JWT_SECRET,
     options: {
       expiresIn: '24h',
-      issuer: 'auth-service',
+     
     },
   });
 
     return {
      data : {
-       userId: identity.id,
+       authId: identity.id,
       accountType: identity.accountType,
      },
       token

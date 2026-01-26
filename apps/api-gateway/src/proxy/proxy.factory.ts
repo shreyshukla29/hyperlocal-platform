@@ -15,13 +15,9 @@ export function createServiceProxy(
     on:{
       proxyReq(proxyReq, req:Request ) {
       proxyReq.setHeader(HEADERS.GATEWAY_API_KEY,ServerConfig.GATEWAY_API_KEY);
-
       if (req.context.user) {
-        proxyReq.setHeader(HEADERS.USER_ID, req.context.user.sub);
-        proxyReq.setHeader(
-          HEADERS.USER_ROLES,
-          req.context.user.roles.join(',')
-        );
+        proxyReq.setHeader(HEADERS.USER_ID, req.context.user.authId);
+      
       }
     },
     }

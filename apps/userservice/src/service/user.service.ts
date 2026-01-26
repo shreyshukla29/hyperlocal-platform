@@ -6,9 +6,9 @@ import {
 } from '@hyperlocal/shared/errors';
 
 import {
-  UpdateUserProfilePayload,
   CreateUserPayload,
 } from '../repositories';
+import {UpdateUserProfilePayload} from '../validators'
 
 export class UserService {
   constructor(
@@ -27,8 +27,8 @@ export class UserService {
     return user;
   }
 
-  async getUserById(userId: string) {
-    const user = await this.userRepo.findById(userId);
+  async getUserById(authIdentityId: string) {
+    const user = await this.userRepo.findByAuthIdentityId(authIdentityId);
 
     if (!user) {
       throw new NotFoundError('User not found');
