@@ -106,7 +106,7 @@ export async function deleteImage(
       invalidate: true,
       timeout: 30000,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (retryCount < MAX_RETRIES) {
       logger.warn('Cloudinary delete failed, retrying', {
         error: error.message,

@@ -12,7 +12,6 @@ import {
   UploadAvatarParams,
 } from '../types';
 import { UpdateUserProfilePayload } from '../validators';
-import { Prisma } from '../generated/prisma/client';
 import {
   uploadImage,
   extractPublicIdFromUrl,
@@ -37,7 +36,7 @@ export class UserService {
       });
 
       return user;
-    } catch (error: any) {
+    } catch (error: unknown) {
      
         if (error?.code === 'P2002') {
           const target = error.meta?.target as string[] | undefined;
@@ -153,7 +152,7 @@ export class UserService {
       });
 
       return updatedUser;
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (error?.code === 'P2002') {
           const target = error.meta?.target as string[] | undefined;
           if (target?.includes('username')) {
@@ -201,7 +200,7 @@ export class UserService {
     let optimizedBuffer = fileBuffer;
     try {
       optimizedBuffer = await optimizeImage(fileBuffer);
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.warn('Image optimization failed, using original', {
         error: error.message,
         userId,
@@ -213,7 +212,7 @@ export class UserService {
       if (oldPublicId) {
         try {
           await deleteImage(oldPublicId);
-        } catch (error: any) {
+        } catch (error: unknown) {
           logger.warn('Failed to delete old avatar from Cloudinary', {
             error: error.message,
             publicId: oldPublicId,
@@ -263,7 +262,7 @@ export class UserService {
       if (publicId) {
         try {
           await deleteImage(publicId);
-        } catch (error: any) {
+        } catch (error: unknown) {
           logger.warn('Failed to delete avatar from Cloudinary', {
             error: error.message,
             publicId,

@@ -83,7 +83,7 @@ export async function validateImageFile(
       width: metadata.width,
       height: metadata.height,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       isValid: false,
       error: `Image validation failed: ${error.message}`,
