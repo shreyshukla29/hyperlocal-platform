@@ -1,0 +1,101 @@
+// Booking service – bookings, assignment, OTP for arrival and completion verification.
+// Provider and ServicePerson ids reference Provider service (cross-service reference).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  PAYMENT_FAILED
+  CONFIRMED
+  IN_PROGRESS
+  ARRIVAL_CONFIRMED
+  PENDING_COMPLETION_VERIFICATION
+  COMPLETED
+  CANCELLED
+}
+
+enum CancelledBy {
+  USER
+  PROVIDER
+  SYSTEM
+}
+
+enum BookingOtpType {
+  ARRIVAL
+  COMPLETION
+}
+
+model Booking {
+  id                     String         @id @default(uuid())
+  idempotencyKey         String?        @unique
+  userAuthId             String
+  providerId             String
+  providerServiceId      String
+  assignedServicePersonId String?
+  status                 BookingStatus  @default(PENDING_PAYMENT)
+  slotStart              DateTime
+  slotEnd                DateTime
+  addressLine1           String?
+  city                   String?
+  latitude               Float?
+  longitude              Float?
+  notes                  String?
+  arrivalConfirmedAt     DateTime?
+  completedAt            DateTime?
+  confirmedAt           DateTime?
+  cancelledAt            DateTime?
+  cancelledBy           CancelledBy?
+  amountPaise            Int
+  currency               String         @default("INR")
+  razorpayOrderId        String?        @unique
+  razorpayPaymentId      String?
+  refundAmountPaise      Int?
+  razorpayRefundId       String?
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+
+  otps BookingOtp[]
+
+  @@index([userAuthId])
+  @@index([providerId])
+  @@index([assignedServicePersonId])
+  @@index([status])
+  @@index([slotStart])
+  @@index([razorpayOrderId])
+  @@index([razorpayPaymentId])
+  @@index([idempotencyKey])
+  @@map("bookings")
+}
+
+model PaymentWebhookEvent {
+  id         String   @id @default(uuid())
+  eventId    String   @unique
+  eventType  String
+  processedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@index([eventId])
+  @@map("payment_webhook_events")
+}
+
+model BookingOtp {
+  id         String         @id @default(uuid())
+  bookingId  String
+  booking    Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  type       BookingOtpType
+  otpHash    String
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime      @default(now())
+
+  @@index([bookingId])
+  @@index([bookingId, type])
+  @@map("booking_otps")
+}
