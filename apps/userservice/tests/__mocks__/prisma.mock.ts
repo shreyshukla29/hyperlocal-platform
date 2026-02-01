@@ -7,4 +7,13 @@ export const mockedPrisma = {
     findUnique: jest.fn(),
     update: jest.fn(),
   },
+  address: {
+    create: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    findFirst: jest.fn(),
+    update: jest.fn(),
+    updateMany: jest.fn(),
+  },
+  $transaction: jest.fn(),
 } as unknown as jest.Mocked<PrismaClient>;

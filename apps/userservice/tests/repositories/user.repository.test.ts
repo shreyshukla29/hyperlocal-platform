@@ -1,8 +1,12 @@
-import { UserRepository } from '../../src/repositories';
-
-import { createMockUser, createMockUserPayload } from '../helpers/test-helpers';
 import { jest } from '@jest/globals';
 import { mockedPrisma } from '../__mocks__/prisma.mock';
+
+jest.mock('../../src/config', () => ({
+  prisma: mockedPrisma,
+}));
+
+import { UserRepository } from '../../src/repositories';
+import { createMockUser, createMockUserPayload } from '../helpers/test-helpers';
 
 
 describe('UserRepository', () => {
