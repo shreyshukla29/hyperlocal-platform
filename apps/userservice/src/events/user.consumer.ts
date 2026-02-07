@@ -2,9 +2,9 @@ import { createChannel } from '@hyperlocal/shared/rabbitmq';
 import { AUTH_EXCHANGE, ROUTING_KEYS } from '@hyperlocal/shared/constants';
 import { UserSignedUpEvent, MessageMetadata } from '@hyperlocal/shared/events';
 import { logger } from '@hyperlocal/shared/logger';
-import { ServerConfig } from '../config';
-import { UserService } from '../service';
-import { UserRepository } from '../repositories';
+import { ServerConfig } from '../config/index.js';
+import { UserService } from '../service/index.js';
+import { UserRepository } from '../repositories/index.js';
 
 
 const MAIN_QUEUE = 'user-service.user-signed-up';

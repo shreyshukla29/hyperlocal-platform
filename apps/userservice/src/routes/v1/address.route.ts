@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import { AddressController } from '../../controllers';
-import { AddressService } from '../../service';
-import { AddressRepository, UserRepository } from '../../repositories';
+import { AddressController } from '../../controllers/index.js';
+import { AddressService } from '../../service/index.js';
+import { AddressRepository, UserRepository } from '../../repositories/index.js';
 import { validateBody } from '@hyperlocal/shared/middlewares';
 import {
   createAddressSchema,
   updateAddressSchema,
   saveCurrentLocationSchema,
-} from '../../validators';
+} from '../../validators/index.js';
 
 export const addressRouter = Router();
 

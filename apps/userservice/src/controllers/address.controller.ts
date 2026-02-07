@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { AddressService } from '../service';
+import { AddressService } from '../service/index.js';
 import { getAuthIdentityIdFromRequest } from '@hyperlocal/shared/constants';
-import { sendSuccess } from '../utils/response';
+import { sendSuccess } from '../utils/response.js';
 import type {
   CreateAddressPayload,
   UpdateAddressPayload,
   SaveCurrentLocationPayload,
-} from '../validators';
+} from '../validators/index.js';
 
 export class AddressController {
   constructor(private readonly addressService: AddressService) {}

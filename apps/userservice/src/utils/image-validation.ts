@@ -1,5 +1,5 @@
 import { fileTypeFromBuffer } from 'file-type';
-import { ImageValidationResult } from '../types';
+import { ImageValidationResult } from '../types/index.js';
 
 const ALLOWED_MIME_TYPES = [
   'image/jpeg',

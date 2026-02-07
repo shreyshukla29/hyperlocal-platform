@@ -1,2 +1,2 @@
-export * from './upload.middleware';
+export * from './upload.middleware.js';
 

@@ -1,6 +1,6 @@
-import { Prisma } from '../generated/prisma/client';
-import { prisma as defaultPrisma } from '../config';
-import type { CreateAddressData, UpdateAddressRepositoryPayload } from '../types';
+import { Prisma } from '../generated/prisma/client.js';
+import { prisma as defaultPrisma } from '../config/index.js';
+import type { CreateAddressData, UpdateAddressRepositoryPayload } from '../types/index.js';
 
 export class AddressRepository {
   constructor(private prisma = defaultPrisma) {}

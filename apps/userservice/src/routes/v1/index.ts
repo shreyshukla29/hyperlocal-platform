@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { userRouter } from './user.route';
-import { addressRouter } from './address.route';
+import { userRouter } from './user.route.js';
+import { addressRouter } from './address.route.js';
 
 export const v1Router = Router();
 

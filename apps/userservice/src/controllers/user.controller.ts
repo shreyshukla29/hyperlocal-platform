@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { UserService } from '../service';
+import { UserService } from '../service/index.js';
 import { getAuthIdentityIdFromRequest } from '@hyperlocal/shared/constants';
-import { UpdateUserProfilePayload } from '../validators';
+import { UpdateUserProfilePayload } from '../validators/index.js';
 
 export class UserController {
   constructor(private readonly userService: UserService) {}

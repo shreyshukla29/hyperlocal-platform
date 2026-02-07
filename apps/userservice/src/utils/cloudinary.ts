@@ -1,7 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary';
-import { ServerConfig } from '../config';
+import { ServerConfig } from '../config/index.js';
 import { logger } from '@hyperlocal/shared/logger';
-import { UploadResult, UploadOptions } from '../types';
+import { UploadResult, UploadOptions } from '../types/index.js';
 
 cloudinary.config({
   cloud_name: ServerConfig.CLOUDINARY_CLOUD_NAME,

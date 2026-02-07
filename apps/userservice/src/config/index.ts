@@ -1,2 +1,2 @@
-export * from './db.config'
-export * from './server_config'
+export * from './db.config.js';
+export * from './server_config.js';

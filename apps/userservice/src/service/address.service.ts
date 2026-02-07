@@ -1,15 +1,15 @@
-import { AddressRepository, UserRepository } from '../repositories';
+import { AddressRepository, UserRepository } from '../repositories/index.js';
 import {
   NotFoundError,
   BadRequestError,
   ForbiddenError,
 } from '@hyperlocal/shared/errors';
-import type { CreateAddressData, UpdateAddressRepositoryPayload } from '../types';
+import type { CreateAddressData, UpdateAddressRepositoryPayload } from '../types/index.js';
 import type {
   CreateAddressPayload as CreateAddressValidatorPayload,
   UpdateAddressPayload,
   SaveCurrentLocationPayload,
-} from '../validators';
+} from '../validators/index.js';
 
 export class AddressService {
   constructor(

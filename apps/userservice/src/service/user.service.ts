@@ -1,4 +1,4 @@
-import { UserRepository } from '../repositories';
+import { UserRepository } from '../repositories/index.js';
 import { logger } from '@hyperlocal/shared/logger';
 import {
   NotFoundError,
@@ -10,15 +10,15 @@ import {
   CreateUserPayload,
   UpdateUserRepositoryPayload,
   UploadAvatarParams,
-} from '../types';
-import { UpdateUserProfilePayload } from '../validators';
+} from '../types/index.js';
+import { UpdateUserProfilePayload } from '../validators/index.js';
 import {
   uploadImage,
   extractPublicIdFromUrl,
   deleteImage,
   validateImageFile,
   optimizeImage,
-} from '../utils';
+} from '../utils/index.js';
 
 export class UserService {
   constructor(

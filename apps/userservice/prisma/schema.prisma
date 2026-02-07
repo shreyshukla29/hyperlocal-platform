@@ -29,6 +29,7 @@ model User {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   addresses        Address[]
+  favourites       UserFavourite[]
   @@index([authIdentityId])
   @@index([email])
   @@map("users")
@@ -56,3 +57,15 @@ model Address {
   @@map("addresses")
 }
 
+model UserFavourite {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  providerId String
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, providerId])
+  @@index([userId])
+  @@index([providerId])
+  @@map("user_favourites")
+}
