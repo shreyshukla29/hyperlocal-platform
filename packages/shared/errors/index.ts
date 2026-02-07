@@ -1,2 +1,2 @@
-export * from './base.error';
-export * from './http.error';
+export * from './base.error.js';
+export * from './http.error.js';

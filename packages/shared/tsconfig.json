@@ -6,7 +6,6 @@
     "moduleResolution": "NodeNext",
     "rootDir": "src",
     "outDir": "dist",
-    "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
 
     "declaration": true,
