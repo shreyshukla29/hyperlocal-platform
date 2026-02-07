@@ -1,10 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { logger } from '@hyperlocal/shared/logger';
-import { AuthService } from '../services';
+import { getAuthIdentityIdFromRequest } from '@hyperlocal/shared/constants';
+import { AuthService } from '../services/index.js';
 
-import { SignupRequest, LoginWithEmailRequest, LoginWithPhoneRequest } from '../types';
-import { ServerConfig } from '../config';
+import {
+  SignupRequest,
+  LoginWithEmailRequest,
+  LoginWithPhoneRequest,
+  SendVerificationRequest,
+  VerifyRequest,
+} from '../types/index.js';
+import { ServerConfig } from '../config/index.js';
 
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -91,6 +98,42 @@ export class AuthController {
       return res.status(StatusCodes.OK).json({
         success: true,
         data: result.data,
+        error: null,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async sendVerification(req: Request, res: Response, next: NextFunction): Promise<Response> {
+    try {
+      const identityId = getAuthIdentityIdFromRequest(req.headers);
+      if (!identityId) {
+        return res.status(StatusCodes.UNAUTHORIZED).json({
+          success: false,
+          data: null,
+          error: 'Authentication required',
+        });
+      }
+      const payload = req.body as SendVerificationRequest;
+      await this.authService.sendVerification(identityId, payload);
+      return res.status(StatusCodes.OK).json({
+        success: true,
+        data: { success: true },
+        error: null,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async verify(req: Request, res: Response, next: NextFunction): Promise<Response> {
+    try {
+      const payload = req.body as VerifyRequest;
+      await this.authService.verify(payload);
+      return res.status(StatusCodes.OK).json({
+        success: true,
+        data: { success: true },
         error: null,
       });
     } catch (error) {

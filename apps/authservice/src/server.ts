@@ -1,5 +1,5 @@
-import { createApp } from './app';
-import { ServerConfig } from './config';
+import { createApp } from './app.js';
+import { ServerConfig } from './config/index.js';
 import { logger } from '@hyperlocal/shared/logger';
 
 const app = createApp();

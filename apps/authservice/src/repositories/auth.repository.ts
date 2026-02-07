@@ -1,13 +1,13 @@
-import { prisma } from '../config';
+import { prisma } from '../config/index.js';
 import {
   Identity,
   IdentityVerification,
   VerificationType,
   AccountType,
-} from '../generated/prisma/client';
+} from '../generated/prisma/client.js';
 
-import { CreateIdentityInput, LoginLookupInput } from '../types/auth.types';
-import { normalizeEmail, normalizePhone } from '../utils';
+import { CreateIdentityInput, LoginLookupInput } from '../types/auth.types.js';
+import { normalizeEmail, normalizePhone } from '../utils/index.js';
 
 export class AuthRepository {
 
@@ -107,6 +107,56 @@ export class AuthRepository {
         identityId,
         type,
         value,
+      },
+    });
+  }
+
+  async findPendingByTypeAndValue(
+    type: VerificationType,
+    value: string,
+  ): Promise<IdentityVerification | null> {
+    return prisma.identityVerification.findFirst({
+      where: {
+        type,
+        value: type === VerificationType.EMAIL ? normalizeEmail(value) : normalizePhone(value),
+        verifiedAt: null,
+      },
+    });
+  }
+
+  async upsertVerificationOtp(
+    identityId: string,
+    type: VerificationType,
+    value: string,
+    otpHash: string,
+    otpExpiresAt: Date,
+  ): Promise<IdentityVerification> {
+    const normalizedValue =
+      type === VerificationType.EMAIL ? normalizeEmail(value) : normalizePhone(value);
+
+    const existing = await prisma.identityVerification.findFirst({
+      where: {
+        identityId,
+        type,
+        value: normalizedValue,
+        verifiedAt: null,
+      },
+    });
+
+    if (existing) {
+      return prisma.identityVerification.update({
+        where: { id: existing.id },
+        data: { otpHash, otpExpiresAt },
+      });
+    }
+
+    return prisma.identityVerification.create({
+      data: {
+        identityId,
+        type,
+        value: normalizedValue,
+        otpHash,
+        otpExpiresAt,
       },
     });
   }
