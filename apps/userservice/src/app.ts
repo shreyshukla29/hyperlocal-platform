@@ -4,8 +4,8 @@ import {
   createGatewayAuthMiddleware,
   globalErrorHandler,
 } from '@hyperlocal/shared/middlewares';
-import { ServerConfig } from './config';
-import  {router}  from './routes';
+import { ServerConfig } from './config/index.js';
+import { router } from './routes/index.js';
 import cookieParser  from 'cookie-parser';
 
 export function createApp(): Application {

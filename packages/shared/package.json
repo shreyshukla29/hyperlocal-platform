@@ -6,7 +6,20 @@
     "lint": "eslint  --ext .ts",
     "format": "prettier --write \"**/*.ts\""
   },
+  "exports": {
+    ".": "./index.ts",
+    "./logger": "./logger/index.ts",
+    "./constants": "./constants/index.ts",
+    "./errors": "./errors/index.ts",
+    "./events": "./events/index.ts",
+    "./middlewares": "./middlewares/index.ts",
+    "./rabbitmq": "./rabbitmq/index.ts",
+    "./rabbitmq/connection": "./rabbitmq/connection.ts"
+  },
   "dependencies": {
     "winston": "^3.13.0"
+  },
+  "peerDependencies": {
+    "express": ">=5"
   }
 }

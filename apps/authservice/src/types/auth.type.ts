@@ -1,6 +1,6 @@
-import { VerificationType } from '../generated/prisma/client';
-import { AccountType, AuthMethod } from '../enums';
-import { AccountType } from './../generated/prisma/enums';
+import { VerificationType } from '../generated/prisma/client.js';
+import { AccountType, AuthMethod } from '../enums/index.js';
+import { AccountType } from '../generated/prisma/enums.js';
 
 export interface CreateIdentityInput {
   email?: string;
@@ -56,9 +56,21 @@ export interface LoginResponse {
 
 export interface AuthTokenPayload {
   userId: string;
+  authId?: string;
   email?: string;
   phone?: string;
   accountType: string;
+}
+
+export interface SendVerificationRequest {
+  type: 'EMAIL' | 'PHONE';
+  value: string;
+}
+
+export interface VerifyRequest {
+  type: 'EMAIL' | 'PHONE';
+  value: string;
+  code: string;
 }
 
 

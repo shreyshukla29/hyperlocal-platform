@@ -6,6 +6,7 @@ const config: Config = {
 
   roots: ['<rootDir>/tests'],
   testMatch: ['**/*.test.ts'],
+  setupFiles: ['<rootDir>/tests/setup.ts'],
 
   clearMocks: true,
 

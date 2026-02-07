@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AccountType, AuthMethod } from '../enums';
+import { AccountType, AuthMethod } from '../enums/index.js';
 
 export const signupSchema = z
   .object({
@@ -39,3 +39,30 @@ export const loginWithPhoneSchema = z.object({
 
   loginAs: z.nativeEnum(AccountType),
 });
+
+export const sendVerificationSchema = z
+  .object({
+    type: z.enum([AuthMethod.EMAIL, AuthMethod.PHONE]),
+    value: z.string().min(1, 'Value is required'),
+  })
+  .strict()
+  .refine(
+    (data) => {
+      if (data.type === AuthMethod.EMAIL) {
+        return z.string().email().safeParse(data.value).success;
+      }
+      return data.value.length >= 8 && data.value.length <= 15;
+    },
+    {
+      message: 'Invalid email or phone format',
+      path: ['value'],
+    },
+  );
+
+export const verifySchema = z
+  .object({
+    type: z.enum([AuthMethod.EMAIL, AuthMethod.PHONE]),
+    value: z.string().min(1, 'Value is required'),
+    code: z.string().length(6, 'Code must be 6 digits').regex(/^\d{6}$/, 'Code must be 6 digits'),
+  })
+  .strict();

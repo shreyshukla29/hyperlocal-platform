@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { HEADERS } from '../constants';
+import { HEADERS } from '../constants/index.js';
 
 export function requestContextMiddleware(
   req: Request,

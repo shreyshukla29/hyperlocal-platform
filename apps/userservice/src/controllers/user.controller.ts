@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { UserService } from '../service';
-import { UpdateUserProfilePayload } from '../validators';
+import { UserService } from '../service/index.js';
+import { getAuthIdentityIdFromRequest } from '@hyperlocal/shared/constants';
+import { UpdateUserProfilePayload } from '../validators/index.js';
 
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -12,7 +13,7 @@ export class UserController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const authIdentityId = req.headers['x-user-id'] as string | undefined;
+      const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
 
       const user = await this.userService.getUserByAuthIdentityId(
         authIdentityId,
@@ -35,7 +36,7 @@ export class UserController {
   ): Promise<Response | void> {
     try {
       const { id: userId } = req.params;
-      const authIdentityId = req.headers['x-user-id'] as string | undefined;
+      const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const payload = req.body as UpdateUserProfilePayload;
 
       const user = await this.userService.updateUserProfile(
@@ -61,7 +62,7 @@ export class UserController {
   ): Promise<Response | void> {
     try {
       const { id: userId } = req.params;
-      const authIdentityId = req.headers['x-user-id'] as string | undefined;
+      const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const file = req.file;
 
       const user = await this.userService.uploadUserAvatar({
@@ -87,7 +88,7 @@ export class UserController {
   ): Promise<Response | void> {
     try {
       const { id: userId } = req.params;
-      const authIdentityId = req.headers['x-user-id'] as string | undefined;
+      const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
 
       const user = await this.userService.deleteUserAvatar(
         userId,

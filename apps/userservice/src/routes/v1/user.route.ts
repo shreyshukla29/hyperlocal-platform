@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { UserController } from '../../controllers';
-import { UserService } from '../../service';
-import { UserRepository } from '../../repositories';
+import { UserController } from '../../controllers/index.js';
+import { UserService } from '../../service/index.js';
+import { UserRepository } from '../../repositories/index.js';
 import { validateBody } from '@hyperlocal/shared/middlewares';
-import { updateUserProfileSchema } from '../../validators';
-import { uploadAvatar } from '../../middlewares';
+import { updateUserProfileSchema } from '../../validators/index.js';
+import { uploadAvatar } from '../../middlewares/index.js';
 
 export const userRouter = Router();
 

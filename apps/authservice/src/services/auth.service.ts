@@ -1,4 +1,5 @@
-import { AuthRepository } from '../repositories/auth.repository';
+import { AuthRepository } from '../repositories/auth.repository.js';
+import { VerificationType } from '../generated/prisma/client.js';
 
 import {
   SignupRequest,
@@ -6,20 +7,34 @@ import {
   LoginWithPhoneRequest,
   SignupResponse,
   LoginResponse,
-  AuthTokenPayload
-} from '../types/auth.types';
+  AuthTokenPayload,
+  SendVerificationRequest,
+  VerifyRequest,
+} from '../types/auth.types.js';
 
-import { signupSchema, loginWithEmailSchema, loginWithPhoneSchema } from '../validators';
+import {
+  signupSchema,
+  loginWithEmailSchema,
+  loginWithPhoneSchema,
+  sendVerificationSchema,
+  verifySchema,
+} from '../validators/index.js';
 
-import { hashPassword, verifyPassword,createToken } from '../utils';
+import { hashPassword, verifyPassword, createToken } from '../utils/index.js';
+import { generateOtp, hashOtp, getOtpExpiresAt, verifyOtp } from '../utils/otp.js';
 
-import { AUTH_ERRORS } from '../constants';
-import { AuthMethod } from '../enums';
+import { AUTH_ERRORS } from '../constants/index.js';
+import { AuthMethod } from '../enums/index.js';
 
-import {  ValidationError,BadRequestError,ForbiddenError } from '@hyperlocal/shared/errors';
-import { ServerConfig } from './../config/server_config';
-import {publishUserSignedUpEvent} from '../events'
-import {USER_SIGNED_UP_EVENT} from '@hyperlocal/shared/events'
+import {
+  ValidationError,
+  BadRequestError,
+  ForbiddenError,
+} from '@hyperlocal/shared/errors';
+import { ServerConfig } from '../config/server_config.js';
+import { publishUserSignedUpEvent } from '../events/index.js';
+import { USER_SIGNED_UP_EVENT } from '@hyperlocal/shared/events';
+import { publishAuthNotification } from '../events/notification.publisher.js';
 export class AuthService {
   constructor(private readonly repo: AuthRepository = new AuthRepository()) {}
 
@@ -189,11 +204,97 @@ if (!validPassword) {
   });
 
     return {
-     data : {
-       authId: identity.id,
-      accountType: identity.accountType,
-     },
-      token
+      data: {
+        authId: identity.id,
+        accountType: identity.accountType,
+      },
+      token,
     };
+  }
+
+  /** Send verification OTP to email or phone. Requires authenticated user (identityId from JWT). */
+  async sendVerification(
+    identityId: string,
+    payload: SendVerificationRequest,
+  ): Promise<{ success: true }> {
+    const parsed = sendVerificationSchema.safeParse(payload);
+    if (!parsed.success) {
+      throw new ValidationError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
+    }
+
+    const { type, value } = parsed.data;
+    const verificationType =
+      type === AuthMethod.EMAIL ? VerificationType.EMAIL : VerificationType.PHONE;
+
+    const identity = await this.repo.findById(identityId);
+    if (!identity) {
+      throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
+    }
+
+    if (type === AuthMethod.EMAIL) {
+      const normalized = value.trim().toLowerCase();
+      if (identity.email !== normalized) {
+        throw new BadRequestError(AUTH_ERRORS.VALUE_MISMATCH);
+      }
+    } else {
+      const normalized = value.replace(/\s+/g, '');
+      if (identity.phone !== normalized) {
+        throw new BadRequestError(AUTH_ERRORS.VALUE_MISMATCH);
+      }
+    }
+
+    const otp = generateOtp();
+    const otpHash = hashOtp(otp);
+    const otpExpiresAt = getOtpExpiresAt();
+
+    await this.repo.upsertVerificationOtp(
+      identityId,
+      verificationType,
+      value,
+      otpHash,
+      otpExpiresAt,
+    );
+
+    const title = 'Verification code';
+    const body = `Your verification code is: ${otp}. It expires in 10 minutes.`;
+
+    await publishAuthNotification({
+      userAuthId: identityId,
+      type: 'otp_verification',
+      title,
+      body,
+      channel: type === AuthMethod.EMAIL ? 'email' : 'in_app',
+      emailTo: type === AuthMethod.EMAIL ? value : null,
+    });
+
+    return { success: true };
+  }
+
+  /** Verify OTP and mark email/phone as verified. No auth required (user submits code). */
+  async verify(payload: VerifyRequest): Promise<{ success: true }> {
+    const parsed = verifySchema.safeParse(payload);
+    if (!parsed.success) {
+      throw new ValidationError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
+    }
+
+    const { type, value, code } = parsed.data;
+    const verificationType =
+      type === AuthMethod.EMAIL ? VerificationType.EMAIL : VerificationType.PHONE;
+
+    const record = await this.repo.findPendingByTypeAndValue(verificationType, value);
+    if (!record) {
+      throw new BadRequestError(AUTH_ERRORS.VERIFICATION_NOT_FOUND);
+    }
+
+    if (!record.otpHash || !record.otpExpiresAt) {
+      throw new BadRequestError(AUTH_ERRORS.OTP_EXPIRED);
+    }
+
+    if (!verifyOtp(code, record.otpHash, record.otpExpiresAt)) {
+      throw new BadRequestError(AUTH_ERRORS.OTP_INVALID);
+    }
+
+    await this.repo.markVerified(record.identityId, verificationType);
+    return { success: true };
   }
 }

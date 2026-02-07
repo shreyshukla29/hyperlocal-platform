@@ -1,6 +1,6 @@
-import { prisma as defaultPrisma} from '../config';
-import { User } from '../generated/prisma/client';
-import { CreateUserPayload, UpdateUserRepositoryPayload } from '../types';
+import { prisma as defaultPrisma } from '../config/index.js';
+import { User } from '../generated/prisma/client.js';
+import { CreateUserPayload, UpdateUserRepositoryPayload } from '../types/index.js';
 
 export class UserRepository {
    constructor(private prisma = defaultPrisma) {}

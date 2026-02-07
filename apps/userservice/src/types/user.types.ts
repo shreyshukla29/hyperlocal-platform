@@ -1,5 +1,5 @@
-import { UserModel } from '../generated/prisma/models/User';
-import { UpdateUserProfilePayload } from '../validators';
+import { UserModel } from '../generated/prisma/models/User.js';
+import { UpdateUserProfilePayload } from '../validators/index.js';
 
 export type UserResponse = UserModel;
 

@@ -1,17 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
-import { UnauthorizedError } from '../errors';
+import { UnauthorizedError } from '../errors/index.js';
 
 export interface GatewayAuthConfig {
-  apiKeyHeader: string;
+  apiKeyHeader?: string;
   validApiKey: string;
 }
 
-const apiKeyHeader = 'x-gateway-api-key';
-export function createGatewayAuthMiddleware(config: GatewayAuthConfig) {
-  const { validApiKey } = config;
+const DEFAULT_API_KEY_HEADER = 'x-gateway-api-key';
 
-if (!apiKeyHeader || !validApiKey) {
-    return new Error('GatewayAuthMiddleware misconfigured');
+export function createGatewayAuthMiddleware(config: GatewayAuthConfig) {
+  const { validApiKey, apiKeyHeader = DEFAULT_API_KEY_HEADER } = config;
+
+  if (!validApiKey) {
+    throw new Error('GatewayAuthMiddleware misconfigured: validApiKey is required');
   }
 
   return function gatewayAuthMiddleware(req: Request, _res: Response, next: NextFunction): void {

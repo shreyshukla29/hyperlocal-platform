@@ -1,0 +1,219 @@
+// Provider service schema – profiles, verification, offerings, availability,
+// and service personnel (field workers). See FEATURES.md for full feature list.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum AvailabilityStatus {
+  ONLINE
+  OFFLINE
+  DAY_OFF
+  BUSY
+}
+
+enum ProviderServiceStatus {
+  ACTIVE
+  INACTIVE
+  PAUSED
+}
+
+enum ServicePersonStatus {
+  AVAILABLE
+  BUSY
+  OFF_DUTY
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+// ---------------------------------------------------------------------------
+// Provider (business) – profile, verification, availability
+// ---------------------------------------------------------------------------
+
+model Provider {
+  id                 String             @id @default(uuid())
+  authIdentityId     String             @unique
+  firstName          String
+  lastName           String
+  email              String?
+  phone              String?
+  avatarUrl          String?
+  businessName       String?
+  businessAddress    String?
+  latitude           Float?
+  longitude          Float?
+  city               String?
+
+  verificationStatus VerificationStatus @default(PENDING)
+  idDocumentUrl      String?
+  businessLicenseUrl String?
+
+  availabilityStatus AvailabilityStatus @default(OFFLINE)
+  isActive            Boolean            @default(true)
+  isDeleted           Boolean            @default(false)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  providerServices   ProviderService[]
+  providerSchedules  ProviderSchedule[]
+  providerDayOffs    ProviderDayOff[]
+  servicePeople      ServicePerson[]
+
+  @@index([authIdentityId])
+  @@index([email])
+  @@index([phone])
+  @@index([verificationStatus])
+  @@index([availabilityStatus])
+  @@index([isActive, isDeleted])
+  @@index([city])
+  @@index([verificationStatus, isActive, isDeleted])
+  @@map("providers")
+}
+
+// ---------------------------------------------------------------------------
+// Provider service offerings (e.g. Plumbing, AC repair)
+// ---------------------------------------------------------------------------
+
+model ProviderService {
+  id              String                @id @default(uuid())
+  providerId      String
+  provider        Provider              @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  category        String?
+  price           Decimal                @db.Decimal(10, 2)
+  durationMinutes Int?
+  status          ProviderServiceStatus @default(ACTIVE)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  servicePersonProviderServices ServicePersonProviderService[]
+
+  @@index([providerId])
+  @@index([providerId, status])
+  @@index([category])
+  @@map("provider_services")
+}
+
+// ---------------------------------------------------------------------------
+// Recurring weekly working hours (e.g. Mon–Fri 9–17)
+// ---------------------------------------------------------------------------
+
+model ProviderSchedule {
+  id               String    @id @default(uuid())
+  providerId       String
+  provider         Provider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  dayOfWeek        DayOfWeek
+  startTimeMinutes Int       // 0–1439 (midnight to 23:59)
+  endTimeMinutes   Int       // 0–1439, must be > startTimeMinutes for same day
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([providerId, dayOfWeek])
+  @@index([providerId])
+  @@map("provider_schedules")
+}
+
+// ---------------------------------------------------------------------------
+// Specific dates when provider is off (holidays, one-off unavailability)
+// ---------------------------------------------------------------------------
+
+model ProviderDayOff {
+  id         String   @id @default(uuid())
+  providerId String
+  provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  date       DateTime @db.Date
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  @@unique([providerId, date])
+  @@index([providerId])
+  @@index([date])
+  @@map("provider_day_offs")
+}
+
+// ---------------------------------------------------------------------------
+// Service personnel (field workers) – registered by provider, assigned via Booking service
+// ---------------------------------------------------------------------------
+
+model ServicePerson {
+  id              String              @id @default(uuid())
+  providerId      String
+  provider        Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name            String
+  phone           String
+  email           String?
+  role            String?
+  authIdentityId  String?             @unique // optional: for worker app login and status updates
+  status          ServicePersonStatus @default(AVAILABLE)
+  isActive        Boolean             @default(true)
+  lastActiveAt   DateTime?           // last time worker hit API (if they have login)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  location ServicePersonLocation?
+  servicePersonProviderServices ServicePersonProviderService[]
+
+  @@index([providerId])
+  @@index([providerId, status])
+  @@index([providerId, isActive])
+  @@index([authIdentityId])
+  @@map("service_people")
+}
+
+// ---------------------------------------------------------------------------
+// Service person – type of service (many-to-many: one person can do multiple service types)
+// ---------------------------------------------------------------------------
+
+model ServicePersonProviderService {
+  id                String         @id @default(uuid())
+  servicePersonId   String
+  providerServiceId String
+  servicePerson     ServicePerson  @relation(fields: [servicePersonId], references: [id], onDelete: Cascade)
+  providerService   ProviderService @relation(fields: [providerServiceId], references: [id], onDelete: Cascade)
+  createdAt         DateTime       @default(now())
+
+  @@unique([servicePersonId, providerServiceId])
+  @@index([servicePersonId])
+  @@index([providerServiceId])
+  @@map("service_person_provider_services")
+}
+
+// ---------------------------------------------------------------------------
+// Last known location of a service person (optional – for “on the way”, ETA)
+// ---------------------------------------------------------------------------
+
+model ServicePersonLocation {
+  id             String       @id @default(uuid())
+  servicePersonId String      @unique
+  servicePerson  ServicePerson @relation(fields: [servicePersonId], references: [id], onDelete: Cascade)
+  latitude       Float
+  longitude      Float
+  updatedAt      DateTime    @updatedAt
+
+  @@index([servicePersonId])
+  @@map("service_person_locations")
+}

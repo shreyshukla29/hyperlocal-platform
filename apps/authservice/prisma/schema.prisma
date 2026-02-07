@@ -45,16 +45,18 @@ model Identity {
   @@map("identities")
 }
 model IdentityVerification {
-  id          String            @id @default(uuid())
+  id            String            @id @default(uuid())
 
-  identityId  String
-  type        VerificationType
-  value       String
-  verifiedAt  DateTime?
+  identityId    String
+  type          VerificationType
+  value         String
+  verifiedAt    DateTime?
+  otpHash       String?
+  otpExpiresAt  DateTime?
 
-  createdAt   DateTime          @default(now())
+  createdAt     DateTime          @default(now())
 
-  identity    Identity     @relation(fields: [identityId],references: [id], onDelete: Cascade )
+  identity      Identity     @relation(fields: [identityId],references: [id], onDelete: Cascade )
 
   @@index([identityId])
   @@index([type, value])

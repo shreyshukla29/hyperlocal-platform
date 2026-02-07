@@ -15,21 +15,57 @@ datasource db {
 
 
 model User {
-  id               String   @id @default(uuid())
-  authIdentityId   String   @unique
+  id               String    @id @default(uuid())
+  authIdentityId   String    @unique
 
   firstName        String
   lastName         String
-  username         String?  @unique
+  username         String?   @unique
   avatarUrl        String?
-  email            String?  @unique
-  phone            String?  @unique
-  isActive         Boolean  @default(true)
-  isDeleted        Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  email            String?   @unique
+  phone            String?   @unique
+  isActive         Boolean   @default(true)
+  isDeleted        Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  addresses        Address[]
+  favourites       UserFavourite[]
   @@index([authIdentityId])
   @@index([email])
   @@map("users")
 }
 
+model Address {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label        String?
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  state        String?
+  postalCode   String?
+  country      String?
+  latitude     Float?
+  longitude    Float?
+  isDefault    Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@index([userId])
+  @@index([userId, isActive, isDefault])
+  @@map("addresses")
+}
+
+model UserFavourite {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  providerId String
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, providerId])
+  @@index([userId])
+  @@index([providerId])
+  @@map("user_favourites")
+}

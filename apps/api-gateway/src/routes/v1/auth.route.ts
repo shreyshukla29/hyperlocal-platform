@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { createServiceProxy } from '../../proxy';
-import { ServiceName } from '../../enums';
+import { createServiceProxy } from '../../proxy/index.js';
+import { ServiceName } from '../../enums/index.js';
 
 export const authRouter = Router();
 

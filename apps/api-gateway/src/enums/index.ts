@@ -1,1 +1,1 @@
-export * from './service_name.enums';
+export * from './service_name.enums.js';
