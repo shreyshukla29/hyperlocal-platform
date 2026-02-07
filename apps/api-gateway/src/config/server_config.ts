@@ -5,6 +5,9 @@ dotenv.config();
 interface ServicesConfig {
   AUTH?: string;
   USER?: string;
+  PROVIDER?: string;
+  BOOKING?: string;
+  NOTIFICATION?: string;
 }
 
 interface ServerConfigType {
@@ -12,6 +15,8 @@ interface ServerConfigType {
   NODE_ENV: string;
   JWT_SECRET: string;
   services: ServicesConfig;
+  GATEWAY_API_KEY: string,
+
 }
 
 const required = (key: string): string => {
@@ -27,6 +32,9 @@ export const ServerConfig: ServerConfigType = {
   services: {
     AUTH: process.env.SERVICE_AUTH_URL,
     USER: process.env.SERVICE_USER_URL,
+    PROVIDER: process.env.SERVICE_PROVIDER_URL,
+    BOOKING: process.env.SERVICE_BOOKING_URL,
+    NOTIFICATION: process.env.SERVICE_NOTIFICATION_URL,
   },
   GATEWAY_API_KEY: required('GATEWAY_API_KEY'),
 } as const;

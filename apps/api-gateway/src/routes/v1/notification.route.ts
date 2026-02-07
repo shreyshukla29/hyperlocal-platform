@@ -2,9 +2,9 @@ import { Router } from 'express';
 import { createServiceProxy } from '../../proxy/index.js';
 import { ServiceName } from '../../enums/index.js';
 
-export const authRouter = Router();
+export const notificationRouter = Router();
 
-authRouter.use('/',
-  createServiceProxy(ServiceName.AUTH,'v1'),
+notificationRouter.use(
+  '/',
+  createServiceProxy(ServiceName.NOTIFICATION, 'v1'),
 );
-

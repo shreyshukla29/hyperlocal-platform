@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { ServerConfig } from '../config';
-import { JwtPayload } from '../types';
+import { ServerConfig } from '../config/index.js';
+import { JwtPayload } from '../types/index.js';
 import {logger} from '@hyperlocal/shared/logger'
-import { GatewayError } from '../errors';
+import { GatewayError } from '../errors/index.js';
 
 export function jwtAuthMiddleware(req: Request, res: Response, next: NextFunction): void {
   const token = req.cookies?.access_token as string | undefined;

@@ -1,0 +1,1046 @@
+openapi: 3.0.3
+info:
+  title: Hyperlocal Platform API
+  description: |
+    API for the Hyperlocal platform. All routes are served via the API Gateway.
+    - **Auth** routes are public (signup, login, verify).
+    - **User**, **Provider**, **Booking**, **Search**, **Notification** require JWT (Bearer token or cookie).
+  version: 1.0.0
+  contact:
+    name: Platform Team
+
+servers:
+  - url: /api/v1
+    description: API Gateway v1 base path
+
+tags:
+  - name: Auth
+    description: Signup, login, OTP verification (no JWT required)
+  - name: User
+    description: User profile and avatar
+  - name: Address
+    description: User addresses and current location
+  - name: Provider
+    description: Provider profile, services, service persons, availability
+  - name: Booking
+    description: User and provider booking operations
+  - name: Search
+    description: Search and discovery
+  - name: Notification
+    description: User notifications
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT from login/signup (optional if using cookie)
+  schemas:
+    Error:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        error: { type: string }
+        message: { type: string }
+        data: { type: "null" }
+    Success:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        data: {}
+
+paths:
+  # ---- Auth (public) ----
+  /auth/signup:
+    post:
+      tags: [Auth]
+      summary: Sign up
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password, accountType, firstName, lastName]
+              properties:
+                email: { type: string, format: email }
+                phone: { type: string, minLength: 10, maxLength: 10 }
+                password: { type: string, minLength: 8 }
+                accountType: { type: string, enum: [USER, PROVIDER] }
+                firstName: { type: string }
+                lastName: { type: string }
+              oneOf: [{ required: [email] }, { required: [phone] }]
+      responses:
+        "201": { description: "Created" }
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /auth/login/email:
+    post:
+      tags: [Auth]
+      summary: Login with email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [method, email, password, loginAs]
+              properties:
+                method: { type: string, enum: [EMAIL] }
+                email: { type: string, format: email }
+                password: { type: string }
+                loginAs: { type: string, enum: [USER, PROVIDER] }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Invalid credentials", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /auth/login/phone:
+    post:
+      tags: [Auth]
+      summary: Login with phone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [method, phone, password, loginAs]
+              properties:
+                method: { type: string, enum: [PHONE] }
+                phone: { type: string, minLength: 8, maxLength: 15 }
+                password: { type: string }
+                loginAs: { type: string, enum: [USER, PROVIDER] }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Invalid credentials", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /auth/send-verification:
+    post:
+      tags: [Auth]
+      summary: Send OTP to email or phone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, value]
+              properties:
+                type: { type: string, enum: [EMAIL, PHONE] }
+                value: { type: string }
+      responses:
+        "200": { description: "OTP sent" }
+        "400": { description: "Bad request", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /auth/verify:
+    post:
+      tags: [Auth]
+      summary: Verify OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, value, code]
+              properties:
+                type: { type: string, enum: [EMAIL, PHONE] }
+                value: { type: string }
+                code: { type: string, minLength: 6, maxLength: 6, pattern: "^[0-9]{6}$" }
+      responses:
+        "200": { description: "Verified" }
+        "400": { description: "Invalid OTP", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh token (not implemented)
+      responses:
+        "501": { description: "Not implemented" }
+
+  # ---- User (JWT) ----
+  /user/profile:
+    get:
+      tags: [User]
+      summary: Get my profile
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /user/profile/{id}:
+    patch:
+      tags: [User]
+      summary: Update profile
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName: { type: string }
+                lastName: { type: string }
+                phone: { type: string }
+                email: { type: string, format: email }
+      responses:
+        "200": { description: "OK" }
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /user/avatar/{id}:
+    patch:
+      tags: [User]
+      summary: Upload avatar (multipart)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "200": { description: "OK" }
+        "400": { description: "Bad request", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+    delete:
+      tags: [User]
+      summary: Delete avatar
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+
+  # ---- Address (JWT) ----
+  /user/{userId}/addresses:
+    get:
+      tags: [Address]
+      summary: List addresses
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+    post:
+      tags: [Address]
+      summary: Create address
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                addressLine1: { type: string }
+                addressLine2: { type: string }
+                city: { type: string }
+                state: { type: string }
+                pincode: { type: string }
+                latitude: { type: number }
+                longitude: { type: number }
+                isDefault: { type: boolean }
+      responses:
+        "201": { description: "Created" }
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /user/{userId}/addresses/current-location:
+    get:
+      tags: [Address]
+      summary: Get current location
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+    post:
+      tags: [Address]
+      summary: Save current location
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [latitude, longitude]
+              properties:
+                latitude: { type: number }
+                longitude: { type: number }
+      responses:
+        "200": { description: "OK" }
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /user/{userId}/addresses/default:
+    get:
+      tags: [Address]
+      summary: Get default address
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /user/{userId}/addresses/{addressId}:
+    patch:
+      tags: [Address]
+      summary: Update address
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: addressId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                addressLine1: { type: string }
+                addressLine2: { type: string }
+                city: { type: string }
+                state: { type: string }
+                pincode: { type: string }
+                latitude: { type: number }
+                longitude: { type: number }
+                isDefault: { type: boolean }
+      responses:
+        "200": { description: "OK" }
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+    delete:
+      tags: [Address]
+      summary: Delete address
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: addressId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /user/{userId}/addresses/{addressId}/default:
+    patch:
+      tags: [Address]
+      summary: Set default address
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: addressId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+
+  # ---- Provider (JWT) ----
+  /provider/top-by-location:
+    get:
+      tags: [Provider]
+      summary: Top providers by location (paginated)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: city
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100 }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /provider/profile:
+    get:
+      tags: [Provider]
+      summary: Get my provider profile
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /provider/profile/{id}:
+    patch:
+      tags: [Provider]
+      summary: Update provider profile
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                businessName: { type: string }
+                phone: { type: string }
+                city: { type: string }
+                description: { type: string }
+      responses:
+        "200": { description: "OK" }
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /provider/{providerId}/verification:
+    patch:
+      tags: [Provider]
+      summary: Update verification status (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [VERIFIED, PENDING, REJECTED] }
+      responses:
+        "200": { description: "OK" }
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /provider/{providerId}/availability/open-intervals:
+    get:
+      tags: [Provider]
+      summary: Get open intervals for a date (for slot selection)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: date
+          in: query
+          required: true
+          schema: { type: string, format: date, example: "2025-02-07" }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /provider/services:
+    get:
+      tags: [Provider]
+      summary: List my service offerings
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+    post:
+      tags: [Provider]
+      summary: Create service offering
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [categoryId, title, pricePaise]
+              properties:
+                categoryId: { type: string, format: uuid }
+                title: { type: string }
+                description: { type: string }
+                pricePaise: { type: integer, minimum: 0 }
+                durationMinutes: { type: integer }
+      responses:
+        "201": { description: "Created" }
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /provider/services/{id}:
+    get:
+      tags: [Provider]
+      summary: Get service offering by id
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+    patch:
+      tags: [Provider]
+      summary: Update service offering
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                description: { type: string }
+                pricePaise: { type: integer }
+                durationMinutes: { type: integer }
+      responses:
+        "200": { description: "OK" }
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+    delete:
+      tags: [Provider]
+      summary: Delete service offering
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /provider/{providerId}/services/{providerServiceId}/booking-quote:
+    get:
+      tags: [Provider]
+      summary: Get booking quote for a service
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: providerServiceId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /provider/service-people:
+    get:
+      tags: [Provider]
+      summary: List service persons
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+    post:
+      tags: [Provider]
+      summary: Create service person
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, phone]
+              properties:
+                name: { type: string }
+                phone: { type: string }
+      responses:
+        "201": { description: "Created" }
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /provider/service-people/{id}:
+    get:
+      tags: [Provider]
+      summary: Get service person by id
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+    patch:
+      tags: [Provider]
+      summary: Update service person
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                phone: { type: string }
+      responses:
+        "200": { description: "OK" }
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+    delete:
+      tags: [Provider]
+      summary: Deactivate service person
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /provider/service-people/{id}/status:
+    patch:
+      tags: [Provider]
+      summary: Update service person status
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [ACTIVE, INACTIVE] }
+      responses:
+        "200": { description: "OK" }
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+
+  # ---- Booking (JWT) ----
+  /booking:
+    get:
+      tags: [Booking]
+      summary: List my bookings (paginated, optional status filter)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100 }
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - PENDING_PAYMENT
+              - PAYMENT_FAILED
+              - CONFIRMED
+              - IN_PROGRESS
+              - ARRIVAL_CONFIRMED
+              - PENDING_COMPLETION_VERIFICATION
+              - COMPLETED
+              - CANCELLED
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+    post:
+      tags: [Booking]
+      summary: Create booking (idempotency key in header recommended)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [providerId, providerServiceId, slotStart, slotEnd]
+              properties:
+                providerId: { type: string, format: uuid }
+                providerServiceId: { type: string, format: uuid }
+                slotStart: { type: string, format: date-time }
+                slotEnd: { type: string, format: date-time }
+                addressLine1: { type: string }
+                city: { type: string }
+                latitude: { type: number }
+                longitude: { type: number }
+                notes: { type: string }
+                currency: { type: string, default: INR }
+                idempotencyKey: { type: string, maxLength: 128 }
+      responses:
+        "201": { description: "Created" }
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /booking/available-slots:
+    get:
+      tags: [Booking]
+      summary: Get available slots for a provider on a date
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: providerId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: date
+          in: query
+          required: true
+          schema: { type: string, format: date, example: "2025-02-07" }
+        - name: slotDurationMinutes
+          in: query
+          schema: { type: integer, minimum: 15, maximum: 120 }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /booking/reviews:
+    get:
+      tags: [Booking]
+      summary: List reviews by provider
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: providerId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: providerServiceId
+          in: query
+          schema: { type: string, format: uuid }
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100 }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /booking/{id}:
+    get:
+      tags: [Booking]
+      summary: Get my booking by id
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+    post:
+      tags: [Booking]
+      summary: "Cancel my booking (refund policy: 24h+ full, 12–24h 50%, <12h 0%)"
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+      responses:
+        "200": { description: "OK" }
+        "400": { description: "Bad request", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /booking/{id}/verify-completion:
+    post:
+      tags: [Booking]
+      summary: Verify completion OTP to mark booking completed
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [otp]
+              properties:
+                otp: { type: string, minLength: 6, maxLength: 6, pattern: "^[0-9]{6}$" }
+      responses:
+        "200": { description: "OK" }
+        "400": { description: "Invalid OTP", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /booking/{id}/review:
+    post:
+      tags: [Booking]
+      summary: Add review for completed booking (one per booking)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rating]
+              properties:
+                rating: { type: integer, minimum: 1, maximum: 5 }
+                comment: { type: string }
+      responses:
+        "201": { description: "Created" }
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  # Provider booking routes (gateway path is /booking/provider -> backend /bookings/provider)
+  /booking/provider:
+    get:
+      tags: [Booking]
+      summary: List provider bookings
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100 }
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - PENDING_PAYMENT
+              - CONFIRMED
+              - IN_PROGRESS
+              - ARRIVAL_CONFIRMED
+              - COMPLETED
+              - CANCELLED
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /booking/provider/{id}:
+    get:
+      tags: [Booking]
+      summary: Get booking by id (provider)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+    post:
+      tags: [Booking]
+      summary: Cancel booking (provider, full refund)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /booking/provider/{id}/assign:
+    patch:
+      tags: [Booking]
+      summary: Assign service person to booking
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [assignedServicePersonId]
+              properties:
+                assignedServicePersonId: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /booking/provider/{id}/confirm-arrival:
+    post:
+      tags: [Booking]
+      summary: Confirm arrival (OTP)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [otp]
+              properties:
+                otp: { type: string, minLength: 6, maxLength: 6, pattern: "^[0-9]{6}$" }
+      responses:
+        "200": { description: "OK" }
+        "400": { description: "Invalid OTP", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /booking/provider/{id}/mark-complete:
+    post:
+      tags: [Booking]
+      summary: Mark booking complete
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+
+  # ---- Search (JWT) ----
+  /search:
+    get:
+      tags: [Search]
+      summary: Search services (query, category, city, paginated)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: q
+          in: query
+          description: Search query
+          schema: { type: string }
+        - name: categoryId
+          in: query
+          schema: { type: string, format: uuid }
+        - name: city
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100 }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /search/top-services:
+    get:
+      tags: [Search]
+      summary: Top services in area (paginated)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: city
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100 }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+
+  # ---- Notification (JWT) ----
+  /notification:
+    get:
+      tags: [Notification]
+      summary: List my notifications
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100 }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /notification/read-all:
+    patch:
+      tags: [Notification]
+      summary: Mark all as read
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+  /notification/{id}:
+    get:
+      tags: [Notification]
+      summary: Get notification by id
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "404": { description: "Not found", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+    patch:
+      tags: [Notification]
+      summary: Mark notification as read
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: "OK" }
+        "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }

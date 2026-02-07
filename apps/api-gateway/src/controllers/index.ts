@@ -1,3 +1,3 @@
-import { info } from './test.ts';
+import { info } from './test.js';
 
 export const InfoController = { info };

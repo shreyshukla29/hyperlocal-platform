@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { GatewayError } from '../errors';
+import { GatewayError } from '../errors/index.js';
 import { logger } from '@hyperlocal/shared/logger';
 
 export function errorMiddleware(

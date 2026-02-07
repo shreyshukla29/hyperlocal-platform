@@ -1,2 +1,2 @@
-export * from './headers.contant';
-export * from './services.constant';
+export * from './headers.contant.js';
+export * from './services.constant.js';
