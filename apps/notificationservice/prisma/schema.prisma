@@ -1,0 +1,26 @@
+// Notification service – in-app notifications for users.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Notification {
+  id         String    @id @default(uuid())
+  userAuthId String
+  type       String
+  title      String
+  body       String?
+  readAt     DateTime?
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+
+  @@index([userAuthId])
+  @@index([userAuthId, readAt])
+  @@index([createdAt])
+  @@map("notifications")
+}
