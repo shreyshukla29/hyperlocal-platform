@@ -10,7 +10,7 @@ import {
   AuthTokenPayload,
   SendVerificationRequest,
   VerifyRequest,
-} from '../types/auth.types.js';
+} from '../types/index.js';
 
 import {
   signupSchema,
@@ -134,10 +134,10 @@ if (!validPassword) {
   throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
 }
 
-    // const isVerified = await this.repo.isVerified(identity.id, AuthMethod.EMAIL);
-    // if (!isVerified) {
-    //   throw new AppError(AUTH_ERRORS.EMAIL_NOT_VERIFIED, 403);
-    // }
+    const isVerified = await this.repo.isVerified(identity.id, AuthMethod.EMAIL);
+    if (!isVerified) {
+      throw new BadRequestError(AUTH_ERRORS.EMAIL_NOT_VERIFIED, 403);
+    }
 
     const token = createToken<AuthTokenPayload>({
     payload: {
@@ -184,10 +184,10 @@ if (!validPassword) {
 }
 
 
-    // const isVerified = await this.repo.isVerified(identity.id, AuthMethod.PHONE);
-    // if (!isVerified) {
-    //   throw new BadRequestError(AUTH_ERRORS.PHONE_NOT_VERIFIED, 403);
-    // }
+    const isVerified = await this.repo.isVerified(identity.id, AuthMethod.PHONE);
+    if (!isVerified) {
+      throw new BadRequestError(AUTH_ERRORS.PHONE_NOT_VERIFIED, 403);
+    }
 
      const token = createToken<AuthTokenPayload>({
     payload: {

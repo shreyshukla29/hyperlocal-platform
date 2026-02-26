@@ -17,8 +17,8 @@ import type * as Prisma from "./prismaNamespace.js"
 
 const config: runtime.GetPrismaClientConfig = {
   "previewFeatures": [],
-  "clientVersion": "7.2.0",
-  "engineVersion": "0c8ef2ce45c83248ab3df073180d5eda9e8be7a3",
+  "clientVersion": "7.3.0",
+  "engineVersion": "9d6ad21cbbceab97458517b147a6a09ff43aa735",
   "activeProvider": "postgresql",
   "inlineSchema": "// Booking service – bookings, assignment, OTP for arrival and completion verification.\n// Provider and ServicePerson ids reference Provider service (cross-service reference).\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nenum BookingStatus {\n  PENDING_PAYMENT\n  PAYMENT_FAILED\n  CONFIRMED\n  IN_PROGRESS\n  ARRIVAL_CONFIRMED\n  PENDING_COMPLETION_VERIFICATION\n  COMPLETED\n  CANCELLED\n}\n\nenum CancelledBy {\n  USER\n  PROVIDER\n  SYSTEM\n}\n\nenum BookingOtpType {\n  ARRIVAL\n  COMPLETION\n}\n\nmodel Booking {\n  id                      String        @id @default(uuid())\n  idempotencyKey          String?       @unique\n  userAuthId              String\n  providerId              String\n  providerServiceId       String\n  providerAuthId          String? // For provider-side notifications (from Provider quote)\n  assignedServicePersonId String?\n  status                  BookingStatus @default(PENDING_PAYMENT)\n  slotStart               DateTime\n  slotEnd                 DateTime\n  addressLine1            String?\n  city                    String?\n  latitude                Float?\n  longitude               Float?\n  notes                   String?\n  arrivalConfirmedAt      DateTime?\n  completedAt             DateTime?\n  confirmedAt             DateTime?\n  cancelledAt             DateTime?\n  cancelledBy             CancelledBy?\n  amountPaise             Int\n  currency                String        @default(\"INR\")\n  razorpayOrderId         String?       @unique\n  razorpayPaymentId       String?\n  refundAmountPaise       Int?\n  razorpayRefundId        String?\n  createdAt               DateTime      @default(now())\n  updatedAt               DateTime      @updatedAt\n\n  otps BookingOtp[]\n\n  @@index([userAuthId])\n  @@index([providerId])\n  @@index([assignedServicePersonId])\n  @@index([status])\n  @@index([slotStart])\n  @@index([razorpayOrderId])\n  @@index([razorpayPaymentId])\n  @@index([idempotencyKey])\n  @@map(\"bookings\")\n}\n\nmodel PaymentWebhookEvent {\n  id          String   @id @default(uuid())\n  eventId     String   @unique\n  eventType   String\n  processedAt DateTime @default(now())\n  createdAt   DateTime @default(now())\n\n  @@index([eventId])\n  @@map(\"payment_webhook_events\")\n}\n\nmodel BookingReview {\n  id                String   @id @default(uuid())\n  bookingId         String   @unique\n  userAuthId        String\n  providerId        String\n  providerServiceId String\n  rating            Int // 1-5\n  comment           String?\n  createdAt         DateTime @default(now())\n\n  @@index([providerId])\n  @@index([providerServiceId])\n  @@index([userAuthId])\n  @@map(\"booking_reviews\")\n}\n\n// OTP table lives only in Booking Service. Other services (user, provider, notification) do not store or verify OTPs.\nmodel BookingOtp {\n  id        String         @id @default(uuid())\n  bookingId String\n  booking   Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)\n  type      BookingOtpType\n  otpHash   String // HMAC-SHA256 hash; plain OTP never stored\n  expiresAt DateTime // Active only when expiresAt > now and usedAt is null\n  usedAt    DateTime?\n  createdAt DateTime       @default(now())\n\n  @@index([bookingId])\n  @@index([bookingId, type])\n  @@map(\"booking_otps\")\n}\n",
   "runtimeDataModel": {
@@ -37,12 +37,14 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
 }
 
 config.compilerWasm = {
-  getRuntime: async () => await import("@prisma/client/runtime/query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () => await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.mjs"),
 
   getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("@prisma/client/runtime/query_compiler_bg.postgresql.wasm-base64.mjs")
+    const { wasm } = await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.mjs")
     return await decodeBase64AsWasm(wasm)
-  }
+  },
+
+  importName: "./query_compiler_fast_bg.js"
 }
 
 

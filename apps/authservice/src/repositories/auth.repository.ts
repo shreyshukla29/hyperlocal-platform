@@ -6,7 +6,7 @@ import {
   AccountType,
 } from '../generated/prisma/client.js';
 
-import { CreateIdentityInput, LoginLookupInput } from '../types/auth.types.js';
+import { CreateIdentityInput, LoginLookupInput } from '../types/index.js';
 import { normalizeEmail, normalizePhone } from '../utils/index.js';
 
 export class AuthRepository {

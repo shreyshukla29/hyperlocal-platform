@@ -14,7 +14,6 @@ export function createToken<T extends object>(params: {
   options?: SignOptions;
 }): string {
   const { payload, secretKey, options } = params;
-console.log(secretKey)
   return jwt.sign(payload, secretKey, {
     ...options,
   });
