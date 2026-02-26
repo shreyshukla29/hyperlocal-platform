@@ -1,6 +1,6 @@
 import { VerificationType } from '../generated/prisma/client.js';
 import { AccountType, AuthMethod } from '../enums/index.js';
-import { AccountType } from '../generated/prisma/enums.js';
+
 
 export interface CreateIdentityInput {
   email?: string;
@@ -54,8 +54,13 @@ export interface LoginResponse {
     token: string
 }
 
+export interface LoginLookupInput {
+  email :string,
+  phone: string,
+  accountType : AccountType
+}
+
 export interface AuthTokenPayload {
-  userId: string;
   authId?: string;
   email?: string;
   phone?: string;

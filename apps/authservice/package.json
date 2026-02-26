@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@hyperlocal/shared": "*",
-    "@prisma/adapter-pg": "^7.2.0",
-    "@prisma/client": "^7.2.0",
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
     "@types/bcrypt": "^6.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "amqplib": "^0.10.9",
@@ -33,15 +33,15 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
+    "@types/jest": "^29.5.12",
     "@types/node": "^20.19.27",
     "@types/pg": "^8.16.0",
-    "nodemon": "^3.0.2",
-    "prisma": "^6.19.2",
-    "tsx": "^3.12.7",
-    "typescript": "^5.2.2",
-    "@types/jest": "^29.5.12",
     "cross-env": "^7.0.3",
     "jest": "^29.7.0",
-    "ts-jest": "^29.1.2"
+    "nodemon": "^3.0.2",
+    "prisma": "^7.3.0",
+    "ts-jest": "^29.1.2",
+    "tsx": "^3.12.7",
+    "typescript": "^5.2.2"
   }
 }
