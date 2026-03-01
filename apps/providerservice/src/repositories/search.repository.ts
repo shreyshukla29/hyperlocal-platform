@@ -48,9 +48,7 @@ function toSearchItem(row: {
 export class SearchRepository {
   constructor(private prisma = defaultPrisma) {}
 
-  async searchServices(
-    query: SearchQuery,
-  ): Promise<PaginatedSearchResult<SearchServiceItem>> {
+  async searchServices(query: SearchQuery): Promise<PaginatedSearchResult<SearchServiceItem>> {
     const page = Math.max(1, query.page ?? DEFAULT_PAGE);
     const limit = Math.min(MAX_LIMIT, Math.max(1, query.limit ?? DEFAULT_LIMIT));
     const skip = (page - 1) * limit;
@@ -90,9 +88,7 @@ export class SearchRepository {
       ];
     }
 
-    const whereInput = where as Parameters<
-      typeof this.prisma.providerService.findMany
-    >[0]['where'];
+    const whereInput = where as Parameters<typeof this.prisma.providerService.findMany>[0]['where'];
 
     const [items, total] = await Promise.all([
       this.prisma.providerService.findMany({
@@ -106,10 +102,7 @@ export class SearchRepository {
             },
           },
         },
-        orderBy: [
-          { provider: { verificationStatus: 'desc' } },
-          { createdAt: 'desc' },
-        ],
+        orderBy: [{ provider: { verificationStatus: 'desc' } }, { createdAt: 'desc' }],
         skip,
         take: limit,
       }),
@@ -126,9 +119,7 @@ export class SearchRepository {
     };
   }
 
-  async getTopServices(
-    query: TopServicesQuery,
-  ): Promise<PaginatedSearchResult<SearchServiceItem>> {
+  async getTopServices(query: TopServicesQuery): Promise<PaginatedSearchResult<SearchServiceItem>> {
     const page = Math.max(1, query.page ?? DEFAULT_PAGE);
     const limit = Math.min(MAX_LIMIT, Math.max(1, query.limit ?? DEFAULT_LIMIT));
     const skip = (page - 1) * limit;
@@ -169,10 +160,7 @@ export class SearchRepository {
             },
           },
         },
-        orderBy: [
-          { provider: { verificationStatus: 'desc' } },
-          { createdAt: 'desc' },
-        ],
+        orderBy: [{ provider: { verificationStatus: 'desc' } }, { createdAt: 'desc' }],
         skip,
         take: limit,
       }),

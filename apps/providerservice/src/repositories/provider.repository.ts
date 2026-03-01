@@ -17,8 +17,7 @@ export class ProviderRepository {
   constructor(private prisma = defaultPrisma) {}
 
   async createProvider(payload: CreateProviderPayload): Promise<Provider> {
-    const { authIdentityId, firstName, lastName, email = null, phone = null } =
-      payload;
+    const { authIdentityId, firstName, lastName, email = null, phone = null } = payload;
 
     return this.prisma.provider.upsert({
       where: { authIdentityId },
@@ -71,9 +70,7 @@ export class ProviderRepository {
     });
   }
 
-  async findTopByLocation(
-    query: TopProvidersByLocationQuery,
-  ): Promise<PaginatedProvidersResult> {
+  async findTopByLocation(query: TopProvidersByLocationQuery): Promise<PaginatedProvidersResult> {
     const page = Math.max(1, query.page ?? DEFAULT_PAGE);
     const limit = Math.min(MAX_LIMIT, Math.max(1, query.limit ?? DEFAULT_LIMIT));
     const skip = (page - 1) * limit;
@@ -115,11 +112,7 @@ export class ProviderRepository {
           availabilityStatus: true,
           createdAt: true,
         },
-        orderBy: [
-          { averageRating: 'desc' },
-          { verificationStatus: 'desc' },
-          { createdAt: 'desc' },
-        ],
+        orderBy: [{ averageRating: 'desc' }, { verificationStatus: 'desc' }, { createdAt: 'desc' }],
         skip,
         take: limit,
       }),
@@ -158,10 +151,7 @@ export class ProviderRepository {
     const lat = Number(query.latitude);
     const lng = Number(query.longitude);
     const radiusKm = query.radiusKm != null && query.radiusKm > 0 ? query.radiusKm : null;
-    const city =
-      query.city !== undefined && query.city.trim() !== ''
-        ? query.city.trim()
-        : null;
+    const city = query.city !== undefined && query.city.trim() !== '' ? query.city.trim() : null;
 
     // Haversine distance in km. Param order: lat, lng, radiusKm, city, limit, skip.
     const hav = Prisma.sql`6371 * acos(least(1, greatest(-1, cos(radians(${lat})) * cos(radians(p.latitude)) * cos(radians(p.longitude) - radians(${lng})) + sin(radians(${lat})) * sin(radians(p.latitude)))))`;

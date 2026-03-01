@@ -29,11 +29,7 @@ describe('NotificationController', () => {
   describe('list', () => {
     it('returns 400 when auth identity missing', async () => {
       mockRequest.headers = {};
-      await controller.list(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.list(mockRequest as Request, mockResponse as Response, mockNext);
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.BAD_REQUEST);
       expect(mockService.listByUser).not.toHaveBeenCalled();
     });
@@ -48,11 +44,7 @@ describe('NotificationController', () => {
         limit: 20,
         totalPages: 0,
       });
-      await controller.list(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.list(mockRequest as Request, mockResponse as Response, mockNext);
       expect(mockService.listByUser).toHaveBeenCalledWith('auth-123', { unreadOnly: false });
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
     });
@@ -62,11 +54,7 @@ describe('NotificationController', () => {
     it('returns 400 when id or auth missing', async () => {
       mockRequest.params = {};
       mockRequest.headers = {};
-      await controller.getById(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.getById(mockRequest as Request, mockResponse as Response, mockNext);
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.BAD_REQUEST);
     });
 
@@ -83,11 +71,7 @@ describe('NotificationController', () => {
         metadata: null,
         createdAt: new Date(),
       });
-      await controller.getById(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.getById(mockRequest as Request, mockResponse as Response, mockNext);
       expect(mockService.getById).toHaveBeenCalledWith('n1', 'auth-123');
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
     });
@@ -97,11 +81,7 @@ describe('NotificationController', () => {
     it('returns 400 when auth missing', async () => {
       mockRequest.params = { id: 'n1' };
       mockRequest.headers = {};
-      await controller.markAsRead(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.markAsRead(mockRequest as Request, mockResponse as Response, mockNext);
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.BAD_REQUEST);
     });
     it('returns 200 when service succeeds', async () => {
@@ -117,11 +97,7 @@ describe('NotificationController', () => {
         metadata: null,
         createdAt: new Date(),
       });
-      await controller.markAsRead(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.markAsRead(mockRequest as Request, mockResponse as Response, mockNext);
       expect(mockService.markAsRead).toHaveBeenCalledWith('n1', 'auth-123');
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
     });
@@ -131,11 +107,7 @@ describe('NotificationController', () => {
     it('returns 200 with count when service succeeds', async () => {
       mockRequest.headers = { 'x-user-id': 'auth-123' };
       mockService.markAllAsRead.mockResolvedValue({ count: 5 });
-      await controller.markAllAsRead(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.markAllAsRead(mockRequest as Request, mockResponse as Response, mockNext);
       expect(mockService.markAllAsRead).toHaveBeenCalledWith('auth-123');
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
     });

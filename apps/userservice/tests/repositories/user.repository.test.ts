@@ -8,7 +8,6 @@ jest.mock('../../src/config', () => ({
 import { UserRepository } from '../../src/repositories';
 import { createMockUser, createMockUserPayload } from '../helpers/test-helpers';
 
-
 describe('UserRepository', () => {
   let repository: UserRepository;
 

@@ -31,10 +31,7 @@ export class BookingOtpService {
    * Verify arrival OTP and mark it used. Returns true if valid.
    */
   async verifyArrivalOtp(bookingId: string, plainOtp: string): Promise<boolean> {
-    const record = await this.otpRepo.findActiveByBookingAndType(
-      bookingId,
-      BookingOtpType.ARRIVAL,
-    );
+    const record = await this.otpRepo.findActiveByBookingAndType(bookingId, BookingOtpType.ARRIVAL);
     if (!record) {
       throw new BadRequestError('No valid arrival OTP found for this booking');
     }

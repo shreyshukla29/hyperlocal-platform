@@ -34,10 +34,7 @@ function parseMessage(msg: Buffer): {
   };
 }
 
-function createRetryMessage(
-  payload: UserSignedUpEvent,
-  metadata: MessageMetadata,
-): Buffer {
+function createRetryMessage(payload: UserSignedUpEvent, metadata: MessageMetadata): Buffer {
   return Buffer.from(
     JSON.stringify({
       payload,
@@ -90,11 +87,7 @@ export async function startProviderSignedUpConsumer(): Promise<void> {
 
     await channel.assertQueue(DLQ_QUEUE, { durable: true });
 
-    await channel.bindQueue(
-      MAIN_QUEUE,
-      AUTH_EXCHANGE,
-      ROUTING_KEYS.USER_SIGNED_UP,
-    );
+    await channel.bindQueue(MAIN_QUEUE, AUTH_EXCHANGE, ROUTING_KEYS.USER_SIGNED_UP);
 
     await channel.prefetch(10);
 

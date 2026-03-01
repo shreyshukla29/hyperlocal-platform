@@ -58,7 +58,13 @@ export class BookingReviewRepository {
   async findByProvider(
     providerId: string,
     query?: ListReviewsQuery,
-  ): Promise<{ items: ReviewResponse[]; total: number; page: number; limit: number; totalPages: number }> {
+  ): Promise<{
+    items: ReviewResponse[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     const page = Math.max(1, query?.page ?? DEFAULT_PAGE);
     const limit = Math.min(MAX_LIMIT, Math.max(1, query?.limit ?? DEFAULT_LIMIT));
     const skip = (page - 1) * limit;

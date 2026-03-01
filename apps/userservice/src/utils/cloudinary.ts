@@ -21,12 +21,7 @@ export async function uploadImage(
   fileBuffer: Buffer,
   options: UploadOptions,
 ): Promise<UploadResult> {
-  const {
-    folder = 'avatars',
-    userId,
-    transformation,
-    retryCount = 0,
-  } = options;
+  const { folder = 'avatars', userId, transformation, retryCount = 0 } = options;
 
   const defaultTransformation = [
     { width: 400, height: 400, crop: 'fill', gravity: 'face' },
@@ -97,10 +92,7 @@ export async function uploadImage(
   });
 }
 
-export async function deleteImage(
-  publicId: string,
-  retryCount: number = 0,
-): Promise<void> {
+export async function deleteImage(publicId: string, retryCount: number = 0): Promise<void> {
   try {
     await cloudinary.uploader.destroy(publicId, {
       invalidate: true,
@@ -126,13 +118,10 @@ export function extractPublicIdFromUrl(url: string): string | null {
     const urlObj = new URL(url);
     const pathParts = urlObj.pathname.split('/');
     const versionIndex = pathParts.findIndex((part) => /^v\d+$/.test(part));
-    const publicIdParts = versionIndex !== -1
-      ? pathParts.slice(versionIndex + 1)
-      : pathParts.slice(-2);
+    const publicIdParts =
+      versionIndex !== -1 ? pathParts.slice(versionIndex + 1) : pathParts.slice(-2);
 
-    const publicId = publicIdParts
-      .join('/')
-      .replace(/\.[^/.]+$/, '');
+    const publicId = publicIdParts.join('/').replace(/\.[^/.]+$/, '');
 
     return publicId || null;
   } catch {

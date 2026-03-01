@@ -6,7 +6,6 @@ import { ServerConfig } from '../config/index.js';
 import { UserService } from '../service/index.js';
 import { UserRepository } from '../repositories/index.js';
 
-
 const MAIN_QUEUE = 'user-service.user-signed-up';
 const DLQ_QUEUE = 'user-service.user-signed-up.dlq';
 
@@ -46,10 +45,7 @@ function parseMessage(msg: Buffer): {
   };
 }
 
-function createRetryMessage(
-  payload: UserSignedUpEvent,
-  metadata: MessageMetadata,
-): Buffer {
+function createRetryMessage(payload: UserSignedUpEvent, metadata: MessageMetadata): Buffer {
   return Buffer.from(
     JSON.stringify({
       payload,
@@ -60,7 +56,6 @@ function createRetryMessage(
     }),
   );
 }
-
 
 export async function startUserSignedUpConsumer(): Promise<void> {
   const userRepository = new UserRepository();
@@ -82,7 +77,6 @@ export async function startUserSignedUpConsumer(): Promise<void> {
 
     await channel.assertExchange(AUTH_EXCHANGE, 'topic', { durable: true });
 
- 
     await channel.assertQueue(MAIN_QUEUE, {
       durable: true,
       arguments: {
@@ -91,7 +85,6 @@ export async function startUserSignedUpConsumer(): Promise<void> {
       },
     });
 
-  
     for (const retryQueue of RETRY_QUEUES) {
       await channel.assertQueue(retryQueue.name, {
         durable: true,
@@ -103,22 +96,14 @@ export async function startUserSignedUpConsumer(): Promise<void> {
       });
     }
 
- 
     await channel.assertQueue(DLQ_QUEUE, {
       durable: true,
     });
 
- 
-    await channel.bindQueue(
-      MAIN_QUEUE,
-      AUTH_EXCHANGE,
-      ROUTING_KEYS.USER_SIGNED_UP,
-    );
-
+    await channel.bindQueue(MAIN_QUEUE, AUTH_EXCHANGE, ROUTING_KEYS.USER_SIGNED_UP);
 
     await channel.prefetch(10);
 
- 
     channel.consume(
       MAIN_QUEUE,
       async (msg) => {
@@ -191,7 +176,7 @@ export async function startUserSignedUpConsumer(): Promise<void> {
       dlq: DLQ_QUEUE,
     });
   } catch (error: unknwon) {
-    console.log(error)
+    console.log(error);
     logger.error('Failed to start UserSignedUp consumer', error);
     setTimeout(startUserSignedUpConsumer, 10_000);
   }

@@ -16,9 +16,7 @@ export interface AuthNotificationPayload {
   phone?: string | null;
 }
 
-export async function publishAuthNotification(
-  payload: AuthNotificationPayload,
-): Promise<void> {
+export async function publishAuthNotification(payload: AuthNotificationPayload): Promise<void> {
   if (!ServerConfig.RABBITMQ_URL) {
     logger.debug('RABBITMQ_URL not set, notification not published', {
       type: payload.type,
@@ -32,15 +30,10 @@ export async function publishAuthNotification(
     await channel.assertExchange(NOTIFICATION_EXCHANGE, 'topic', {
       durable: true,
     });
-    channel.publish(
-      NOTIFICATION_EXCHANGE,
-      ROUTING_KEY,
-      Buffer.from(JSON.stringify(payload)),
-      {
-        persistent: true,
-        contentType: 'application/json',
-      },
-    );
+    channel.publish(NOTIFICATION_EXCHANGE, ROUTING_KEY, Buffer.from(JSON.stringify(payload)), {
+      persistent: true,
+      contentType: 'application/json',
+    });
   } catch (err) {
     logger.error('Failed to publish auth notification', {
       err,
@@ -49,7 +42,6 @@ export async function publishAuthNotification(
   } finally {
     try {
       await channel?.close();
-    } catch {
-    }
+    } catch {}
   }
 }

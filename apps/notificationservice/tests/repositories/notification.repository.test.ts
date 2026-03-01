@@ -54,7 +54,16 @@ describe('NotificationRepository', () => {
   describe('markAsRead', () => {
     it('calls prisma.notification.updateMany and findUniqueOrThrow when count > 0', async () => {
       mockedPrisma.notification.updateMany.mockResolvedValue({ count: 1 } as never);
-      const updated = { id: 'n1', userAuthId: 'u1', type: 'INFO', title: 'T', body: 'B', readAt: new Date(), metadata: null, createdAt: new Date() };
+      const updated = {
+        id: 'n1',
+        userAuthId: 'u1',
+        type: 'INFO',
+        title: 'T',
+        body: 'B',
+        readAt: new Date(),
+        metadata: null,
+        createdAt: new Date(),
+      };
       mockedPrisma.notification.findUniqueOrThrow.mockResolvedValue(updated as never);
       const result = await repository.markAsRead('n1', 'u1');
       expect(mockedPrisma.notification.updateMany).toHaveBeenCalled();

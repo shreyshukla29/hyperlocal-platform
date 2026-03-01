@@ -4,17 +4,13 @@ import { ServiceName } from '../enums/index.js';
 import { HEADERS, SERVICE_MAP } from '../constants/index.js';
 import { ServerConfig } from '../config/index.js';
 
-export function createServiceProxy(
-  service: ServiceName,
-  version: 'v1' | 'v2'
-) {
-  const pathRewrite = (path: string) =>
-    path.replace('', `/api/${version}/${service}`);
+export function createServiceProxy(service: ServiceName, version: 'v1' | 'v2') {
+  const pathRewrite = (path: string) => path.replace('', `/api/${version}/${service}`);
   return createProxyMiddleware({
     target: SERVICE_MAP[service],
     changeOrigin: true,
     pathRewrite,
-    on:{
+    on: {
       proxyReq(proxyReq, req: Request) {
         proxyReq.setHeader(HEADERS.GATEWAY_API_KEY, ServerConfig.GATEWAY_API_KEY);
         const user = req.context?.user;
@@ -25,6 +21,6 @@ export function createServiceProxy(
           if (accountType) proxyReq.setHeader(HEADERS.ACCOUNT_TYPE, accountType);
         }
       },
-    }
+    },
   });
 }

@@ -1,6 +1,14 @@
 import { prisma as defaultPrisma } from '../config/index.js';
 
-const DAY_NAMES = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'] as const;
+const DAY_NAMES = [
+  'SUNDAY',
+  'MONDAY',
+  'TUESDAY',
+  'WEDNESDAY',
+  'THURSDAY',
+  'FRIDAY',
+  'SATURDAY',
+] as const;
 
 function getDayOfWeek(date: Date): (typeof DAY_NAMES)[number] {
   const dayIndex = date.getUTCDay();
@@ -30,7 +38,9 @@ export class ProviderAvailabilityRepository {
   }
 
   async hasDayOff(providerId: string, date: Date): Promise<boolean> {
-    const dateOnly = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    const dateOnly = new Date(
+      Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+    );
     const count = await this.prisma.providerDayOff.count({
       where: {
         providerId,

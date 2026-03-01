@@ -2,9 +2,7 @@ import { z } from 'zod';
 
 const trimString = (val: string) => val.trim();
 
-const optionalString = z
-  .union([z.string().max(500).transform(trimString), z.null()])
-  .optional();
+const optionalString = z.union([z.string().max(500).transform(trimString), z.null()]).optional();
 const latSchema = z.number().min(-90).max(90);
 const longSchema = z.number().min(-180).max(180);
 
@@ -37,7 +35,10 @@ export const updateAddressSchema = z
     isDefault: z.boolean().optional(),
   })
   .strict()
-  .refine((data: Record<string, unknown>) => Object.keys(data).length > 0, 'At least one field must be provided');
+  .refine(
+    (data: Record<string, unknown>) => Object.keys(data).length > 0,
+    'At least one field must be provided',
+  );
 
 export const saveCurrentLocationSchema = z
   .object({

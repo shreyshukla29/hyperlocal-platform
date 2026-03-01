@@ -1,6 +1,10 @@
 /** Stub for generated Prisma client so tests run without prisma generate. */
 export const Prisma = {
-  sql: (strings: TemplateStringsArray, ...values: unknown[]) => ({ __prismaSql: true, strings, values }),
+  sql: (strings: TemplateStringsArray, ...values: unknown[]) => ({
+    __prismaSql: true,
+    strings,
+    values,
+  }),
   empty: Object.freeze({ __prismaEmpty: true }),
 };
 
@@ -12,9 +16,35 @@ export class PrismaClient {
     update: () => Promise.resolve({}),
     count: () => Promise.resolve(0),
   };
-  providerService = { create: () => Promise.resolve({}), findMany: () => Promise.resolve([]), findUnique: () => Promise.resolve(null), update: () => Promise.resolve({}), delete: () => Promise.resolve({}), count: () => Promise.resolve(0) };
-  providerAvailability = { create: () => Promise.resolve({}), findMany: () => Promise.resolve([]), findFirst: () => Promise.resolve(null), update: () => Promise.resolve({}), deleteMany: () => Promise.resolve({}) };
-  servicePerson = { create: () => Promise.resolve({}), findMany: () => Promise.resolve([]), findUnique: () => Promise.resolve(null), update: () => Promise.resolve({}), count: () => Promise.resolve(0) };
+  providerService = {
+    create: () => Promise.resolve({}),
+    findMany: () => Promise.resolve([]),
+    findUnique: () => Promise.resolve(null),
+    update: () => Promise.resolve({}),
+    delete: () => Promise.resolve({}),
+    count: () => Promise.resolve(0),
+  };
+  providerAvailability = {
+    create: () => Promise.resolve({}),
+    findMany: () => Promise.resolve([]),
+    findFirst: () => Promise.resolve(null),
+    update: () => Promise.resolve({}),
+    deleteMany: () => Promise.resolve({}),
+  };
+  servicePerson = {
+    create: () => Promise.resolve({}),
+    findMany: () => Promise.resolve([]),
+    findUnique: () => Promise.resolve(null),
+    update: () => Promise.resolve({}),
+    count: () => Promise.resolve(0),
+  };
   $queryRaw = () => Promise.resolve([]);
 }
-export type Provider = { id: string; authIdentityId: string; firstName: string; lastName: string; isActive: boolean; isDeleted: boolean };
+export type Provider = {
+  id: string;
+  authIdentityId: string;
+  firstName: string;
+  lastName: string;
+  isActive: boolean;
+  isDeleted: boolean;
+};

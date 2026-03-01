@@ -20,11 +20,7 @@ export class BookingController {
     private readonly reviewService: BookingReviewService,
   ) {}
 
-  async create(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async create(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
       if (!userAuthId) {
@@ -52,11 +48,7 @@ export class BookingController {
     }
   }
 
-  async listForUser(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async listForUser(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
       if (!userAuthId) {
@@ -79,11 +71,7 @@ export class BookingController {
     }
   }
 
-  async listForProvider(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async listForProvider(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const providerId = getAuthIdentityIdFromRequest(req.headers);
       if (!providerId) {
@@ -106,11 +94,7 @@ export class BookingController {
     }
   }
 
-  async getByIdForUser(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async getByIdForUser(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
       const { id: bookingId } = req.params;
@@ -158,11 +142,7 @@ export class BookingController {
     }
   }
 
-  async cancelByUser(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async cancelByUser(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
       const { id: bookingId } = req.params;
@@ -248,11 +228,7 @@ export class BookingController {
     }
   }
 
-  async confirmArrival(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async confirmArrival(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const providerId = getAuthIdentityIdFromRequest(req.headers);
       const { id: bookingId } = req.params;
@@ -271,11 +247,7 @@ export class BookingController {
           error: { message: parsed.error.message ?? 'Invalid body' },
         });
       }
-      const data = await this.bookingService.confirmArrival(
-        bookingId,
-        providerId,
-        parsed.data.otp,
-      );
+      const data = await this.bookingService.confirmArrival(bookingId, providerId, parsed.data.otp);
       return res.status(StatusCodes.OK).json({
         success: true,
         data,
@@ -286,11 +258,7 @@ export class BookingController {
     }
   }
 
-  async markComplete(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async markComplete(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const providerId = getAuthIdentityIdFromRequest(req.headers);
       const { id: bookingId } = req.params;
@@ -379,11 +347,7 @@ export class BookingController {
     }
   }
 
-  async createReview(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async createReview(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
       const { id: bookingId } = req.params;
@@ -402,11 +366,7 @@ export class BookingController {
           error: { message: parsed.error.message ?? 'Invalid body' },
         });
       }
-      const data = await this.reviewService.create(
-        bookingId,
-        userAuthId,
-        parsed.data,
-      );
+      const data = await this.reviewService.create(bookingId, userAuthId, parsed.data);
       return res.status(StatusCodes.CREATED).json({
         success: true,
         data,
@@ -431,14 +391,11 @@ export class BookingController {
           error: { message: parsed.error.message ?? 'Invalid query' },
         });
       }
-      const data = await this.reviewService.listByProvider(
-        parsed.data.providerId,
-        {
-          providerServiceId: parsed.data.providerServiceId,
-          page: parsed.data.page,
-          limit: parsed.data.limit,
-        },
-      );
+      const data = await this.reviewService.listByProvider(parsed.data.providerId, {
+        providerServiceId: parsed.data.providerServiceId,
+        page: parsed.data.page,
+        limit: parsed.data.limit,
+      });
       return res.status(StatusCodes.OK).json({
         success: true,
         data,

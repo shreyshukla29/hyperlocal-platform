@@ -2,7 +2,12 @@ import { jest } from '@jest/globals';
 import type { AuthRepository } from '../../src/repositories/auth.repository.js';
 import { AuthService } from '../../src/services/auth.service.js';
 import { AccountType } from '../../src/enums/index.js';
-import { ValidationError, BadRequestError, ForbiddenError, ConflictError } from '@hyperlocal/shared/errors';
+import {
+  ValidationError,
+  BadRequestError,
+  ForbiddenError,
+  ConflictError,
+} from '@hyperlocal/shared/errors';
 
 jest.mock('../../src/config', () => ({
   prisma: {},
@@ -11,9 +16,18 @@ jest.mock('../../src/config/index', () => ({
   prisma: {},
 }));
 jest.mock('@hyperlocal/shared/logger', () => ({
-  logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn(), child: jest.fn() },
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+    child: jest.fn(),
+  },
 }));
-jest.mock('../../src/events/index.js', () => ({ publishUserSignedUpEvent: jest.fn(), publishAuthNotification: jest.fn() }));
+jest.mock('../../src/events/index.js', () => ({
+  publishUserSignedUpEvent: jest.fn(),
+  publishAuthNotification: jest.fn(),
+}));
 jest.mock('../../src/utils/index.js', () => ({
   hashPassword: jest.fn().mockResolvedValue('hashed'),
   verifyPassword: jest.fn().mockResolvedValue(true),

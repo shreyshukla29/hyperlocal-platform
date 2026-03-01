@@ -52,7 +52,11 @@ export class AddressController {
     }
   }
 
-  async setDefaultAddress(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+  async setDefaultAddress(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> {
     try {
       const { userId, addressId } = req.params;
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
@@ -67,7 +71,11 @@ export class AddressController {
     }
   }
 
-  async getDefaultAddress(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+  async getDefaultAddress(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> {
     try {
       const userId = req.params.userId;
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
@@ -78,19 +86,31 @@ export class AddressController {
     }
   }
 
-  async saveCurrentLocation(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+  async saveCurrentLocation(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> {
     try {
       const userId = req.params.userId;
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const payload = req.body as SaveCurrentLocationPayload;
-      const address = await this.addressService.saveCurrentLocation(userId, payload, authIdentityId);
+      const address = await this.addressService.saveCurrentLocation(
+        userId,
+        payload,
+        authIdentityId,
+      );
       return sendSuccess(res, address, StatusCodes.CREATED);
     } catch (error) {
       next(error);
     }
   }
 
-  async getCurrentLocation(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+  async getCurrentLocation(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> {
     try {
       const userId = req.params.userId;
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);

@@ -13,7 +13,7 @@ export const signupSchema = z
     password: z.string().min(8, 'Password must be at least 8 characters').max(128),
 
     accountType: z.nativeEnum(AccountType),
-    firstName:z.string(),
+    firstName: z.string(),
     lastName: z.string(),
   })
   .refine((data) => Boolean(data.email || data.phone), {
@@ -65,7 +65,10 @@ export const verifySchema = z
     identityId: z.string().uuid({ message: 'identityId must be a valid UUID' }),
     type: z.enum([AuthMethod.EMAIL, AuthMethod.PHONE]),
     value: z.string().min(1, 'Value is required'),
-    code: z.string().length(6, { message: 'Code must be 6 digits' }).regex(/^\d{6}$/, { message: 'Code must be 6 digits' }),
+    code: z
+      .string()
+      .length(6, { message: 'Code must be 6 digits' })
+      .regex(/^\d{6}$/, { message: 'Code must be 6 digits' }),
   })
   .strict();
 

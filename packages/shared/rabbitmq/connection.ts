@@ -2,9 +2,7 @@ import amqp, { Channel, ChannelModel } from 'amqplib';
 
 let connection: ChannelModel | null = null;
 
-export async function getRabbitConnection(
-  url: string,
-): Promise<ChannelModel> {
+export async function getRabbitConnection(url: string): Promise<ChannelModel> {
   let conn = connection;
   if (!conn) {
     conn = await amqp.connect(url);

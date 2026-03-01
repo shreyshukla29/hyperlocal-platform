@@ -1,16 +1,13 @@
 import express, { type Application, type Request, type Response } from 'express';
 
-import {
-  createGatewayAuthMiddleware,
-  globalErrorHandler,
-} from '@hyperlocal/shared/middlewares';
+import { createGatewayAuthMiddleware, globalErrorHandler } from '@hyperlocal/shared/middlewares';
 import { ServerConfig } from './config/index.js';
 import { router } from './routes/index.js';
-import cookieParser  from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 
 export function createApp(): Application {
   const app = express();
-  
+
   app.use(express.json());
   app.use(cookieParser());
 

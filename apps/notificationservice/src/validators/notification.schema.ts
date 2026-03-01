@@ -11,6 +11,4 @@ export const listNotificationsQuerySchema = z
   })
   .strict();
 
-export type ListNotificationsQueryPayload = z.infer<
-  typeof listNotificationsQuerySchema
->;
+export type ListNotificationsQueryPayload = z.infer<typeof listNotificationsQuerySchema>;

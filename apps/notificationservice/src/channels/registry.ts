@@ -49,9 +49,7 @@ class ChannelRegistry {
       recipients: payload.recipients,
     };
 
-    const results = await Promise.allSettled(
-      toRun.map((ch) => ch.send(context)),
-    );
+    const results = await Promise.allSettled(toRun.map((ch) => ch.send(context)));
 
     for (let i = 0; i < toRun.length; i++) {
       const r = results[i];

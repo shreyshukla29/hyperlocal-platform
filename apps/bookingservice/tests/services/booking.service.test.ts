@@ -4,12 +4,23 @@ import type { BookingOtpService } from '../../src/service/booking-otp.service.js
 import { BookingService, computeUserCancelRefund } from '../../src/service/booking.service.js';
 
 jest.mock('../../src/config', () => ({ prisma: {} }));
-jest.mock('../../src/config/index', () => ({ prisma: {}, ServerConfig: { PROVIDER_SERVICE_URL: 'http://test' } }));
+jest.mock('../../src/config/index', () => ({
+  prisma: {},
+  ServerConfig: { PROVIDER_SERVICE_URL: 'http://test' },
+}));
 jest.mock('../../src/utils/index.js', () => ({
   getBookingQuote: jest.fn().mockResolvedValue({ pricePaise: 10000 }),
   getProviderOpenIntervals: jest.fn().mockResolvedValue([]),
-  createRazorpayOrder: jest.fn().mockResolvedValue({ id: 'order_1', amount: 10000, currency: 'INR', receipt: 'r1', status: 'created' }),
-  createRazorpayRefund: jest.fn().mockResolvedValue({ id: 'rf_1', payment_id: 'pay_1', amount: 0, status: 'processed' }),
+  createRazorpayOrder: jest.fn().mockResolvedValue({
+    id: 'order_1',
+    amount: 10000,
+    currency: 'INR',
+    receipt: 'r1',
+    status: 'created',
+  }),
+  createRazorpayRefund: jest
+    .fn()
+    .mockResolvedValue({ id: 'rf_1', payment_id: 'pay_1', amount: 0, status: 'processed' }),
 }));
 jest.mock('../../src/events/index.js', () => ({ publishNotification: jest.fn() }));
 

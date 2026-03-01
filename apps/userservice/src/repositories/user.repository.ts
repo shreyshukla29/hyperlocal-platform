@@ -3,7 +3,7 @@ import { User } from '../generated/prisma/client.js';
 import { CreateUserPayload, UpdateUserRepositoryPayload } from '../types/index.js';
 
 export class UserRepository {
-   constructor(private prisma = defaultPrisma) {}
+  constructor(private prisma = defaultPrisma) {}
   async createUser(payload: CreateUserPayload): Promise<User> {
     const {
       authIdentityId,
@@ -56,10 +56,7 @@ export class UserRepository {
     return user !== null;
   }
 
-  async updateProfile(
-    userId: string,
-    payload: UpdateUserRepositoryPayload,
-  ): Promise<User> {
+  async updateProfile(userId: string, payload: UpdateUserRepositoryPayload): Promise<User> {
     return this.prisma.user.update({
       where: { id: userId },
       data: {

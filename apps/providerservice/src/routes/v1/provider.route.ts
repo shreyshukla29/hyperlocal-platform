@@ -32,17 +32,11 @@ const providerService = new ProviderService(providerRepository);
 const providerController = new ProviderController(providerService);
 
 const servicePersonRepository = new ServicePersonRepository();
-const servicePersonService = new ServicePersonService(
-  providerRepository,
-  servicePersonRepository,
-);
+const servicePersonService = new ServicePersonService(providerRepository, servicePersonRepository);
 const servicePersonController = new ServicePersonController(servicePersonService);
 
 const offeringRepository = new ProviderOfferingRepository();
-const offeringService = new ProviderOfferingService(
-  providerRepository,
-  offeringRepository,
-);
+const offeringService = new ProviderOfferingService(providerRepository, offeringRepository);
 const offeringController = new ProviderOfferingController(offeringService);
 
 const availabilityRepository = new ProviderAvailabilityRepository();
@@ -66,10 +60,7 @@ providerRouter.get(
 );
 
 // Provider profile
-providerRouter.get(
-  '/profile',
-  providerController.getProviderProfile.bind(providerController),
-);
+providerRouter.get('/profile', providerController.getProviderProfile.bind(providerController));
 
 providerRouter.patch(
   '/profile/:id',
@@ -97,10 +88,7 @@ providerRouter.get(
   offeringController.list.bind(offeringController),
 );
 
-providerRouter.get(
-  '/services/:id',
-  offeringController.getById.bind(offeringController),
-);
+providerRouter.get('/services/:id', offeringController.getById.bind(offeringController));
 
 // Booking quote: price from backend only (no auth; called by Booking service). GET /api/v1/provider/:providerId/services/:providerServiceId/booking-quote
 providerRouter.get(
@@ -114,10 +102,7 @@ providerRouter.patch(
   offeringController.update.bind(offeringController),
 );
 
-providerRouter.delete(
-  '/services/:id',
-  offeringController.delete.bind(offeringController),
-);
+providerRouter.delete('/services/:id', offeringController.delete.bind(offeringController));
 
 // Service persons (field workers) – only verified provider can create
 providerRouter.post(

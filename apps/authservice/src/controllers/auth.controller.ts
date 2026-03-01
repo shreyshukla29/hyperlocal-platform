@@ -93,7 +93,11 @@ export class AuthController {
     }
   }
 
-  async sendVerification(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+  async sendVerification(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> {
     try {
       const payload = req.body as SendVerificationRequest;
       const result = await this.authService.sendVerification(payload);

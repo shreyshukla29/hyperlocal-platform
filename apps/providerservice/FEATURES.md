@@ -113,14 +113,14 @@ Providers send **field workers** (e.g. plumber, technician) to perform services.
 
 ## 9. Data model summary (for schema)
 
-| Area            | Entities / fields |
-|-----------------|-------------------|
-| Profile         | Provider: authIdentityId, firstName, lastName, email, phone, avatarUrl, businessName, businessAddress, isActive, isDeleted |
-| Verification    | Provider: verificationStatus (enum), idDocumentUrl, businessLicenseUrl |
-| Availability    | Provider: availabilityStatus (enum); ProviderSchedule (dayOfWeek, startTime, endTime); ProviderDayOff (date, reason?) |
-| Offerings       | ProviderService: providerId, name, description, category, price, durationMinutes, status (enum) |
+| Area              | Entities / fields                                                                                                                                                                                    |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Profile           | Provider: authIdentityId, firstName, lastName, email, phone, avatarUrl, businessName, businessAddress, isActive, isDeleted                                                                           |
+| Verification      | Provider: verificationStatus (enum), idDocumentUrl, businessLicenseUrl                                                                                                                               |
+| Availability      | Provider: availabilityStatus (enum); ProviderSchedule (dayOfWeek, startTime, endTime); ProviderDayOff (date, reason?)                                                                                |
+| Offerings         | ProviderService: providerId, name, description, category, price, durationMinutes, status (enum)                                                                                                      |
 | Service personnel | ServicePerson: providerId, name, phone, email?, role?, authIdentityId?, status (AVAILABLE/BUSY/OFF_DUTY), isActive; optional ServicePersonLocation (servicePersonId, latitude, longitude, updatedAt) |
-| Assignment      | Owned by Booking service: bookingId, assignedServicePersonId, slot; Provider service exposes list/status for service people only |
-| Events          | Consumer: user.signed_up → create Provider when accountType PROVIDER |
+| Assignment        | Owned by Booking service: bookingId, assignedServicePersonId, slot; Provider service exposes list/status for service people only                                                                     |
+| Events            | Consumer: user.signed_up → create Provider when accountType PROVIDER                                                                                                                                 |
 
 Schema and tables are defined in `prisma/schema.prisma` to cover all of the above with indexes and relations as needed.

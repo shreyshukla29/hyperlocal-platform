@@ -1,7 +1,4 @@
-import type {
-  VerificationStatus,
-  AvailabilityStatus,
-} from '../enums/index.js';
+import type { VerificationStatus, AvailabilityStatus } from '../enums/index.js';
 
 export interface ProviderResponse {
   id: string;

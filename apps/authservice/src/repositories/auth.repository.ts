@@ -23,18 +23,13 @@ export class AuthRepository {
     });
   }
 
-
-
   async findById(identityId: string): Promise<Identity | null> {
     return this.prisma.identity.findUnique({
       where: { id: identityId },
     });
   }
 
-  async findByEmail(
-    email: string,
-    accountType: AccountType,
-  ): Promise<Identity | null> {
+  async findByEmail(email: string, accountType: AccountType): Promise<Identity | null> {
     return this.prisma.identity.findUnique({
       where: {
         email_accountType: {
@@ -45,10 +40,7 @@ export class AuthRepository {
     });
   }
 
-  async findByPhone(
-    phone: string,
-    accountType: AccountType,
-  ): Promise<Identity | null> {
+  async findByPhone(phone: string, accountType: AccountType): Promise<Identity | null> {
     return this.prisma.identity.findUnique({
       where: {
         phone_accountType: {
@@ -58,8 +50,6 @@ export class AuthRepository {
       },
     });
   }
-
-
 
   async findForLogin(input: LoginLookupInput): Promise<Identity | null> {
     const { email, phone, accountType } = input;
@@ -79,8 +69,6 @@ export class AuthRepository {
     return null;
   }
 
-
-
   async deactivateIdentity(identityId: string): Promise<void> {
     await this.prisma.identity.update({
       where: { id: identityId },
@@ -94,8 +82,6 @@ export class AuthRepository {
       data: { isActive: true },
     });
   }
-
-
 
   async createVerification(
     identityId: string,
@@ -178,10 +164,7 @@ export class AuthRepository {
     });
   }
 
-  async isVerified(
-    identityId: string,
-    type: VerificationType,
-  ): Promise<boolean> {
+  async isVerified(identityId: string, type: VerificationType): Promise<boolean> {
     const record = await this.prisma.identityVerification.findFirst({
       where: {
         identityId,
@@ -194,10 +177,7 @@ export class AuthRepository {
     return Boolean(record);
   }
 
-  async markVerified(
-    identityId: string,
-    type: VerificationType,
-  ): Promise<void> {
+  async markVerified(identityId: string, type: VerificationType): Promise<void> {
     await this.prisma.identityVerification.updateMany({
       where: {
         identityId,
@@ -210,11 +190,7 @@ export class AuthRepository {
     });
   }
 
-
-  async existsByEmail(
-    email: string,
-    accountType: AccountType,
-  ): Promise<boolean> {
+  async existsByEmail(email: string, accountType: AccountType): Promise<boolean> {
     const record = await this.prisma.identity.findUnique({
       where: {
         email_accountType: {
@@ -228,10 +204,7 @@ export class AuthRepository {
     return Boolean(record);
   }
 
-  async existsByPhone(
-    phone: string,
-    accountType: AccountType,
-  ): Promise<boolean> {
+  async existsByPhone(phone: string, accountType: AccountType): Promise<boolean> {
     const record = await this.prisma.identity.findUnique({
       where: {
         phone_accountType: {
@@ -244,8 +217,6 @@ export class AuthRepository {
 
     return Boolean(record);
   }
-
-
 
   async getIdentityWithVerifications(identityId: string) {
     return this.prisma.identity.findUnique({

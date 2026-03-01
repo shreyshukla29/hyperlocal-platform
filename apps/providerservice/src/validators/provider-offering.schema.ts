@@ -53,10 +53,7 @@ export const updateProviderOfferingSchema = z
     status: z.nativeEnum(ProviderServiceStatus).optional(),
   })
   .strict()
-  .refine(
-    (data) => Object.keys(data).length > 0,
-    'At least one field must be provided for update',
-  );
+  .refine((data) => Object.keys(data).length > 0, 'At least one field must be provided for update');
 
 export const listProviderOfferingsQuerySchema = z
   .object({
@@ -66,12 +63,6 @@ export const listProviderOfferingsQuerySchema = z
   })
   .strict();
 
-export type CreateProviderOfferingPayload = z.infer<
-  typeof createProviderOfferingSchema
->;
-export type UpdateProviderOfferingPayload = z.infer<
-  typeof updateProviderOfferingSchema
->;
-export type ListProviderOfferingsQueryPayload = z.infer<
-  typeof listProviderOfferingsQuerySchema
->;
+export type CreateProviderOfferingPayload = z.infer<typeof createProviderOfferingSchema>;
+export type UpdateProviderOfferingPayload = z.infer<typeof updateProviderOfferingSchema>;
+export type ListProviderOfferingsQueryPayload = z.infer<typeof listProviderOfferingsQuerySchema>;

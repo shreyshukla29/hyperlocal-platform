@@ -61,7 +61,13 @@ describe('ProviderController', () => {
   describe('getTopProvidersByLocation', () => {
     it('returns 200 and data when service succeeds', async () => {
       mockRequest.query = { city: 'NYC' };
-      mockService.getTopProvidersByLocation.mockResolvedValue({ items: [], total: 0, page: 1, limit: 20, totalPages: 0 } as never);
+      mockService.getTopProvidersByLocation.mockResolvedValue({
+        items: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+        totalPages: 0,
+      } as never);
       await controller.getTopProvidersByLocation(
         mockRequest as Request,
         mockResponse as Response,
@@ -83,7 +89,11 @@ describe('ProviderController', () => {
         mockResponse as Response,
         mockNext,
       );
-      expect(mockService.updateProviderProfile).toHaveBeenCalledWith('p1', { firstName: 'Jane' }, 'auth-123');
+      expect(mockService.updateProviderProfile).toHaveBeenCalledWith(
+        'p1',
+        { firstName: 'Jane' },
+        'auth-123',
+      );
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
     });
 
@@ -106,13 +116,20 @@ describe('ProviderController', () => {
       mockRequest.params = { providerId: 'p1' };
       mockRequest.headers = { 'x-user-id': 'auth-123', 'x-account-type': 'ADMIN' };
       mockRequest.body = { verificationStatus: 'VERIFIED', verifiedBy: 'admin-auth-id' };
-      mockService.updateVerificationStatus.mockResolvedValue({ id: 'p1', verificationStatus: 'VERIFIED' } as never);
+      mockService.updateVerificationStatus.mockResolvedValue({
+        id: 'p1',
+        verificationStatus: 'VERIFIED',
+      } as never);
       await controller.updateVerificationStatus(
         mockRequest as Request,
         mockResponse as Response,
         mockNext,
       );
-      expect(mockService.updateVerificationStatus).toHaveBeenCalledWith('p1', 'VERIFIED', 'admin-auth-id');
+      expect(mockService.updateVerificationStatus).toHaveBeenCalledWith(
+        'p1',
+        'VERIFIED',
+        'admin-auth-id',
+      );
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
     });
   });

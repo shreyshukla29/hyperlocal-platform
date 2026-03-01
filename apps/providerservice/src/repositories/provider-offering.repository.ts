@@ -30,7 +30,10 @@ function toResponse(row: {
     name: row.name,
     description: row.description,
     category: row.category,
-    price: typeof row.price === 'object' && row.price !== null && 'toString' in row.price ? row.price.toString() : String(row.price),
+    price:
+      typeof row.price === 'object' && row.price !== null && 'toString' in row.price
+        ? row.price.toString()
+        : String(row.price),
     durationMinutes: row.durationMinutes,
     status: row.status,
     createdAt: row.createdAt,
@@ -102,10 +105,7 @@ export class ProviderOfferingRepository {
     };
   }
 
-  async update(
-    id: string,
-    payload: UpdateProviderOfferingRepositoryPayload,
-  ) {
+  async update(id: string, payload: UpdateProviderOfferingRepositoryPayload) {
     const row = await this.prisma.providerService.update({
       where: { id },
       data: {

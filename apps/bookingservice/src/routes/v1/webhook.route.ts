@@ -10,7 +10,4 @@ const webhookController = createWebhookController(bookingService, webhookEventRe
 
 export const webhookRouter = Router();
 
-webhookRouter.post(
-  '/razorpay',
-  webhookController.handleRazorpay.bind(webhookController),
-);
+webhookRouter.post('/razorpay', webhookController.handleRazorpay.bind(webhookController));

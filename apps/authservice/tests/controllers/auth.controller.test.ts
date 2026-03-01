@@ -6,7 +6,13 @@ import type { AuthService } from '../../src/services/index.js';
 import { BadRequestError } from '@hyperlocal/shared/errors';
 
 jest.mock('@hyperlocal/shared/logger', () => ({
-  logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn(), child: jest.fn() },
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+    child: jest.fn(),
+  },
 }));
 jest.mock('../../src/config/index.js', () => ({
   ServerConfig: { NODE_ENV: 'test' },
@@ -50,11 +56,7 @@ describe('AuthController', () => {
         lastName: 'Doe',
       };
 
-      await controller.signup(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.signup(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockService.signup).toHaveBeenCalled();
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.CREATED);
@@ -68,13 +70,15 @@ describe('AuthController', () => {
     it('calls next with error when service throws', async () => {
       const err = new Error('Conflict');
       mockService.signup.mockRejectedValue(err);
-      mockRequest.body = { email: 'a@b.com', password: 'pwd', accountType: 'USER', firstName: 'J', lastName: 'D' };
+      mockRequest.body = {
+        email: 'a@b.com',
+        password: 'pwd',
+        accountType: 'USER',
+        firstName: 'J',
+        lastName: 'D',
+      };
 
-      await controller.signup(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.signup(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(err);
     });
@@ -86,11 +90,7 @@ describe('AuthController', () => {
       mockService.loginWithEmail.mockResolvedValue({ userId: 'u1', token: 't', data } as never);
       mockRequest.body = { method: 'EMAIL', email: 'a@b.com', password: 'pwd', loginAs: 'USER' };
 
-      await controller.loginWithEmail(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.loginWithEmail(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockService.loginWithEmail).toHaveBeenCalled();
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
@@ -103,11 +103,7 @@ describe('AuthController', () => {
       mockService.loginWithPhone.mockResolvedValue({ userId: 'u1', token: 't', data } as never);
       mockRequest.body = { method: 'PHONE', phone: '9876543210', password: 'pwd', loginAs: 'USER' };
 
-      await controller.loginWithPhone(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.loginWithPhone(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockService.loginWithPhone).toHaveBeenCalled();
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
@@ -116,11 +112,7 @@ describe('AuthController', () => {
     it('calls next with error when service throws', async () => {
       mockService.loginWithPhone.mockRejectedValue(new Error('Invalid'));
       mockRequest.body = { method: 'PHONE', phone: '9876543210', password: 'pwd', loginAs: 'USER' };
-      await controller.loginWithPhone(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.loginWithPhone(mockRequest as Request, mockResponse as Response, mockNext);
       expect(mockNext).toHaveBeenCalled();
     });
   });
@@ -129,24 +121,27 @@ describe('AuthController', () => {
     it('returns 400 when identityId missing in payload', async () => {
       mockRequest.body = { type: 'EMAIL', value: 'a@b.com' };
       mockService.sendVerification.mockRejectedValue(new BadRequestError('Identity required'));
-      await controller.sendVerification(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
-      expect(mockService.sendVerification).toHaveBeenCalledWith({ type: 'EMAIL', value: 'a@b.com' });
+      await controller.sendVerification(mockRequest as Request, mockResponse as Response, mockNext);
+      expect(mockService.sendVerification).toHaveBeenCalledWith({
+        type: 'EMAIL',
+        value: 'a@b.com',
+      });
       expect(mockNext).toHaveBeenCalled();
     });
 
     it('returns 200 when service succeeds', async () => {
-      mockRequest.body = { identityId: '550e8400-e29b-41d4-a716-446655440000', type: 'EMAIL', value: 'a@b.com' };
+      mockRequest.body = {
+        identityId: '550e8400-e29b-41d4-a716-446655440000',
+        type: 'EMAIL',
+        value: 'a@b.com',
+      };
       mockService.sendVerification.mockResolvedValue({ success: true });
-      await controller.sendVerification(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
-      expect(mockService.sendVerification).toHaveBeenCalledWith({ identityId: '550e8400-e29b-41d4-a716-446655440000', type: 'EMAIL', value: 'a@b.com' });
+      await controller.sendVerification(mockRequest as Request, mockResponse as Response, mockNext);
+      expect(mockService.sendVerification).toHaveBeenCalledWith({
+        identityId: '550e8400-e29b-41d4-a716-446655440000',
+        type: 'EMAIL',
+        value: 'a@b.com',
+      });
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
     });
   });
@@ -155,23 +150,19 @@ describe('AuthController', () => {
     it('returns 200 when service succeeds', async () => {
       mockRequest.body = { type: 'EMAIL', value: 'a@b.com', code: '123456' };
       mockService.verify.mockResolvedValue({ success: true });
-      await controller.verify(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
-      expect(mockService.verify).toHaveBeenCalledWith({ type: 'EMAIL', value: 'a@b.com', code: '123456' });
+      await controller.verify(mockRequest as Request, mockResponse as Response, mockNext);
+      expect(mockService.verify).toHaveBeenCalledWith({
+        type: 'EMAIL',
+        value: 'a@b.com',
+        code: '123456',
+      });
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
     });
 
     it('calls next with error when service throws', async () => {
       mockRequest.body = { type: 'EMAIL', value: 'a@b.com', code: 'wrong' };
       mockService.verify.mockRejectedValue(new Error('Invalid OTP'));
-      await controller.verify(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.verify(mockRequest as Request, mockResponse as Response, mockNext);
       expect(mockNext).toHaveBeenCalled();
     });
   });

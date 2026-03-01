@@ -5,4 +5,3 @@ export interface ImageValidationResult {
   width?: number;
   height?: number;
 }
-

@@ -43,11 +43,7 @@ export function createRateLimitMiddleware(options: RateLimitOptions) {
     }
   };
 
-  return function rateLimitMiddleware(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): void {
+  return function rateLimitMiddleware(req: Request, res: Response, next: NextFunction): void {
     const now = Date.now();
     prune(now);
 

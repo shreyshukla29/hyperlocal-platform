@@ -17,9 +17,7 @@ export interface NotificationPublishPayload {
   emailTo?: string | null;
 }
 
-export async function publishNotification(
-  payload: NotificationPublishPayload,
-): Promise<void> {
+export async function publishNotification(payload: NotificationPublishPayload): Promise<void> {
   if (!ServerConfig.RABBITMQ_URL) {
     logger.debug('RABBITMQ_URL not set, notification not published', {
       type: payload.type,
@@ -33,15 +31,10 @@ export async function publishNotification(
     await channel.assertExchange(NOTIFICATION_EXCHANGE, 'topic', {
       durable: true,
     });
-    channel.publish(
-      NOTIFICATION_EXCHANGE,
-      ROUTING_KEY,
-      Buffer.from(JSON.stringify(payload)),
-      {
-        persistent: true,
-        contentType: 'application/json',
-      },
-    );
+    channel.publish(NOTIFICATION_EXCHANGE, ROUTING_KEY, Buffer.from(JSON.stringify(payload)), {
+      persistent: true,
+      contentType: 'application/json',
+    });
   } catch (err) {
     logger.error('Failed to publish notification event', { err, type: payload.type });
   } finally {

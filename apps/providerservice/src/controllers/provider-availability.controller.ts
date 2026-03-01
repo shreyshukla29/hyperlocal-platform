@@ -20,10 +20,7 @@ export class ProviderAvailabilityController {
           error: { message: 'providerId is required' },
         });
       }
-      const data = await this.availabilityService.getOpenIntervalsForDate(
-        providerId,
-        date,
-      );
+      const data = await this.availabilityService.getOpenIntervalsForDate(providerId, date);
       return res.status(StatusCodes.OK).json({
         success: true,
         data,

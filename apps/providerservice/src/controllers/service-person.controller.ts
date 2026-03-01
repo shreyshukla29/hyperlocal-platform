@@ -8,11 +8,7 @@ export class ServicePersonController {
   constructor(private readonly servicePersonService: ServicePersonService) {}
 
   /** Only the provider (owner) can create service people; caller must be the provider from JWT. */
-  async create(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async create(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       if (!authIdentityId) {
@@ -35,11 +31,7 @@ export class ServicePersonController {
     }
   }
 
-  async list(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async list(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       if (!authIdentityId) {
@@ -61,11 +53,7 @@ export class ServicePersonController {
     }
   }
 
-  async getById(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async getById(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const { id: servicePersonId } = req.params;
@@ -76,10 +64,7 @@ export class ServicePersonController {
           error: { message: 'Auth identity ID and service person ID are required' },
         });
       }
-      const data = await this.servicePersonService.getById(
-        servicePersonId,
-        authIdentityId,
-      );
+      const data = await this.servicePersonService.getById(servicePersonId, authIdentityId);
       return res.status(StatusCodes.OK).json({
         success: true,
         data,
@@ -90,11 +75,7 @@ export class ServicePersonController {
     }
   }
 
-  async update(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async update(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const { id: servicePersonId } = req.params;
@@ -106,11 +87,7 @@ export class ServicePersonController {
           error: { message: 'Auth identity ID and service person ID are required' },
         });
       }
-      const data = await this.servicePersonService.update(
-        servicePersonId,
-        authIdentityId,
-        payload,
-      );
+      const data = await this.servicePersonService.update(servicePersonId, authIdentityId, payload);
       return res.status(StatusCodes.OK).json({
         success: true,
         data,
@@ -121,11 +98,7 @@ export class ServicePersonController {
     }
   }
 
-  async updateStatus(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async updateStatus(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const { id: servicePersonId } = req.params;
@@ -152,11 +125,7 @@ export class ServicePersonController {
     }
   }
 
-  async deactivate(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async deactivate(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const { id: servicePersonId } = req.params;
@@ -167,10 +136,7 @@ export class ServicePersonController {
           error: { message: 'Auth identity ID and service person ID are required' },
         });
       }
-      const data = await this.servicePersonService.deactivate(
-        servicePersonId,
-        authIdentityId,
-      );
+      const data = await this.servicePersonService.deactivate(servicePersonId, authIdentityId);
       return res.status(StatusCodes.OK).json({
         success: true,
         data,

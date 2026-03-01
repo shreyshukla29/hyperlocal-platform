@@ -1,7 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { ForbiddenError } from '@hyperlocal/shared/errors';
-import { getAuthIdentityIdFromRequest, getAccountTypeFromRequest } from '@hyperlocal/shared/constants';
+import {
+  getAuthIdentityIdFromRequest,
+  getAccountTypeFromRequest,
+} from '@hyperlocal/shared/constants';
 import { ProviderService } from '../service/index.js';
 import {
   UpdateProviderProfilePayload,
@@ -19,9 +22,7 @@ export class ProviderController {
   ): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
-      const provider = await this.providerService.getProviderByAuthIdentityId(
-        authIdentityId,
-      );
+      const provider = await this.providerService.getProviderByAuthIdentityId(authIdentityId);
       return res.status(StatusCodes.OK).json({
         success: true,
         data: provider,

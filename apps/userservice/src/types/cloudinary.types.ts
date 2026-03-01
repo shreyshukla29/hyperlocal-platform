@@ -10,4 +10,3 @@ export interface UploadOptions {
   transformation?: any[];
   retryCount?: number;
 }
-

@@ -9,20 +9,14 @@ const notificationController = new NotificationController(notificationService);
 
 export const notificationRouter = Router();
 
-notificationRouter.get(
-  '/',
-  notificationController.list.bind(notificationController),
-);
+notificationRouter.get('/', notificationController.list.bind(notificationController));
 
 notificationRouter.patch(
   '/read-all',
   notificationController.markAllAsRead.bind(notificationController),
 );
 
-notificationRouter.get(
-  '/:id',
-  notificationController.getById.bind(notificationController),
-);
+notificationRouter.get('/:id', notificationController.getById.bind(notificationController));
 
 notificationRouter.patch(
   '/:id/read',

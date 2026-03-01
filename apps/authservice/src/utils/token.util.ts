@@ -1,8 +1,4 @@
-import jwt, {
-  JwtPayload,
-  SignOptions,
-  VerifyOptions,
-} from 'jsonwebtoken';
+import jwt, { JwtPayload, SignOptions, VerifyOptions } from 'jsonwebtoken';
 
 export type JwtCustomPayload<T extends object> = T & JwtPayload;
 

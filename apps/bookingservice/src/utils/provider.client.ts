@@ -48,11 +48,7 @@ export async function getBookingQuote(
     throw new Error('Invalid provider quote response');
   }
   const { pricePaise, durationMinutes, providerAuthId } = json.data;
-  if (
-    typeof pricePaise !== 'number' ||
-    pricePaise < 100 ||
-    typeof providerAuthId !== 'string'
-  ) {
+  if (typeof pricePaise !== 'number' || pricePaise < 100 || typeof providerAuthId !== 'string') {
     throw new Error('Invalid provider quote data');
   }
   return {

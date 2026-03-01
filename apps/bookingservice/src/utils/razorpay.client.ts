@@ -73,14 +73,7 @@ export async function createRazorpayRefund(
   return refund as unknown as RazorpayRefundResponse;
 }
 
-export function verifyWebhookSignature(
-  body: string,
-  signature: string,
-  secret: string,
-): boolean {
-  const expected = crypto
-    .createHmac('sha256', secret)
-    .update(body)
-    .digest('hex');
+export function verifyWebhookSignature(body: string, signature: string, secret: string): boolean {
+  const expected = crypto.createHmac('sha256', secret).update(body).digest('hex');
   return expected === signature;
 }

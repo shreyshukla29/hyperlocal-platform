@@ -46,11 +46,7 @@ authRouter.post(
   authController.sendVerification.bind(authController),
 );
 
-authRouter.post(
-  '/verify',
-  validateBody(verifySchema),
-  authController.verify.bind(authController),
-);
+authRouter.post('/verify', validateBody(verifySchema), authController.verify.bind(authController));
 
 authRouter.post(
   '/refresh',

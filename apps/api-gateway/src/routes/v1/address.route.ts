@@ -4,7 +4,4 @@ import { ServiceName } from '../../enums/index.js';
 
 export const addressRouter = Router();
 
-addressRouter.use(
-  '/',
-  createServiceProxy(ServiceName.ADDRESS, 'v1'),
-);
+addressRouter.use('/', createServiceProxy(ServiceName.ADDRESS, 'v1'));

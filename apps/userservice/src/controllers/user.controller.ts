@@ -7,17 +7,11 @@ import { UpdateUserProfilePayload } from '../validators/index.js';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  async getUserProfile(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async getUserProfile(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
 
-      const user = await this.userService.getUserByAuthIdentityId(
-        authIdentityId,
-      );
+      const user = await this.userService.getUserByAuthIdentityId(authIdentityId);
 
       return res.status(StatusCodes.OK).json({
         success: true,
@@ -39,11 +33,7 @@ export class UserController {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const payload = req.body as UpdateUserProfilePayload;
 
-      const user = await this.userService.updateUserProfile(
-        userId,
-        payload,
-        authIdentityId,
-      );
+      const user = await this.userService.updateUserProfile(userId, payload, authIdentityId);
 
       return res.status(StatusCodes.OK).json({
         success: true,
@@ -90,10 +80,7 @@ export class UserController {
       const { id: userId } = req.params;
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
 
-      const user = await this.userService.deleteUserAvatar(
-        userId,
-        authIdentityId,
-      );
+      const user = await this.userService.deleteUserAvatar(userId, authIdentityId);
 
       return res.status(StatusCodes.OK).json({
         success: true,

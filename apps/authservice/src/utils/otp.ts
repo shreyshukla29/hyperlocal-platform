@@ -11,23 +11,13 @@ export function generateOtp(): string {
 }
 
 export function hashOtp(otp: string): string {
-  return crypto
-    .createHmac(HASH_ALGORITHM, ServerConfig.OTP_HASH_SECRET)
-    .update(otp)
-    .digest('hex');
+  return crypto.createHmac(HASH_ALGORITHM, ServerConfig.OTP_HASH_SECRET).update(otp).digest('hex');
 }
 
-export function verifyOtp(
-  plainOtp: string,
-  storedHash: string,
-  expiresAt: Date | null,
-): boolean {
+export function verifyOtp(plainOtp: string, storedHash: string, expiresAt: Date | null): boolean {
   if (!storedHash || !expiresAt || expiresAt < new Date()) return false;
   const computed = hashOtp(plainOtp);
-  return crypto.timingSafeEqual(
-    Buffer.from(computed, 'hex'),
-    Buffer.from(storedHash, 'hex'),
-  );
+  return crypto.timingSafeEqual(Buffer.from(computed, 'hex'), Buffer.from(storedHash, 'hex'));
 }
 
 export function getOtpExpiresAt(): Date {

@@ -51,11 +51,7 @@ describe('AddressController', () => {
       mockRequest.headers = { 'x-user-id': 'auth-123' };
       mockService.listAddresses.mockResolvedValue(addresses as never);
 
-      await controller.listAddresses(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.listAddresses(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockService.listAddresses).toHaveBeenCalledWith('user-123', 'auth-123');
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
@@ -72,11 +68,7 @@ describe('AddressController', () => {
       const error = new NotFoundError('User not found');
       mockService.listAddresses.mockRejectedValue(error);
 
-      await controller.listAddresses(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.listAddresses(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(error);
     });
@@ -90,11 +82,7 @@ describe('AddressController', () => {
       mockRequest.body = { label: 'Home', addressLine1: '123 Main St' };
       mockService.createAddress.mockResolvedValue(mockAddress as never);
 
-      await controller.createAddress(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.createAddress(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockService.createAddress).toHaveBeenCalledWith(
         'user-123',
@@ -116,11 +104,7 @@ describe('AddressController', () => {
       const error = new BadRequestError('User ID is required');
       mockService.createAddress.mockRejectedValue(error);
 
-      await controller.createAddress(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.createAddress(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(error);
     });
@@ -134,11 +118,7 @@ describe('AddressController', () => {
       mockRequest.body = { label: 'Work' };
       mockService.updateAddress.mockResolvedValue(mockAddress as never);
 
-      await controller.updateAddress(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.updateAddress(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockService.updateAddress).toHaveBeenCalledWith(
         'user-123',
@@ -161,11 +141,7 @@ describe('AddressController', () => {
       const error = new ForbiddenError('Access denied');
       mockService.updateAddress.mockRejectedValue(error);
 
-      await controller.updateAddress(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.updateAddress(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(error);
     });
@@ -324,17 +300,9 @@ describe('AddressController', () => {
       mockRequest.headers = { 'x-user-id': 'auth-123' };
       mockService.deleteAddress.mockResolvedValue(createMockAddress() as never);
 
-      await controller.deleteAddress(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.deleteAddress(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockService.deleteAddress).toHaveBeenCalledWith(
-        'user-123',
-        'addr-123',
-        'auth-123',
-      );
+      expect(mockService.deleteAddress).toHaveBeenCalledWith('user-123', 'addr-123', 'auth-123');
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -349,11 +317,7 @@ describe('AddressController', () => {
       const error = new ForbiddenError('Access denied');
       mockService.deleteAddress.mockRejectedValue(error);
 
-      await controller.deleteAddress(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.deleteAddress(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(error);
     });

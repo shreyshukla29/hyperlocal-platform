@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { ServerConfig } from '../config/index.js';
 import { JwtPayload } from '../types/index.js';
-import {logger} from '@hyperlocal/shared/logger'
+import { logger } from '@hyperlocal/shared/logger';
 import { GatewayError } from '../errors/index.js';
 
 export function jwtAuthMiddleware(req: Request, res: Response, next: NextFunction): void {
@@ -12,9 +12,7 @@ export function jwtAuthMiddleware(req: Request, res: Response, next: NextFunctio
     return;
   }
 
-
   try {
-
     const payload = jwt.verify(token, ServerConfig.JWT_SECRET) as JwtPayload;
     req.context.user = payload;
     logger.info('JWT authenticated', {

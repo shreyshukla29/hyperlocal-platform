@@ -21,11 +21,7 @@ import { generateOtp, hashOtp, getOtpExpiresAt, verifyOtp } from '../utils/otp.j
 import { AUTH_ERRORS } from '../constants/index.js';
 import { AccountType, AuthMethod } from '../enums/index.js';
 
-import {
-  BadRequestError,
-  ForbiddenError,
-  ConflictError,
-} from '@hyperlocal/shared/errors';
+import { BadRequestError, ForbiddenError, ConflictError } from '@hyperlocal/shared/errors';
 import { ServerConfig } from '../config/server_config.js';
 import { publishUserSignedUpEvent } from '../events/index.js';
 import { USER_SIGNED_UP_EVENT } from '@hyperlocal/shared/events';
@@ -53,7 +49,7 @@ export class AuthService {
     const identity = await this.repo.createIdentity({
       email,
       phone,
-      password:passwordHash,
+      password: passwordHash,
       accountType,
     });
 
@@ -66,15 +62,15 @@ export class AuthService {
     }
 
     await publishUserSignedUpEvent({
-  event: USER_SIGNED_UP_EVENT,
-  authIdentityId: identity.id,
-  firstName,
-  lastName,
-  email,
-  phone,
-  accountType,
-  occurredAt: new Date().toISOString(),
-});
+      event: USER_SIGNED_UP_EVENT,
+      authIdentityId: identity.id,
+      firstName,
+      lastName,
+      email,
+      phone,
+      accountType,
+      occurredAt: new Date().toISOString(),
+    });
 
     const token = createToken<AuthTokenPayload>({
       payload: {
@@ -113,19 +109,19 @@ export class AuthService {
   async loginWithEmail(payload: LoginWithEmailRequest): Promise<LoginResponse> {
     const { email, password, loginAs } = payload;
 
-const identity = await this.repo.findByEmail(email!, loginAs);
-if (!identity) {
-  throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
-}
+    const identity = await this.repo.findByEmail(email!, loginAs);
+    if (!identity) {
+      throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
+    }
 
-if (!identity.isActive) {
-  throw new ForbiddenError(AUTH_ERRORS.ACCOUNT_INACTIVE);
-}
+    if (!identity.isActive) {
+      throw new ForbiddenError(AUTH_ERRORS.ACCOUNT_INACTIVE);
+    }
 
-const validPassword = await verifyPassword(password, identity.password);
-if (!validPassword) {
-  throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
-}
+    const validPassword = await verifyPassword(password, identity.password);
+    if (!validPassword) {
+      throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
+    }
 
     const isVerified = await this.repo.isVerified(identity.id, AuthMethod.EMAIL);
     if (!isVerified) {
@@ -169,27 +165,26 @@ if (!validPassword) {
   async loginWithPhone(payload: LoginWithPhoneRequest): Promise<LoginResponse> {
     const { phone, password, loginAs } = payload;
 
-const identity = await this.repo.findByPhone(phone!, loginAs);
-if (!identity) {
-  throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
-}
+    const identity = await this.repo.findByPhone(phone!, loginAs);
+    if (!identity) {
+      throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
+    }
 
-if (!identity.isActive) {
-  throw new ForbiddenError(AUTH_ERRORS.ACCOUNT_INACTIVE);
-}
+    if (!identity.isActive) {
+      throw new ForbiddenError(AUTH_ERRORS.ACCOUNT_INACTIVE);
+    }
 
-const validPassword = await verifyPassword(password, identity.password);
-if (!validPassword) {
-  throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
-}
-
+    const validPassword = await verifyPassword(password, identity.password);
+    if (!validPassword) {
+      throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
+    }
 
     const isVerified = await this.repo.isVerified(identity.id, AuthMethod.PHONE);
     if (!isVerified) {
       throw new ForbiddenError(AUTH_ERRORS.PHONE_NOT_VERIFIED);
     }
 
-     const token = createToken<AuthTokenPayload>({
+    const token = createToken<AuthTokenPayload>({
       payload: {
         authId: identity.id,
         email: identity.email ?? undefined,
@@ -287,7 +282,11 @@ if (!validPassword) {
     const verificationType =
       type === AuthMethod.EMAIL ? VerificationType.EMAIL : VerificationType.PHONE;
 
-    const record = await this.repo.findPendingByIdentityTypeValue(identityId, verificationType, value);
+    const record = await this.repo.findPendingByIdentityTypeValue(
+      identityId,
+      verificationType,
+      value,
+    );
     if (!record) {
       throw new BadRequestError(AUTH_ERRORS.VERIFICATION_NOT_FOUND);
     }

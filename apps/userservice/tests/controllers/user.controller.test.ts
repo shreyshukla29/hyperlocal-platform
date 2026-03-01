@@ -5,11 +5,7 @@ import { UserService } from '../../src/service/user.service';
 import { createMockUser } from '../helpers/test-helpers';
 import { jest } from '@jest/globals';
 
-import {
-  NotFoundError,
-  BadRequestError,
-  ForbiddenError,
-} from '@hyperlocal/shared/errors';
+import { NotFoundError, BadRequestError, ForbiddenError } from '@hyperlocal/shared/errors';
 
 jest.mock('../../src/service/user.service');
 
@@ -55,11 +51,7 @@ describe('UserController', () => {
 
       mockService.getUserByAuthIdentityId.mockResolvedValue(mockUser);
 
-      await controller.getUserProfile(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.getUserProfile(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockService.getUserByAuthIdentityId).toHaveBeenCalledWith('auth-123');
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
@@ -76,11 +68,7 @@ describe('UserController', () => {
 
       mockService.getUserByAuthIdentityId.mockRejectedValue(error);
 
-      await controller.getUserProfile(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.getUserProfile(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(error);
     });
@@ -142,11 +130,7 @@ describe('UserController', () => {
 
       mockService.uploadUserAvatar.mockResolvedValue(mockUser);
 
-      await controller.uploadUserAvatar(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.uploadUserAvatar(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockService.uploadUserAvatar).toHaveBeenCalledWith({
         userId: 'user-123',
@@ -170,11 +154,7 @@ describe('UserController', () => {
 
       mockService.uploadUserAvatar.mockRejectedValue(error);
 
-      await controller.uploadUserAvatar(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.uploadUserAvatar(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(error);
     });
@@ -189,11 +169,7 @@ describe('UserController', () => {
 
       mockService.deleteUserAvatar.mockResolvedValue(mockUser);
 
-      await controller.deleteUserAvatar(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.deleteUserAvatar(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockService.deleteUserAvatar).toHaveBeenCalledWith('user-123', 'auth-123');
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
@@ -207,11 +183,7 @@ describe('UserController', () => {
 
       mockService.deleteUserAvatar.mockRejectedValue(error);
 
-      await controller.deleteUserAvatar(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext,
-      );
+      await controller.deleteUserAvatar(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(error);
     });
