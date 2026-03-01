@@ -26,7 +26,7 @@ export function errorMiddleware(
     stack: err instanceof Error ? err.stack : undefined,
     correlationId: req.context?.correlationId,
     sessionId: req.context?.sessionId,
-    userId: req.context?.user?.sub,
+    userId: (req.context?.user as { sub?: string } | undefined)?.sub,
     method: req.method,
     path: req.originalUrl,
   });

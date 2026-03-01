@@ -10,6 +10,7 @@ COPY apps/providerservice ./apps/providerservice
 COPY apps/userservice ./apps/userservice
 RUN npm ci
 RUN npx turbo run build --filter=api-gateway
+RUN mkdir -p apps/api-gateway/dist/openapi && cp apps/api-gateway/src/openapi/openapi.yaml apps/api-gateway/dist/openapi/
 
 FROM node:20-alpine
 WORKDIR /app

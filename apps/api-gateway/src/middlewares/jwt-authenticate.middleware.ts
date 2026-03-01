@@ -14,11 +14,13 @@ export function jwtAuthMiddleware(req: Request, res: Response, next: NextFunctio
 
   try {
     const payload = jwt.verify(token, ServerConfig.JWT_SECRET) as JwtPayload;
-    req.context.user = payload;
+    if (req.context) {
+      req.context.user = payload;
+    }
     logger.info('JWT authenticated', {
-      correlationId: req.context.correlationId,
-      sessionId: req.context.sessionId,
-      userId: (payload as { authId?: string }).authId ?? payload.sub,
+      correlationId: req.context?.correlationId,
+      sessionId: req.context?.sessionId,
+      userId: (payload as { authId?: string }).authId ?? (payload as { sub?: string }).sub,
     });
     next();
   } catch (error) {

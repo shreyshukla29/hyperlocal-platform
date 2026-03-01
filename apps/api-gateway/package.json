@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon",
     "typecheck": "tsc --noEmit",
-    "build": "tsc -b && mkdir -p dist/openapi && cp src/openapi/openapi.yaml dist/openapi/",
+    "build": "tsc -b",
     "test": "jest",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write .",
