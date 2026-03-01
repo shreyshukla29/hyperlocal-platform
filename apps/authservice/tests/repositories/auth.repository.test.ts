@@ -1,9 +1,6 @@
 import { jest } from '@jest/globals';
 import { mockedPrisma } from '../__mocks__/prisma.mock.js';
 
-jest.mock('../../src/config', () => ({ prisma: mockedPrisma }));
-jest.mock('../../src/config/index', () => ({ prisma: mockedPrisma }));
-
 import { AuthRepository } from '../../src/repositories/auth.repository.js';
 import { AccountType } from '../../src/enums/index.js';
 
@@ -11,7 +8,7 @@ describe('AuthRepository', () => {
   let repository: AuthRepository;
 
   beforeEach(() => {
-    repository = new AuthRepository();
+    repository = new AuthRepository(mockedPrisma);
     jest.clearAllMocks();
   });
 

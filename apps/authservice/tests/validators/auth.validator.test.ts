@@ -91,6 +91,7 @@ describe('auth validators', () => {
   describe('sendVerificationSchema', () => {
     it('accepts valid email type', () => {
       const result = sendVerificationSchema.safeParse({
+        identityId: '550e8400-e29b-41d4-a716-446655440000',
         type: AuthMethod.EMAIL,
         value: 'a@b.com',
       });
@@ -99,6 +100,7 @@ describe('auth validators', () => {
 
     it('accepts valid phone type', () => {
       const result = sendVerificationSchema.safeParse({
+        identityId: '550e8400-e29b-41d4-a716-446655440000',
         type: AuthMethod.PHONE,
         value: '9876543210',
       });
@@ -107,6 +109,7 @@ describe('auth validators', () => {
 
     it('rejects invalid email', () => {
       const result = sendVerificationSchema.safeParse({
+        identityId: '550e8400-e29b-41d4-a716-446655440000',
         type: AuthMethod.EMAIL,
         value: 'not-email',
       });
@@ -117,6 +120,7 @@ describe('auth validators', () => {
   describe('verifySchema', () => {
     it('accepts valid payload', () => {
       const result = verifySchema.safeParse({
+        identityId: '550e8400-e29b-41d4-a716-446655440000',
         type: AuthMethod.EMAIL,
         value: 'a@b.com',
         code: '123456',
@@ -126,6 +130,7 @@ describe('auth validators', () => {
 
     it('rejects code not 6 digits', () => {
       const result = verifySchema.safeParse({
+        identityId: '550e8400-e29b-41d4-a716-446655440000',
         type: AuthMethod.EMAIL,
         value: 'a@b.com',
         code: '12345',

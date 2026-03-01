@@ -6,4 +6,5 @@ export enum AuthMethod {
 export enum AccountType {
   USER = 'USER',
   PROVIDER = 'PROVIDER',
+  ADMIN = 'ADMIN',
 }

@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import { jest } from '@jest/globals';
 import { AuthController } from '../../src/controllers/auth.controller.js';
 import type { AuthService } from '../../src/services/index.js';
+import { BadRequestError } from '@hyperlocal/shared/errors';
 
 jest.mock('@hyperlocal/shared/logger', () => ({
   logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn(), child: jest.fn() },
@@ -39,8 +40,8 @@ describe('AuthController', () => {
 
   describe('signup', () => {
     it('returns 201 and data when service succeeds', async () => {
-      const data = { userId: 'u1', email: 'a@b.com' };
-      mockService.signup.mockResolvedValue({ userId: 'u1', token: 't', data });
+      const data = { authId: 'u1', email: 'a@b.com' };
+      mockService.signup.mockResolvedValue({ data, token: 't', refreshToken: 'rt' });
       mockRequest.body = {
         email: 'a@b.com',
         password: 'password123',
@@ -59,7 +60,7 @@ describe('AuthController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.CREATED);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data,
+        data: { ...data, token: 't', refreshToken: 'rt' },
         error: null,
       });
     });
@@ -125,27 +126,27 @@ describe('AuthController', () => {
   });
 
   describe('sendVerification', () => {
-    it('returns 401 when identityId missing', async () => {
-      mockRequest.headers = {};
+    it('returns 400 when identityId missing in payload', async () => {
       mockRequest.body = { type: 'EMAIL', value: 'a@b.com' };
+      mockService.sendVerification.mockRejectedValue(new BadRequestError('Identity required'));
       await controller.sendVerification(
         mockRequest as Request,
         mockResponse as Response,
         mockNext,
       );
-      expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.UNAUTHORIZED);
+      expect(mockService.sendVerification).toHaveBeenCalledWith({ type: 'EMAIL', value: 'a@b.com' });
+      expect(mockNext).toHaveBeenCalled();
     });
 
     it('returns 200 when service succeeds', async () => {
-      mockRequest.headers = { 'x-user-id': 'auth-123' };
-      mockRequest.body = { type: 'EMAIL', value: 'a@b.com' };
+      mockRequest.body = { identityId: '550e8400-e29b-41d4-a716-446655440000', type: 'EMAIL', value: 'a@b.com' };
       mockService.sendVerification.mockResolvedValue({ success: true });
       await controller.sendVerification(
         mockRequest as Request,
         mockResponse as Response,
         mockNext,
       );
-      expect(mockService.sendVerification).toHaveBeenCalledWith('auth-123', { type: 'EMAIL', value: 'a@b.com' });
+      expect(mockService.sendVerification).toHaveBeenCalledWith({ identityId: '550e8400-e29b-41d4-a716-446655440000', type: 'EMAIL', value: 'a@b.com' });
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
     });
   });
