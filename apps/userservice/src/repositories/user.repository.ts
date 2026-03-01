@@ -8,7 +8,7 @@ export class UserRepository {
     const {
       authIdentityId,
       firstName,
-      lastName = null,
+      lastName,
       email = null,
       phone = null,
       username = null,
@@ -22,10 +22,10 @@ export class UserRepository {
       create: {
         authIdentityId,
         firstName,
-        lastName,
-        email,
-        phone,
-        username,
+        lastName: lastName ?? '',
+        ...(email != null && { email }),
+        ...(phone != null && { phone }),
+        ...(username != null && { username }),
       },
     });
   }
@@ -57,12 +57,22 @@ export class UserRepository {
   }
 
   async updateProfile(userId: string, payload: UpdateUserRepositoryPayload): Promise<User> {
+    const data: {
+      updatedAt: Date;
+      firstName?: string;
+      lastName?: string;
+      username?: string;
+      avatarUrl?: string | null;
+    } = {
+      updatedAt: new Date(),
+    };
+    if (payload.firstName !== undefined) data.firstName = payload.firstName;
+    if (payload.lastName !== undefined) data.lastName = payload.lastName ?? undefined;
+    if (payload.username !== undefined) data.username = payload.username ?? undefined;
+    if (payload.avatarUrl !== undefined) data.avatarUrl = payload.avatarUrl;
     return this.prisma.user.update({
       where: { id: userId },
-      data: {
-        ...payload,
-        updatedAt: new Date(),
-      },
+      data,
     });
   }
 

@@ -72,7 +72,7 @@ export async function validateImageFile(buffer: Buffer): Promise<ImageValidation
   } catch (error: unknown) {
     return {
       isValid: false,
-      error: `Image validation failed: ${error.message}`,
+      error: `Image validation failed: ${error instanceof Error ? error.message : String(error)}`,
     };
   }
 }

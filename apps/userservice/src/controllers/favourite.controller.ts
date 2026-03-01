@@ -9,7 +9,8 @@ export class FavouriteController {
   async add(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
-      const providerId = req.body?.providerId ?? req.params?.providerId;
+      const providerIdRaw = req.body?.providerId ?? req.params?.providerId;
+      const providerId = Array.isArray(providerIdRaw) ? providerIdRaw[0] ?? '' : (providerIdRaw ?? '');
       if (!userAuthId || !providerId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,
@@ -54,7 +55,9 @@ export class FavouriteController {
   async remove(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
-      const { providerId } = req.params;
+      const providerId = Array.isArray(req.params.providerId)
+        ? req.params.providerId[0] ?? ''
+        : (req.params.providerId ?? '');
       if (!userAuthId || !providerId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { AddressService } from '../service/index.js';
 import { getAuthIdentityIdFromRequest } from '@hyperlocal/shared/constants';
+import { getRequestParam } from '@hyperlocal/shared/utils';
 import { sendSuccess } from '../utils/response.js';
 import type {
   CreateAddressPayload,
@@ -14,7 +15,7 @@ export class AddressController {
 
   async listAddresses(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
-      const userId = req.params.userId;
+      const userId = getRequestParam(req, 'userId');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const addresses = await this.addressService.listAddresses(userId, authIdentityId);
       return sendSuccess(res, addresses);
@@ -25,7 +26,7 @@ export class AddressController {
 
   async createAddress(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
-      const userId = req.params.userId;
+      const userId = getRequestParam(req, 'userId');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const payload = req.body as CreateAddressPayload;
       const address = await this.addressService.createAddress(userId, payload, authIdentityId);
@@ -37,7 +38,8 @@ export class AddressController {
 
   async updateAddress(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
-      const { userId, addressId } = req.params;
+      const userId = getRequestParam(req, 'userId');
+      const addressId = getRequestParam(req, 'addressId');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const payload = req.body as UpdateAddressPayload;
       const address = await this.addressService.updateAddress(
@@ -58,7 +60,8 @@ export class AddressController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const { userId, addressId } = req.params;
+      const userId = getRequestParam(req, 'userId');
+      const addressId = getRequestParam(req, 'addressId');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const address = await this.addressService.setDefaultAddress(
         userId,
@@ -77,7 +80,7 @@ export class AddressController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const userId = req.params.userId;
+      const userId = getRequestParam(req, 'userId');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const address = await this.addressService.getDefaultAddress(userId, authIdentityId);
       return sendSuccess(res, address);
@@ -92,7 +95,7 @@ export class AddressController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const userId = req.params.userId;
+      const userId = getRequestParam(req, 'userId');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const payload = req.body as SaveCurrentLocationPayload;
       const address = await this.addressService.saveCurrentLocation(
@@ -112,7 +115,7 @@ export class AddressController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const userId = req.params.userId;
+      const userId = getRequestParam(req, 'userId');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const address = await this.addressService.getCurrentLocation(userId, authIdentityId);
       return sendSuccess(res, address);
@@ -123,7 +126,8 @@ export class AddressController {
 
   async deleteAddress(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
-      const { userId, addressId } = req.params;
+      const userId = getRequestParam(req, 'userId');
+      const addressId = getRequestParam(req, 'addressId');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       await this.addressService.deleteAddress(userId, addressId, authIdentityId);
       return sendSuccess(res, { message: 'Address deleted' });

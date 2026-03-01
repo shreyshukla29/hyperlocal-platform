@@ -1,3 +1,4 @@
+import type { Channel } from 'amqplib';
 import { createChannel } from '@hyperlocal/shared/rabbitmq';
 import { AUTH_EXCHANGE, ROUTING_KEYS } from '@hyperlocal/shared/constants';
 import { UserSignedUpEvent, MessageMetadata } from '@hyperlocal/shared/events';
@@ -61,7 +62,7 @@ export async function startUserSignedUpConsumer(): Promise<void> {
   const userRepository = new UserRepository();
   const userService = new UserService(userRepository);
 
-  let channel;
+  let channel: Channel | undefined;
 
   try {
     channel = await createChannel(ServerConfig.RABBITMQ_URL);
@@ -107,7 +108,7 @@ export async function startUserSignedUpConsumer(): Promise<void> {
     channel.consume(
       MAIN_QUEUE,
       async (msg) => {
-        if (!msg) return;
+        if (!msg || !channel) return;
 
         try {
           const { payload, metadata } = parseMessage(msg.content);
@@ -127,11 +128,11 @@ export async function startUserSignedUpConsumer(): Promise<void> {
             });
 
             channel.ack(msg);
-          } catch (err: unknwon) {
+          } catch (err: unknown) {
             const retryCount = metadata.retryCount;
 
             logger.error('USER_SIGNED_UP processing failed', {
-              error: err.message,
+              error: err instanceof Error ? err.message : String(err),
               authIdentityId: payload.authIdentityId,
               retryCount,
             });
@@ -160,7 +161,7 @@ export async function startUserSignedUpConsumer(): Promise<void> {
           }
         } catch (parseError: unknown) {
           logger.error('Message parsing failed, sending to DLQ', {
-            error: parseError.message,
+            error: parseError instanceof Error ? parseError.message : String(parseError),
             raw: msg.content.toString(),
           });
 
@@ -175,7 +176,7 @@ export async function startUserSignedUpConsumer(): Promise<void> {
       retryQueues: RETRY_QUEUES.map((q) => q.name),
       dlq: DLQ_QUEUE,
     });
-  } catch (error: unknwon) {
+  } catch (error: unknown) {
     console.log(error);
     logger.error('Failed to start UserSignedUp consumer', error);
     setTimeout(startUserSignedUpConsumer, 10_000);

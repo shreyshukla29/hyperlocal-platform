@@ -94,14 +94,11 @@ export async function uploadImage(
 
 export async function deleteImage(publicId: string, retryCount: number = 0): Promise<void> {
   try {
-    await cloudinary.uploader.destroy(publicId, {
-      invalidate: true,
-      timeout: 30000,
-    });
+    await cloudinary.uploader.destroy(publicId, { invalidate: true });
   } catch (error: unknown) {
     if (retryCount < MAX_RETRIES) {
       logger.warn('Cloudinary delete failed, retrying', {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         publicId,
         retryCount: retryCount + 1,
       });

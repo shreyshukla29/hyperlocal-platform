@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { UserService } from '../service/index.js';
 import { getAuthIdentityIdFromRequest } from '@hyperlocal/shared/constants';
+import { getRequestParam } from '@hyperlocal/shared/utils';
+import { UserService } from '../service/index.js';
 import { UpdateUserProfilePayload } from '../validators/index.js';
 
 export class UserController {
@@ -29,7 +30,7 @@ export class UserController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const { id: userId } = req.params;
+      const userId = getRequestParam(req, 'id');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const payload = req.body as UpdateUserProfilePayload;
 
@@ -51,7 +52,7 @@ export class UserController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const { id: userId } = req.params;
+      const userId = getRequestParam(req, 'id');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const file = req.file;
 
@@ -77,7 +78,7 @@ export class UserController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const { id: userId } = req.params;
+      const userId = getRequestParam(req, 'id');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
 
       const user = await this.userService.deleteUserAvatar(userId, authIdentityId);
