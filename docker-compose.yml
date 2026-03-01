@@ -1,20 +1,66 @@
 services:
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
+  api-gateway:
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "3000:3000"
     environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin123
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      NODE_ENV: production
+      PORT: 3000
+    depends_on:
+      - authservice
+      - userservice
+      - providerservice
+      - bookingservice
+      - notificationservice
 
-volumes:
-  rabbitmq_data:
+  authservice:
+    build:
+      context: .
+      dockerfile: apps/authservice/Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+
+  userservice:
+    build:
+      context: .
+      dockerfile: apps/userservice/Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+
+  providerservice:
+    build:
+      context: .
+      dockerfile: apps/providerservice/Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+
+  bookingservice:
+    build:
+      context: .
+      dockerfile: apps/bookingservice/Dockerfile
+    ports:
+      - "3004:3004"
+    environment:
+      NODE_ENV: production
+      PORT: 3004
+
+  notificationservice:
+    build:
+      context: .
+      dockerfile: apps/notificationservice/Dockerfile
+    ports:
+      - "3005:3005"
+    environment:
+      NODE_ENV: production
+      PORT: 3005
