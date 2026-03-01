@@ -50,7 +50,6 @@ export async function publishAuthNotification(
     try {
       await channel?.close();
     } catch {
-      // ignore
     }
   }
 }

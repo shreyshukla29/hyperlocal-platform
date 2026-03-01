@@ -10,26 +10,21 @@ import {
   AuthTokenPayload,
   SendVerificationRequest,
   VerifyRequest,
+  RefreshRequest,
+  RefreshResponse,
 } from '../types/index.js';
 
-import {
-  signupSchema,
-  loginWithEmailSchema,
-  loginWithPhoneSchema,
-  sendVerificationSchema,
-  verifySchema,
-} from '../validators/index.js';
-
-import { hashPassword, verifyPassword, createToken } from '../utils/index.js';
+import { hashPassword, verifyPassword, createToken, verifyToken } from '../utils/index.js';
+import type { SignOptions } from 'jsonwebtoken';
 import { generateOtp, hashOtp, getOtpExpiresAt, verifyOtp } from '../utils/otp.js';
 
 import { AUTH_ERRORS } from '../constants/index.js';
-import { AuthMethod } from '../enums/index.js';
+import { AccountType, AuthMethod } from '../enums/index.js';
 
 import {
-  ValidationError,
   BadRequestError,
   ForbiddenError,
+  ConflictError,
 } from '@hyperlocal/shared/errors';
 import { ServerConfig } from '../config/server_config.js';
 import { publishUserSignedUpEvent } from '../events/index.js';
@@ -39,25 +34,19 @@ export class AuthService {
   constructor(private readonly repo: AuthRepository = new AuthRepository()) {}
 
   async signup(payload: SignupRequest): Promise<SignupResponse> {
-    const parsed = signupSchema.safeParse(payload);
-    if (!parsed.success) {
-      throw new ValidationError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
-    }
-
-    const { email, phone, password, accountType, firstName,
-  lastName } = parsed.data;
+    const { email, phone, password, accountType, firstName, lastName } = payload;
 
     if (!email && !phone) {
-      throw new BadRequestError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
+      throw new BadRequestError(AUTH_ERRORS.INVALID_PAYLOAD);
     }
 
     if (email && (await this.repo.existsByEmail(email, accountType))) {
-  throw new BadRequestError(AUTH_ERRORS.EMAIL_EXISTS, 409);
-}
+      throw new ConflictError(AUTH_ERRORS.EMAIL_EXISTS);
+    }
 
-if (phone && (await this.repo.existsByPhone(phone, accountType))) {
-  throw new BadRequestError(AUTH_ERRORS.PHONE_EXISTS, 409);
-}
+    if (phone && (await this.repo.existsByPhone(phone, accountType))) {
+      throw new ConflictError(AUTH_ERRORS.PHONE_EXISTS);
+    }
 
     const passwordHash = await hashPassword(password);
 
@@ -88,39 +77,43 @@ if (phone && (await this.repo.existsByPhone(phone, accountType))) {
 });
 
     const token = createToken<AuthTokenPayload>({
-    payload: {
-      authId: identity.id,
-      email: identity.email ?? undefined,
-      phone: identity.phone ?? undefined,
-      accountType: identity.accountType,
-    },
-     secretKey: ServerConfig.JWT_SECRET,
-    options: {
-      expiresIn: '24h',
-  
-    },
-  });
+      payload: {
+        authId: identity.id,
+        email: identity.email ?? undefined,
+        phone: identity.phone ?? undefined,
+        accountType: identity.accountType,
+      },
+      secretKey: ServerConfig.JWT_SECRET,
+      options: { expiresIn: ServerConfig.JWT_EXPIRY as SignOptions['expiresIn'] },
+    });
+
+    const refreshToken = createToken<AuthTokenPayload>({
+      payload: {
+        authId: identity.id,
+        email: identity.email ?? undefined,
+        phone: identity.phone ?? undefined,
+        accountType: identity.accountType,
+      },
+      secretKey: ServerConfig.JWT_REFRESH_SECRET,
+      options: { expiresIn: ServerConfig.JWT_REFRESH_EXPIRY as SignOptions['expiresIn'] },
+    });
 
     return {
-      data : {
-      authId: identity.id,
-      email: identity.email,
-      phone: identity.phone,
-      accountType: identity.accountType,
-       },
-      token 
+      data: {
+        authId: identity.id,
+        email: identity.email,
+        phone: identity.phone,
+        accountType: identity.accountType,
+      },
+      token,
+      refreshToken,
     };
   }
 
   async loginWithEmail(payload: LoginWithEmailRequest): Promise<LoginResponse> {
-    const parsed = loginWithEmailSchema.safeParse(payload);
-    if (!parsed.success) {
-      throw new ValidationError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
-    }
+    const { email, password, loginAs } = payload;
 
-const { email, password, loginAs } = parsed.data;
-
-const identity = await this.repo.findByEmail(email, loginAs);
+const identity = await this.repo.findByEmail(email!, loginAs);
 if (!identity) {
   throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
 }
@@ -136,40 +129,47 @@ if (!validPassword) {
 
     const isVerified = await this.repo.isVerified(identity.id, AuthMethod.EMAIL);
     if (!isVerified) {
-      throw new BadRequestError(AUTH_ERRORS.EMAIL_NOT_VERIFIED, 403);
+      throw new ForbiddenError(AUTH_ERRORS.EMAIL_NOT_VERIFIED);
     }
 
     const token = createToken<AuthTokenPayload>({
-    payload: {
-       authId: identity.id,
-      email: identity.email ?? undefined,
-      phone: identity.phone ?? undefined,
-      accountType: identity.accountType,
-    },
-    secretKey: ServerConfig.JWT_SECRET,
-    options: {
-      expiresIn: '48h',
-    },
-  });
+      payload: {
+        authId: identity.id,
+        email: identity.email ?? undefined,
+        phone: identity.phone ?? undefined,
+        accountType: identity.accountType,
+      },
+      secretKey: ServerConfig.JWT_SECRET,
+      options: { expiresIn: ServerConfig.JWT_EXPIRY as SignOptions['expiresIn'] },
+    });
+
+    const refreshToken = createToken<AuthTokenPayload>({
+      payload: {
+        authId: identity.id,
+        email: identity.email ?? undefined,
+        phone: identity.phone ?? undefined,
+        accountType: identity.accountType,
+      },
+      secretKey: ServerConfig.JWT_REFRESH_SECRET,
+      options: { expiresIn: ServerConfig.JWT_REFRESH_EXPIRY as SignOptions['expiresIn'] },
+    });
 
     return {
-     data : {
-      authId: identity.id,
-      accountType: identity.accountType,
-     },
-      token
+      data: {
+        authId: identity.id,
+        email: identity.email,
+        phone: identity.phone,
+        accountType: identity.accountType,
+      },
+      token,
+      refreshToken,
     };
   }
 
   async loginWithPhone(payload: LoginWithPhoneRequest): Promise<LoginResponse> {
-    const parsed = loginWithPhoneSchema.safeParse(payload);
-    if (!parsed.success) {
-      throw new ValidationError(AUTH_ERRORS.INVALID_PAYLOAD);
-    }
+    const { phone, password, loginAs } = payload;
 
-    const { phone, password, loginAs } = parsed.data;
-
-const identity = await this.repo.findByPhone(phone, loginAs);
+const identity = await this.repo.findByPhone(phone!, loginAs);
 if (!identity) {
   throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
 }
@@ -186,71 +186,83 @@ if (!validPassword) {
 
     const isVerified = await this.repo.isVerified(identity.id, AuthMethod.PHONE);
     if (!isVerified) {
-      throw new BadRequestError(AUTH_ERRORS.PHONE_NOT_VERIFIED, 403);
+      throw new ForbiddenError(AUTH_ERRORS.PHONE_NOT_VERIFIED);
     }
 
      const token = createToken<AuthTokenPayload>({
-    payload: {
-       authId: identity.id,
-      email: identity.email ?? undefined,
-      phone: identity.phone ?? undefined,
-      accountType: identity.accountType,
-    },
-    secretKey: ServerConfig.JWT_SECRET,
-    options: {
-      expiresIn: '24h',
-     
-    },
-  });
+      payload: {
+        authId: identity.id,
+        email: identity.email ?? undefined,
+        phone: identity.phone ?? undefined,
+        accountType: identity.accountType,
+      },
+      secretKey: ServerConfig.JWT_SECRET,
+      options: { expiresIn: ServerConfig.JWT_EXPIRY as SignOptions['expiresIn'] },
+    });
+
+    const refreshToken = createToken<AuthTokenPayload>({
+      payload: {
+        authId: identity.id,
+        email: identity.email ?? undefined,
+        phone: identity.phone ?? undefined,
+        accountType: identity.accountType,
+      },
+      secretKey: ServerConfig.JWT_REFRESH_SECRET,
+      options: { expiresIn: ServerConfig.JWT_REFRESH_EXPIRY as SignOptions['expiresIn'] },
+    });
 
     return {
       data: {
         authId: identity.id,
+        email: identity.email,
+        phone: identity.phone,
         accountType: identity.accountType,
       },
       token,
+      refreshToken,
     };
   }
 
-  /** Send verification OTP to email or phone. Requires authenticated user (identityId from JWT). */
   async sendVerification(
-    identityId: string,
     payload: SendVerificationRequest,
-  ): Promise<{ success: true }> {
-    const parsed = sendVerificationSchema.safeParse(payload);
-    if (!parsed.success) {
-      throw new ValidationError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
-    }
-
-    const { type, value } = parsed.data;
+  ): Promise<{ success: true; alreadyVerified?: boolean }> {
+    const { identityId, type, value } = payload;
     const verificationType =
       type === AuthMethod.EMAIL ? VerificationType.EMAIL : VerificationType.PHONE;
 
     const identity = await this.repo.findById(identityId);
     if (!identity) {
-      throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
+      throw new BadRequestError(AUTH_ERRORS.VERIFICATION_NOT_FOUND);
     }
 
     if (type === AuthMethod.EMAIL) {
       const normalized = value.trim().toLowerCase();
       if (identity.email !== normalized) {
-        throw new BadRequestError(AUTH_ERRORS.VALUE_MISMATCH);
+        throw new ForbiddenError(AUTH_ERRORS.VALUE_MISMATCH);
       }
     } else {
       const normalized = value.replace(/\s+/g, '');
       if (identity.phone !== normalized) {
-        throw new BadRequestError(AUTH_ERRORS.VALUE_MISMATCH);
+        throw new ForbiddenError(AUTH_ERRORS.VALUE_MISMATCH);
       }
+    }
+
+    const alreadyVerified = await this.repo.isVerified(identityId, verificationType);
+    if (alreadyVerified) {
+      return { success: true, alreadyVerified: true };
     }
 
     const otp = generateOtp();
     const otpHash = hashOtp(otp);
     const otpExpiresAt = getOtpExpiresAt();
 
+    const normalizedValue =
+      type === AuthMethod.EMAIL ? value.trim().toLowerCase() : value.replace(/\s+/g, '');
+
     await this.repo.upsertVerificationOtp(
       identityId,
       verificationType,
-      value,
+      normalizedValue,
       otpHash,
       otpExpiresAt,
     );
@@ -270,18 +282,12 @@ if (!validPassword) {
     return { success: true };
   }
 
-  /** Verify OTP and mark email/phone as verified. No auth required (user submits code). */
   async verify(payload: VerifyRequest): Promise<{ success: true }> {
-    const parsed = verifySchema.safeParse(payload);
-    if (!parsed.success) {
-      throw new ValidationError(AUTH_ERRORS.INVALID_PAYLOAD, 400);
-    }
-
-    const { type, value, code } = parsed.data;
+    const { identityId, type, value, code } = payload;
     const verificationType =
       type === AuthMethod.EMAIL ? VerificationType.EMAIL : VerificationType.PHONE;
 
-    const record = await this.repo.findPendingByTypeAndValue(verificationType, value);
+    const record = await this.repo.findPendingByIdentityTypeValue(identityId, verificationType, value);
     if (!record) {
       throw new BadRequestError(AUTH_ERRORS.VERIFICATION_NOT_FOUND);
     }
@@ -296,5 +302,48 @@ if (!validPassword) {
 
     await this.repo.markVerified(record.identityId, verificationType);
     return { success: true };
+  }
+
+  async refresh(payload: RefreshRequest): Promise<RefreshResponse> {
+    const { refreshToken } = payload;
+
+    const decoded = verifyToken<AuthTokenPayload>({
+      token: refreshToken,
+      secretKey: ServerConfig.JWT_REFRESH_SECRET,
+      options: { algorithms: ['HS256'] },
+    });
+
+    const newAccessToken = createToken<AuthTokenPayload>({
+      payload: {
+        authId: decoded.authId,
+        email: decoded.email,
+        phone: decoded.phone,
+        accountType: decoded.accountType,
+      },
+      secretKey: ServerConfig.JWT_SECRET,
+      options: { expiresIn: ServerConfig.JWT_EXPIRY as SignOptions['expiresIn'] },
+    });
+
+    const newRefreshToken = createToken<AuthTokenPayload>({
+      payload: {
+        authId: decoded.authId,
+        email: decoded.email,
+        phone: decoded.phone,
+        accountType: decoded.accountType,
+      },
+      secretKey: ServerConfig.JWT_REFRESH_SECRET,
+      options: { expiresIn: ServerConfig.JWT_REFRESH_EXPIRY as SignOptions['expiresIn'] },
+    });
+
+    return {
+      data: {
+        authId: decoded.authId,
+        email: decoded.email,
+        phone: decoded.phone,
+        accountType: decoded.accountType as AccountType,
+      },
+      token: newAccessToken,
+      refreshToken: newRefreshToken,
+    };
   }
 }

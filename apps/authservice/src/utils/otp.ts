@@ -1,10 +1,9 @@
 import crypto from 'crypto';
+import { ServerConfig } from '../config/index.js';
 
 const OTP_LENGTH = 6;
-const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const OTP_TTL_MS = 10 * 60 * 1000;
 const HASH_ALGORITHM = 'sha256';
-const HASH_KEY =
-  process.env.OTP_HASH_SECRET ?? 'default-auth-otp-secret-change-in-production';
 
 export function generateOtp(): string {
   const digits = crypto.randomInt(0, 1_000_000);
@@ -12,7 +11,10 @@ export function generateOtp(): string {
 }
 
 export function hashOtp(otp: string): string {
-  return crypto.createHmac(HASH_ALGORITHM, HASH_KEY).update(otp).digest('hex');
+  return crypto
+    .createHmac(HASH_ALGORITHM, ServerConfig.OTP_HASH_SECRET)
+    .update(otp)
+    .digest('hex');
 }
 
 export function verifyOtp(

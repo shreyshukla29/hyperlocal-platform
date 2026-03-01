@@ -42,6 +42,7 @@ export const loginWithPhoneSchema = z.object({
 
 export const sendVerificationSchema = z
   .object({
+    identityId: z.string().uuid({ message: 'identityId must be a valid UUID' }),
     type: z.enum([AuthMethod.EMAIL, AuthMethod.PHONE]),
     value: z.string().min(1, 'Value is required'),
   })
@@ -61,8 +62,15 @@ export const sendVerificationSchema = z
 
 export const verifySchema = z
   .object({
+    identityId: z.string().uuid({ message: 'identityId must be a valid UUID' }),
     type: z.enum([AuthMethod.EMAIL, AuthMethod.PHONE]),
     value: z.string().min(1, 'Value is required'),
-    code: z.string().length(6, 'Code must be 6 digits').regex(/^\d{6}$/, 'Code must be 6 digits'),
+    code: z.string().length(6, { message: 'Code must be 6 digits' }).regex(/^\d{6}$/, { message: 'Code must be 6 digits' }),
+  })
+  .strict();
+
+export const refreshSchema = z
+  .object({
+    refreshToken: z.string().min(1, 'Refresh token is required'),
   })
   .strict();

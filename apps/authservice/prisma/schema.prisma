@@ -26,11 +26,9 @@ enum AccountType {
 
 model Identity {
   id          String      @id @default(uuid())
-
   email       String?
   phone       String?
   password    String
-
   accountType AccountType
   isActive    Boolean     @default(true)
 
@@ -41,7 +39,6 @@ model Identity {
 
   @@unique([email, accountType])
   @@unique([phone, accountType])
-
   @@map("identities")
 }
 model IdentityVerification {
@@ -56,8 +53,9 @@ model IdentityVerification {
 
   createdAt     DateTime          @default(now())
 
-  identity      Identity     @relation(fields: [identityId],references: [id], onDelete: Cascade )
+  identity      Identity          @relation(fields: [identityId], references: [id], onDelete: Cascade)
 
+  @@unique([identityId, type, value])
   @@index([identityId])
   @@index([type, value])
   @@map("identity_verifications")

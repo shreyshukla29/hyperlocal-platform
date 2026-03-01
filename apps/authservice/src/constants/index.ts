@@ -1,2 +1,2 @@
 export * from './errors.constant.js';
-export * from './success.constnat.js';
+export * from './success.constant.js';

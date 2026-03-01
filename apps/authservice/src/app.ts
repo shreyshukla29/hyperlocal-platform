@@ -14,7 +14,6 @@ export function createApp(): Application {
   app.use(express.json());
   app.use(cookieParser());
 
-  /* --------------------------------- health -------------------------------- */
   app.get('/health', (_req: Request, res: Response) => {
     return res.status(200).json({
       success: true,
@@ -27,18 +26,14 @@ export function createApp(): Application {
     });
   });
 
-  /* ------------------------- gateway authentication ------------------------- */
   app.use(
     createGatewayAuthMiddleware({
       validApiKey: ServerConfig.GATEWAY_API_KEY,
     }),
   );
 
-  /* ---------------------------------- routes -------------------------------- */
-
   app.use(router);
 
-  /* -------------------------- global error handler --------------------------- */
   app.use(globalErrorHandler);
 
   return app;

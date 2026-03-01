@@ -124,6 +124,23 @@ export class AuthRepository {
     });
   }
 
+  async findPendingByIdentityTypeValue(
+    identityId: string,
+    type: VerificationType,
+    value: string,
+  ): Promise<IdentityVerification | null> {
+    const normalizedValue =
+      type === VerificationType.EMAIL ? normalizeEmail(value) : normalizePhone(value);
+    return prisma.identityVerification.findFirst({
+      where: {
+        identityId,
+        type,
+        value: normalizedValue,
+        verifiedAt: null,
+      },
+    });
+  }
+
   async upsertVerificationOtp(
     identityId: string,
     type: VerificationType,

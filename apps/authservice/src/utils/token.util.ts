@@ -4,9 +4,7 @@ import jwt, {
   VerifyOptions,
 } from 'jsonwebtoken';
 
-
 export type JwtCustomPayload<T extends object> = T & JwtPayload;
-
 
 export function createToken<T extends object>(params: {
   payload: T;
@@ -18,7 +16,6 @@ export function createToken<T extends object>(params: {
     ...options,
   });
 }
-
 
 export function verifyToken<T extends object>(params: {
   token: string;
