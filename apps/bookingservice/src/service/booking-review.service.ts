@@ -1,7 +1,6 @@
 import { BookingRepository } from '../repositories/booking.repository.js';
 import { BookingReviewRepository } from '../repositories/booking-review.repository.js';
 import type {
-  CreateReviewPayload,
   ListReviewsQuery,
   ReviewResponse,
 } from '../repositories/booking-review.repository.js';

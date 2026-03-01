@@ -22,10 +22,10 @@ export class UserRepository {
       create: {
         authIdentityId,
         firstName,
-        lastName: lastName ?? '',
-        ...(email != null && { email }),
-        ...(phone != null && { phone }),
-        ...(username != null && { username }),
+        lastName: lastName,
+        email: email,
+        phone: phone,
+        username: username,
       },
     });
   }
