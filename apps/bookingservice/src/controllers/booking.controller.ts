@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { BookingService, BookingReviewService } from '../service/index.js';
 import { getAuthIdentityIdFromRequest } from '@hyperlocal/shared/constants';
+import { getRequestParam } from '@hyperlocal/shared/utils';
 import {
   listBookingsQuerySchema,
   assignServicePersonSchema,
@@ -11,6 +12,7 @@ import {
   createReviewSchema,
   listReviewsQuerySchema,
 } from '../validators/index.js';
+import type { ListBookingsQuery } from '../types/index.js';
 
 const IDEMPOTENCY_KEY_HEADER = 'idempotency-key';
 
@@ -59,7 +61,9 @@ export class BookingController {
         });
       }
       const parsed = listBookingsQuerySchema.safeParse(req.query);
-      const query = parsed.success ? parsed.data : undefined;
+      const query = parsed.success
+        ? (parsed.data as unknown as ListBookingsQuery)
+        : undefined;
       const data = await this.bookingService.listByUser(userAuthId, query);
       return res.status(StatusCodes.OK).json({
         success: true,
@@ -82,7 +86,9 @@ export class BookingController {
         });
       }
       const parsed = listBookingsQuerySchema.safeParse(req.query);
-      const query = parsed.success ? parsed.data : undefined;
+      const query = parsed.success
+        ? (parsed.data as unknown as ListBookingsQuery)
+        : undefined;
       const data = await this.bookingService.listByProvider(providerId, query);
       return res.status(StatusCodes.OK).json({
         success: true,
@@ -97,7 +103,7 @@ export class BookingController {
   async getByIdForUser(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: bookingId } = req.params;
+      const bookingId = getRequestParam(req, 'id');
       if (!userAuthId || !bookingId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,
@@ -123,7 +129,7 @@ export class BookingController {
   ): Promise<Response | void> {
     try {
       const providerId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: bookingId } = req.params;
+      const bookingId = getRequestParam(req, 'id');
       if (!providerId || !bookingId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,
@@ -145,7 +151,7 @@ export class BookingController {
   async cancelByUser(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: bookingId } = req.params;
+      const bookingId = getRequestParam(req, 'id');
       if (!userAuthId || !bookingId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,
@@ -171,7 +177,7 @@ export class BookingController {
   ): Promise<Response | void> {
     try {
       const providerId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: bookingId } = req.params;
+      const bookingId = getRequestParam(req, 'id');
       if (!providerId || !bookingId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,
@@ -197,7 +203,7 @@ export class BookingController {
   ): Promise<Response | void> {
     try {
       const providerId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: bookingId } = req.params;
+      const bookingId = getRequestParam(req, 'id');
       const parsed = assignServicePersonSchema.safeParse(req.body);
       if (!providerId || !bookingId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
@@ -231,7 +237,7 @@ export class BookingController {
   async confirmArrival(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const providerId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: bookingId } = req.params;
+      const bookingId = getRequestParam(req, 'id');
       const parsed = confirmArrivalSchema.safeParse(req.body);
       if (!providerId || !bookingId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
@@ -261,7 +267,7 @@ export class BookingController {
   async markComplete(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const providerId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: bookingId } = req.params;
+      const bookingId = getRequestParam(req, 'id');
       if (!providerId || !bookingId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,
@@ -287,7 +293,7 @@ export class BookingController {
   ): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: bookingId } = req.params;
+      const bookingId = getRequestParam(req, 'id');
       const parsed = verifyCompletionSchema.safeParse(req.body);
       if (!userAuthId || !bookingId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
@@ -350,7 +356,7 @@ export class BookingController {
   async createReview(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: bookingId } = req.params;
+      const bookingId = getRequestParam(req, 'id');
       const parsed = createReviewSchema.safeParse(req.body);
       if (!userAuthId || !bookingId) {
         return res.status(StatusCodes.BAD_REQUEST).json({

@@ -70,7 +70,7 @@ export class BookingService {
           providerId: existing.providerId,
           providerServiceId: existing.providerServiceId,
           assignedServicePersonId: existing.assignedServicePersonId,
-          status: existing.status,
+          status: existing.status as BookingStatus,
           slotStart: existing.slotStart,
           slotEnd: existing.slotEnd,
           addressLine1: existing.addressLine1,
@@ -89,7 +89,7 @@ export class BookingService {
           razorpayRefundId: existing.razorpayRefundId,
           createdAt: existing.createdAt,
           updatedAt: existing.updatedAt,
-        };
+        } as BookingResponse;
         if (existing.status === BookingStatus.PENDING_PAYMENT && existing.razorpayOrderId) {
           return {
             booking,
@@ -160,7 +160,7 @@ export class BookingService {
             providerId: existing.providerId,
             providerServiceId: existing.providerServiceId,
             assignedServicePersonId: existing.assignedServicePersonId,
-            status: existing.status,
+            status: existing.status as BookingStatus,
             slotStart: existing.slotStart,
             slotEnd: existing.slotEnd,
             addressLine1: existing.addressLine1,
@@ -179,7 +179,7 @@ export class BookingService {
             razorpayRefundId: existing.razorpayRefundId,
             createdAt: existing.createdAt,
             updatedAt: existing.updatedAt,
-          };
+          } as BookingResponse;
           return {
             booking,
             razorpayOrder: {
@@ -242,7 +242,7 @@ export class BookingService {
       razorpayRefundId: booking.razorpayRefundId,
       createdAt: booking.createdAt,
       updatedAt: booking.updatedAt,
-    };
+    } as BookingResponse;
   }
 
   async getByIdForProvider(bookingId: string, providerId: string): Promise<BookingResponse> {
@@ -278,7 +278,7 @@ export class BookingService {
       razorpayRefundId: booking.razorpayRefundId,
       createdAt: booking.createdAt,
       updatedAt: booking.updatedAt,
-    };
+    } as BookingResponse;
   }
 
   async cancelByUser(bookingId: string, userAuthId: string): Promise<BookingResponse> {

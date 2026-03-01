@@ -66,10 +66,7 @@ export async function createRazorpayRefund(
   if (params.notes) {
     options.notes = params.notes;
   }
-  const refund = await rzp.payments.refund(
-    params.paymentId,
-    Object.keys(options).length > 0 ? options : undefined,
-  );
+  const refund = await rzp.payments.refund(params.paymentId, options);
   return refund as unknown as RazorpayRefundResponse;
 }
 
