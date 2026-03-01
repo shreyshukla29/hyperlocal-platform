@@ -4,18 +4,43 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "lint": "eslint  --ext .ts",
-    "format": "prettier --write \"**/*.ts\""
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "exports": {
-    ".": { "node": "./dist/index.js", "default": "./index.ts" },
-    "./logger": { "node": "./dist/logger/index.js", "default": "./logger/index.ts" },
-    "./constants": { "node": "./dist/constants/index.js", "default": "./constants/index.ts" },
-    "./errors": { "node": "./dist/errors/index.js", "default": "./errors/index.ts" },
-    "./events": { "node": "./dist/events/index.js", "default": "./events/index.ts" },
-    "./middlewares": { "node": "./dist/middlewares/index.js", "default": "./middlewares/index.ts" },
-    "./rabbitmq": { "node": "./dist/rabbitmq/index.js", "default": "./rabbitmq/index.ts" },
-    "./rabbitmq/connection": { "node": "./dist/rabbitmq/connection.js", "default": "./rabbitmq/connection.ts" }
+    ".": {
+      "node": "./dist/index.js",
+      "default": "./index.ts"
+    },
+    "./logger": {
+      "node": "./dist/logger/index.js",
+      "default": "./logger/index.ts"
+    },
+    "./constants": {
+      "node": "./dist/constants/index.js",
+      "default": "./constants/index.ts"
+    },
+    "./errors": {
+      "node": "./dist/errors/index.js",
+      "default": "./errors/index.ts"
+    },
+    "./events": {
+      "node": "./dist/events/index.js",
+      "default": "./events/index.ts"
+    },
+    "./middlewares": {
+      "node": "./dist/middlewares/index.js",
+      "default": "./middlewares/index.ts"
+    },
+    "./rabbitmq": {
+      "node": "./dist/rabbitmq/index.js",
+      "default": "./rabbitmq/index.ts"
+    },
+    "./rabbitmq/connection": {
+      "node": "./dist/rabbitmq/connection.js",
+      "default": "./rabbitmq/connection.ts"
+    }
   },
   "dependencies": {
     "winston": "^3.13.0"
