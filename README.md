@@ -186,6 +186,9 @@ Each app has: `src/`, `tests/`, `prisma/` (if DB), `package.json`, `Dockerfile`.
 - **Spec**: Single OpenAPI 3 spec at `apps/api-gateway/src/openapi/openapi.yaml`.
 - **Swagger UI**: With the gateway running, open **`http://localhost:3000/api-docs`**.
 - **Base path**: `/api/v1` (e.g. `/api/v1/auth/signup`, `/api/v1/bookings`).
+  
+👉 [https://editor.swagger.io/?url=https://raw.githubusercontent.com/hyperlocal-platform/apps/api-gateway/src/openapi/openapi.yaml](https://raw.githubusercontent.com/shreyshukla29/hyperlocal-platform/main/apps/api-gateway/src/openapi/openapi.yaml)
+
 
 ---
 
