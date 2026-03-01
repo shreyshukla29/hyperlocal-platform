@@ -59,13 +59,13 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
-      - name: Generate Prisma clients
-        run: |
-          # npx prisma generate --schema=apps/authservice/prisma/schema.prisma
-          # npx prisma generate --schema=apps/bookingservice/prisma/schema.prisma
-          # npx prisma generate --schema=apps/notificationservice/prisma/schema.prisma
-          # npx prisma generate --schema=apps/providerservice/prisma/schema.prisma
-          # npx prisma generate --schema=apps/userservice/prisma/schema.prisma
+      # - name: Generate Prisma clients
+      #   run: |
+      #     # npx prisma generate --schema=apps/authservice/prisma/schema.prisma
+      #     # npx prisma generate --schema=apps/bookingservice/prisma/schema.prisma
+      #     # npx prisma generate --schema=apps/notificationservice/prisma/schema.prisma
+      #     # npx prisma generate --schema=apps/providerservice/prisma/schema.prisma
+      #     # npx prisma generate --schema=apps/userservice/prisma/schema.prisma
       - run: npm run build
 
   test-authservice:
@@ -79,7 +79,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
-      - run: npx prisma generate --schema=apps/authservice/prisma/schema.prisma
+      # - run: npx prisma generate --schema=apps/authservice/prisma/schema.prisma
       - run: npm run test --workspace=authservice
 
   test-bookingservice:
@@ -93,7 +93,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
-      - run: npx prisma generate --schema=apps/bookingservice/prisma/schema.prisma
+      # - run: npx prisma generate --schema=apps/bookingservice/prisma/schema.prisma
       - run: npm run test --workspace=bookingservice
 
   test-notificationservice:
@@ -107,7 +107,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
-      - run: npx prisma generate --schema=apps/notificationservice/prisma/schema.prisma
+      # - run: npx prisma generate --schema=apps/notificationservice/prisma/schema.prisma
       - run: npm run test --workspace=notificationservice
 
   test-providerservice:
@@ -121,7 +121,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
-      - run: npx prisma generate --schema=apps/providerservice/prisma/schema.prisma
+      # - run: npx prisma generate --schema=apps/providerservice/prisma/schema.prisma
       - run: npm run test --workspace=providerservice
 
   test-userservice:
@@ -135,7 +135,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
-      - run: npx prisma generate --schema=apps/userservice/prisma/schema.prisma
+      # - run: npx prisma generate --schema=apps/userservice/prisma/schema.prisma
       - run: npm run test --workspace=userservice
 
   docker-build:
