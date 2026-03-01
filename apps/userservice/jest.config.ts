@@ -20,9 +20,9 @@ const config: Config = {
   coverageDirectory: 'coverage',
 
   moduleNameMapper: {
-  '^@hyperlocal/shared/(.*)$': '<rootDir>/../../packages/shared/$1',
-  '^(\\.{1,2}/.*)\\.js$': '$1',
-},
+    '^@hyperlocal/shared/(.*)$': '<rootDir>/../../packages/shared/$1',
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
 
   extensionsToTreatAsEsm: ['.ts'],
   moduleFileExtensions: ['ts', 'js', 'json'],

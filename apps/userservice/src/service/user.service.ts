@@ -21,9 +21,7 @@ import {
 } from '../utils/index.js';
 
 export class UserService {
-  constructor(
-    private readonly userRepo: UserRepository = new UserRepository(),
-  ) {}
+  constructor(private readonly userRepo: UserRepository = new UserRepository()) {}
 
   async createUser(payload: CreateUserPayload) {
     try {
@@ -37,19 +35,18 @@ export class UserService {
 
       return user;
     } catch (error: unknown) {
-     
-        if (error?.code === 'P2002') {
-          const target = error.meta?.target as string[] | undefined;
-          if (target?.includes('username')) {
-            throw new ConflictError('Username already taken');
-          }
-          if (target?.includes('email')) {
-            throw new ConflictError('Email already in use');
-          }
-          if (target?.includes('phone')) {
-            throw new ConflictError('Phone number already in use');
-          }
-        
+      const prismaError = error as { code?: string; meta?: { target?: string[] } };
+      if (prismaError.code === 'P2002') {
+        const target = prismaError.meta?.target;
+        if (target?.includes('username')) {
+          throw new ConflictError('Username already taken');
+        }
+        if (target?.includes('email')) {
+          throw new ConflictError('Email already in use');
+        }
+        if (target?.includes('phone')) {
+          throw new ConflictError('Phone number already in use');
+        }
       }
       throw error;
     }
@@ -153,13 +150,14 @@ export class UserService {
 
       return updatedUser;
     } catch (error: unknown) {
-        if (error?.code === 'P2002') {
-          const target = error.meta?.target as string[] | undefined;
-          if (target?.includes('username')) {
-            throw new ConflictError('Username already taken');
-          }
+      const prismaError = error as { code?: string; meta?: { target?: string[] } };
+      if (prismaError.code === 'P2002') {
+        const target = prismaError.meta?.target;
+        if (target?.includes('username')) {
+          throw new ConflictError('Username already taken');
         }
-      
+      }
+
       throw error;
     }
   }
@@ -202,7 +200,7 @@ export class UserService {
       optimizedBuffer = await optimizeImage(fileBuffer);
     } catch (error: unknown) {
       logger.warn('Image optimization failed, using original', {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         userId,
       });
     }
@@ -214,7 +212,7 @@ export class UserService {
           await deleteImage(oldPublicId);
         } catch (error: unknown) {
           logger.warn('Failed to delete old avatar from Cloudinary', {
-            error: error.message,
+            error: error instanceof Error ? error.message : String(error),
             publicId: oldPublicId,
           });
         }
@@ -264,7 +262,7 @@ export class UserService {
           await deleteImage(publicId);
         } catch (error: unknown) {
           logger.warn('Failed to delete avatar from Cloudinary', {
-            error: error.message,
+            error: error instanceof Error ? error.message : String(error),
             publicId,
           });
         }

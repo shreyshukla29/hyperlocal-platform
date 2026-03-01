@@ -16,7 +16,7 @@ This folder contains the **single global** OpenAPI 3 spec for the Hyperlocal Pla
 
 - Edit `openapi.yaml` and add or change paths, schemas, and descriptions.
 - After changing the spec, restart the gateway (or rely on your dev watcher) so Swagger UI picks up changes.
-- For production builds, `openapi.yaml` is copied to `dist/openapi/` by the `build` script.
+- For production builds (e.g. Docker), `openapi.yaml` is copied into `dist/openapi/` in the image build so the gateway can serve it.
 
 ## Optional: per-service specs
 

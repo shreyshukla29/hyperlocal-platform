@@ -8,7 +8,6 @@ jest.mock('../../src/config', () => ({
 import { UserRepository } from '../../src/repositories';
 import { createMockUser, createMockUserPayload } from '../helpers/test-helpers';
 
-
 describe('UserRepository', () => {
   let repository: UserRepository;
 
@@ -46,6 +45,10 @@ describe('UserRepository', () => {
       const payload = {
         authIdentityId: 'auth-123',
         firstName: 'John',
+        lastName: 'doe',
+        email: null,
+        phone: null,
+        username: null,
       };
       const mockUser = createMockUser();
 
@@ -59,7 +62,7 @@ describe('UserRepository', () => {
         create: {
           authIdentityId: payload.authIdentityId,
           firstName: payload.firstName,
-          lastName: null,
+          lastName: payload.lastName,
           email: null,
           phone: null,
           username: null,

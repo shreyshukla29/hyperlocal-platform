@@ -55,7 +55,12 @@ export class FavouriteRepository {
     return row.count > 0;
   }
 
-  private toResponse(row: { id: string; userId: string; providerId: string; createdAt: Date }): FavouriteResponse {
+  private toResponse(row: {
+    id: string;
+    userId: string;
+    providerId: string;
+    createdAt: Date;
+  }): FavouriteResponse {
     return {
       id: row.id,
       userId: row.userId,

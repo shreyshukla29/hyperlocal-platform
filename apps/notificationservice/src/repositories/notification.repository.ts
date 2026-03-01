@@ -1,3 +1,4 @@
+import { Prisma } from '../generated/prisma/client.js';
 import { prisma as defaultPrisma } from '../config/index.js';
 import type {
   CreateNotificationPayload,
@@ -42,7 +43,7 @@ export class NotificationRepository {
         type: payload.type,
         title: payload.title,
         body: payload.body ?? null,
-        metadata: payload.metadata ?? undefined,
+        metadata: (payload.metadata ?? undefined) as Prisma.InputJsonValue | undefined,
       },
     });
     return toResponse(row);

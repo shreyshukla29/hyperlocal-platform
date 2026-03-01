@@ -2,7 +2,11 @@ import { Router } from 'express';
 import { validateBody } from '@hyperlocal/shared/middlewares';
 import { BookingController } from '../../controllers/index.js';
 import { BookingService, BookingOtpService, BookingReviewService } from '../../service/index.js';
-import { BookingRepository, BookingOtpRepository, BookingReviewRepository } from '../../repositories/index.js';
+import {
+  BookingRepository,
+  BookingOtpRepository,
+  BookingReviewRepository,
+} from '../../repositories/index.js';
 import {
   createBookingSchema,
   assignServicePersonSchema,
@@ -29,34 +33,19 @@ bookingRouter.post(
 );
 
 // User: list my bookings
-bookingRouter.get(
-  '/',
-  bookingController.listForUser.bind(bookingController),
-);
+bookingRouter.get('/', bookingController.listForUser.bind(bookingController));
 
 // Available slots for a provider on a date (open intervals minus existing bookings)
-bookingRouter.get(
-  '/available-slots',
-  bookingController.getAvailableSlots.bind(bookingController),
-);
+bookingRouter.get('/available-slots', bookingController.getAvailableSlots.bind(bookingController));
 
 // List reviews by provider (for search/profile)
-bookingRouter.get(
-  '/reviews',
-  bookingController.listReviewsByProvider.bind(bookingController),
-);
+bookingRouter.get('/reviews', bookingController.listReviewsByProvider.bind(bookingController));
 
 // User: get my booking by id
-bookingRouter.get(
-  '/:id',
-  bookingController.getByIdForUser.bind(bookingController),
-);
+bookingRouter.get('/:id', bookingController.getByIdForUser.bind(bookingController));
 
 // User: cancel my booking (refund per policy: 24h+ = 100%, 12–24h = 50%, <12h = 0%)
-bookingRouter.post(
-  '/:id/cancel',
-  bookingController.cancelByUser.bind(bookingController),
-);
+bookingRouter.post('/:id/cancel', bookingController.cancelByUser.bind(bookingController));
 
 // User: verify completion OTP to mark booking COMPLETED
 bookingRouter.post(
@@ -74,14 +63,8 @@ bookingRouter.post(
 
 // Provider routes mounted at /api/v1/bookings/provider (see v1/index)
 export const providerBookingRouter = Router();
-providerBookingRouter.get(
-  '/',
-  bookingController.listForProvider.bind(bookingController),
-);
-providerBookingRouter.get(
-  '/:id',
-  bookingController.getByIdForProvider.bind(bookingController),
-);
+providerBookingRouter.get('/', bookingController.listForProvider.bind(bookingController));
+providerBookingRouter.get('/:id', bookingController.getByIdForProvider.bind(bookingController));
 providerBookingRouter.post(
   '/:id/cancel',
   bookingController.cancelByProvider.bind(bookingController),

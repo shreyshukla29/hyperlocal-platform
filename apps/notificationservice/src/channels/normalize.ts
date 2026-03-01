@@ -23,9 +23,7 @@ export interface RawNotificationPayload {
  */
 export function normalizePayload(raw: RawNotificationPayload): NormalizedNotificationPayload {
   const channels: NotificationChannelName[] =
-    (raw.channels?.length ?? 0) > 0
-      ? raw.channels!
-      : resolveChannelsFromLegacy(raw.channel);
+    (raw.channels?.length ?? 0) > 0 ? raw.channels! : resolveChannelsFromLegacy(raw.channel);
 
   const recipients: NotificationRecipients = {
     ...(raw.emailTo && { email: raw.emailTo }),

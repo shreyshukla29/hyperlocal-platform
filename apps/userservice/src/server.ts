@@ -9,7 +9,6 @@ async function bootstrap() {
   await startUserSignedUpConsumer();
 }
 
-
 bootstrap().catch((error) => {
   logger.error('Bootstrap failed', error);
   process.exit(1);

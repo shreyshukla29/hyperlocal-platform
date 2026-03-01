@@ -21,12 +21,7 @@ export async function uploadImage(
   fileBuffer: Buffer,
   options: UploadOptions,
 ): Promise<UploadResult> {
-  const {
-    folder = 'avatars',
-    userId,
-    transformation,
-    retryCount = 0,
-  } = options;
+  const { folder = 'avatars', userId, transformation, retryCount = 0 } = options;
 
   const defaultTransformation = [
     { width: 400, height: 400, crop: 'fill', gravity: 'face' },
@@ -97,19 +92,13 @@ export async function uploadImage(
   });
 }
 
-export async function deleteImage(
-  publicId: string,
-  retryCount: number = 0,
-): Promise<void> {
+export async function deleteImage(publicId: string, retryCount: number = 0): Promise<void> {
   try {
-    await cloudinary.uploader.destroy(publicId, {
-      invalidate: true,
-      timeout: 30000,
-    });
+    await cloudinary.uploader.destroy(publicId, { invalidate: true });
   } catch (error: unknown) {
     if (retryCount < MAX_RETRIES) {
       logger.warn('Cloudinary delete failed, retrying', {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         publicId,
         retryCount: retryCount + 1,
       });
@@ -126,13 +115,10 @@ export function extractPublicIdFromUrl(url: string): string | null {
     const urlObj = new URL(url);
     const pathParts = urlObj.pathname.split('/');
     const versionIndex = pathParts.findIndex((part) => /^v\d+$/.test(part));
-    const publicIdParts = versionIndex !== -1
-      ? pathParts.slice(versionIndex + 1)
-      : pathParts.slice(-2);
+    const publicIdParts =
+      versionIndex !== -1 ? pathParts.slice(versionIndex + 1) : pathParts.slice(-2);
 
-    const publicId = publicIdParts
-      .join('/')
-      .replace(/\.[^/.]+$/, '');
+    const publicId = publicIdParts.join('/').replace(/\.[^/.]+$/, '');
 
     return publicId || null;
   } catch {

@@ -7,11 +7,7 @@ import type {
   PaginatedResult,
   ProviderOfferingResponse,
 } from '../types/provider-offering.types.js';
-import {
-  NotFoundError,
-  BadRequestError,
-  ForbiddenError,
-} from '@hyperlocal/shared/errors';
+import { NotFoundError, BadRequestError, ForbiddenError } from '@hyperlocal/shared/errors';
 import { ProviderServiceStatus } from '../enums/index.js';
 
 export class ProviderOfferingService {
@@ -58,10 +54,7 @@ export class ProviderOfferingService {
     return this.offeringRepo.findByProviderId(provider.id, query);
   }
 
-  async getById(
-    authIdentityId: string,
-    offeringId: string,
-  ): Promise<ProviderOfferingResponse> {
+  async getById(authIdentityId: string, offeringId: string): Promise<ProviderOfferingResponse> {
     const provider = await this.providerRepo.findByAuthIdentityId(authIdentityId);
     if (!provider) {
       throw new NotFoundError('Provider not found');
@@ -70,10 +63,7 @@ export class ProviderOfferingService {
       throw new ForbiddenError('Provider account is inactive or deleted');
     }
 
-    const record = await this.offeringRepo.findByIdAndProviderId(
-      offeringId,
-      provider.id,
-    );
+    const record = await this.offeringRepo.findByIdAndProviderId(offeringId, provider.id);
     if (!record) {
       throw new NotFoundError('Service offering not found');
     }
@@ -84,9 +74,12 @@ export class ProviderOfferingService {
       name: record.name,
       description: record.description,
       category: record.category,
-      price: typeof record.price === 'object' && record.price !== null && 'toString' in record.price ? record.price.toString() : String(record.price),
+      price:
+        typeof record.price === 'object' && record.price !== null && 'toString' in record.price
+          ? record.price.toString()
+          : String(record.price),
       durationMinutes: record.durationMinutes,
-      status: record.status,
+      status: record.status as ProviderServiceStatus,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
     };
@@ -105,10 +98,7 @@ export class ProviderOfferingService {
       throw new ForbiddenError('Provider account is inactive or deleted');
     }
 
-    const existing = await this.offeringRepo.findByIdAndProviderId(
-      offeringId,
-      provider.id,
-    );
+    const existing = await this.offeringRepo.findByIdAndProviderId(offeringId, provider.id);
     if (!existing) {
       throw new NotFoundError('Service offering not found');
     }
@@ -123,10 +113,7 @@ export class ProviderOfferingService {
     if (!provider.isActive || provider.isDeleted) {
       throw new ForbiddenError('Provider account is inactive or deleted');
     }
-    const existing = await this.offeringRepo.findByIdAndProviderId(
-      offeringId,
-      provider.id,
-    );
+    const existing = await this.offeringRepo.findByIdAndProviderId(offeringId, provider.id);
     if (!existing) {
       throw new NotFoundError('Service offering not found');
     }
@@ -148,19 +135,17 @@ export class ProviderOfferingService {
     if (!provider.isActive || provider.isDeleted) {
       throw new BadRequestError('Provider is inactive or deleted');
     }
-    const offering = await this.offeringRepo.findByIdAndProviderId(
-      providerServiceId,
-      providerId,
-    );
+    const offering = await this.offeringRepo.findByIdAndProviderId(providerServiceId, providerId);
     if (!offering) {
       throw new NotFoundError('Service offering not found');
     }
     if (offering.status !== ProviderServiceStatus.ACTIVE) {
       throw new BadRequestError('Service offering is not active');
     }
-    const priceRupees = typeof offering.price === 'object' && offering.price !== null && 'toString' in offering.price
-      ? parseFloat((offering.price as { toString(): string }).toString())
-      : parseFloat(String(offering.price));
+    const priceRupees =
+      typeof offering.price === 'object' && offering.price !== null && 'toString' in offering.price
+        ? parseFloat((offering.price as { toString(): string }).toString())
+        : parseFloat(String(offering.price));
     const pricePaise = Math.round(priceRupees * 100);
     if (pricePaise < 100) {
       throw new BadRequestError('Service price must be at least INR 1');

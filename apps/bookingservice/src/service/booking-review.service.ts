@@ -1,7 +1,15 @@
 import { BookingRepository } from '../repositories/booking.repository.js';
 import { BookingReviewRepository } from '../repositories/booking-review.repository.js';
-import type { CreateReviewPayload, ListReviewsQuery, ReviewResponse } from '../repositories/booking-review.repository.js';
-import { NotFoundError, BadRequestError, ForbiddenError, ConflictError } from '@hyperlocal/shared/errors';
+import type {
+  ListReviewsQuery,
+  ReviewResponse,
+} from '../repositories/booking-review.repository.js';
+import {
+  NotFoundError,
+  BadRequestError,
+  ForbiddenError,
+  ConflictError,
+} from '@hyperlocal/shared/errors';
 import { BookingStatus } from '../enums/index.js';
 
 const MIN_RATING = 1;
@@ -48,7 +56,13 @@ export class BookingReviewService {
   async listByProvider(
     providerId: string,
     query?: ListReviewsQuery,
-  ): Promise<{ items: ReviewResponse[]; total: number; page: number; limit: number; totalPages: number }> {
+  ): Promise<{
+    items: ReviewResponse[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     return this.reviewRepo.findByProvider(providerId, query);
   }
 }

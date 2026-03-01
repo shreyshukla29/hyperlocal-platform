@@ -2,7 +2,12 @@ import { jest } from '@jest/globals';
 import type { AuthRepository } from '../../src/repositories/auth.repository.js';
 import { AuthService } from '../../src/services/auth.service.js';
 import { AccountType } from '../../src/enums/index.js';
-import { ValidationError, BadRequestError } from '@hyperlocal/shared/errors';
+import {
+  ValidationError,
+  BadRequestError,
+  ForbiddenError,
+  ConflictError,
+} from '@hyperlocal/shared/errors';
 
 jest.mock('../../src/config', () => ({
   prisma: {},
@@ -11,9 +16,18 @@ jest.mock('../../src/config/index', () => ({
   prisma: {},
 }));
 jest.mock('@hyperlocal/shared/logger', () => ({
-  logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn(), child: jest.fn() },
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+    child: jest.fn(),
+  },
 }));
-jest.mock('../../src/events/index.js', () => ({ publishUserSignedUpEvent: jest.fn(), publishAuthNotification: jest.fn() }));
+jest.mock('../../src/events/index.js', () => ({
+  publishUserSignedUpEvent: jest.fn(),
+  publishAuthNotification: jest.fn(),
+}));
 jest.mock('../../src/utils/index.js', () => ({
   hashPassword: jest.fn().mockResolvedValue('hashed'),
   verifyPassword: jest.fn().mockResolvedValue(true),
@@ -40,6 +54,7 @@ describe('AuthService', () => {
       findByPhone: jest.fn(),
       findById: jest.fn(),
       findPendingByTypeAndValue: jest.fn(),
+      findPendingByIdentityTypeValue: jest.fn(),
       upsertVerificationOtp: jest.fn(),
       markVerified: jest.fn(),
     } as unknown as jest.Mocked<AuthRepository>;
@@ -48,11 +63,11 @@ describe('AuthService', () => {
   });
 
   describe('signup', () => {
-    it('throws ValidationError for invalid payload', async () => {
-      await expect(service.signup({} as never)).rejects.toThrow(ValidationError);
+    it('throws BadRequestError for invalid payload', async () => {
+      await expect(service.signup({} as never)).rejects.toThrow(BadRequestError);
     });
 
-    it('throws BadRequestError when email already exists', async () => {
+    it('throws ConflictError when email already exists', async () => {
       mockRepo.existsByEmail.mockResolvedValue(true);
       await expect(
         service.signup({
@@ -62,11 +77,11 @@ describe('AuthService', () => {
           firstName: 'John',
           lastName: 'Doe',
         }),
-      ).rejects.toThrow(BadRequestError);
+      ).rejects.toThrow(ConflictError);
       expect(mockRepo.existsByEmail).toHaveBeenCalledWith('a@b.com', AccountType.USER);
     });
 
-    it('throws BadRequestError when phone already exists', async () => {
+    it('throws ConflictError when phone already exists', async () => {
       mockRepo.existsByPhone.mockResolvedValue(true);
       await expect(
         service.signup({
@@ -76,7 +91,7 @@ describe('AuthService', () => {
           firstName: 'John',
           lastName: 'Doe',
         }),
-      ).rejects.toThrow(BadRequestError);
+      ).rejects.toThrow(ConflictError);
     });
   });
 
@@ -124,16 +139,16 @@ describe('AuthService', () => {
     it('throws BadRequestError when identity not found', async () => {
       mockRepo.findById.mockResolvedValue(null);
       await expect(
-        service.sendVerification('id1', { type: 'EMAIL', value: 'a@b.com' }),
+        service.sendVerification({ identityId: 'id1', type: 'EMAIL', value: 'a@b.com' }),
       ).rejects.toThrow(BadRequestError);
     });
   });
 
   describe('verify', () => {
     it('throws BadRequestError when verification record not found', async () => {
-      mockRepo.findPendingByTypeAndValue.mockResolvedValue(null);
+      mockRepo.findPendingByIdentityTypeValue.mockResolvedValue(null);
       await expect(
-        service.verify({ type: 'EMAIL', value: 'a@b.com', code: '123456' }),
+        service.verify({ identityId: 'id1', type: 'EMAIL', value: 'a@b.com', code: '123456' }),
       ).rejects.toThrow(BadRequestError);
     });
   });

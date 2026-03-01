@@ -17,7 +17,14 @@ describe('ProviderRepository', () => {
   describe('createProvider', () => {
     it('calls prisma.provider.upsert', async () => {
       const payload = { authIdentityId: 'auth1', firstName: 'John', lastName: 'Doe' };
-      const created = { id: 'p1', ...payload, email: null, phone: null, isActive: true, isDeleted: false };
+      const created = {
+        id: 'p1',
+        ...payload,
+        email: null,
+        phone: null,
+        isActive: true,
+        isDeleted: false,
+      };
       mockedPrisma.provider.create.mockResolvedValue(created as never);
       mockedPrisma.provider.upsert.mockResolvedValue(created as never);
       const result = await repository.createProvider(payload as never);

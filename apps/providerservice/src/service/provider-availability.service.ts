@@ -13,10 +13,7 @@ export class ProviderAvailabilityService {
     private readonly availabilityRepo: ProviderAvailabilityRepository,
   ) {}
 
-  async getOpenIntervalsForDate(
-    providerId: string,
-    dateStr: string,
-  ): Promise<OpenIntervalsResult> {
+  async getOpenIntervalsForDate(providerId: string, dateStr: string): Promise<OpenIntervalsResult> {
     const provider = await this.providerRepo.findById(providerId);
     if (!provider) {
       throw new NotFoundError('Provider not found');

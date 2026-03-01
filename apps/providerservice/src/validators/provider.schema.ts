@@ -19,11 +19,7 @@ const lastNameSchema = z
 
 const optionalNullableString = (maxLen: number) =>
   z
-    .union([
-      z.string().max(maxLen).transform(trimString),
-      z.literal(''),
-      z.null(),
-    ])
+    .union([z.string().max(maxLen).transform(trimString), z.literal(''), z.null()])
     .optional()
     .transform((v) => (v === '' ? null : v));
 
@@ -41,14 +37,9 @@ export const updateProviderProfileSchema = z
     availabilityStatus: z.nativeEnum(AvailabilityStatus).optional(),
   })
   .strict()
-  .refine(
-    (data) => Object.keys(data).length > 0,
-    'At least one field must be provided for update',
-  );
+  .refine((data) => Object.keys(data).length > 0, 'At least one field must be provided for update');
 
-export type UpdateProviderProfilePayload = z.infer<
-  typeof updateProviderProfileSchema
->;
+export type UpdateProviderProfilePayload = z.infer<typeof updateProviderProfileSchema>;
 
 export const topProvidersByLocationQuerySchema = z
   .object({
@@ -64,9 +55,17 @@ export const topProvidersByLocationQuerySchema = z
 export const updateVerificationStatusSchema = z
   .object({
     verificationStatus: z.nativeEnum(VerificationStatus),
+    verifiedBy: z
+      .string()
+      .min(1, 'verifiedBy (admin auth identity id) is required when setting VERIFIED')
+      .optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (data) =>
+      data.verificationStatus !== 'VERIFIED' ||
+      (data.verifiedBy != null && data.verifiedBy.trim().length > 0),
+    { message: 'verifiedBy is required when verificationStatus is VERIFIED', path: ['verifiedBy'] },
+  );
 
-export type UpdateVerificationStatusPayload = z.infer<
-  typeof updateVerificationStatusSchema
->;
+export type UpdateVerificationStatusPayload = z.infer<typeof updateVerificationStatusSchema>;

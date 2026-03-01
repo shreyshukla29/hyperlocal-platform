@@ -1,5 +1,6 @@
 import { prisma as defaultPrisma } from '../config/index.js';
 import { ServicePerson } from '../generated/prisma/client.js';
+import { ServicePersonStatus } from '../generated/prisma/enums.js';
 import {
   CreateServicePersonPayload,
   UpdateServicePersonRepositoryPayload,
@@ -22,14 +23,7 @@ export class ServicePersonRepository {
   }
 
   async create(payload: CreateServicePersonPayload): Promise<ServicePerson> {
-    const {
-      providerId,
-      name,
-      phone,
-      email = null,
-      role = null,
-      providerServiceIds = [],
-    } = payload;
+    const { providerId, name, phone, email = null, role = null, providerServiceIds = [] } = payload;
 
     const servicePerson = await this.prisma.servicePerson.create({
       data: { providerId, name, phone, email, role },
@@ -54,12 +48,15 @@ export class ServicePersonRepository {
     });
   }
 
-  async findByIdWithProviderAndServices(
-    servicePersonId: string,
-  ): Promise<(ServicePerson & {
-    provider: { id: string; businessName: string | null; firstName: string; lastName: string };
-    servicePersonProviderServices: { providerService: { id: string; name: string; category: string | null } }[];
-  }) | null> {
+  async findByIdWithProviderAndServices(servicePersonId: string): Promise<
+    | (ServicePerson & {
+        provider: { id: string; businessName: string | null; firstName: string; lastName: string };
+        servicePersonProviderServices: {
+          providerService: { id: string; name: string; category: string | null };
+        }[];
+      })
+    | null
+  > {
     return this.prisma.servicePerson.findUnique({
       where: { id: servicePersonId },
       include: {
@@ -70,26 +67,40 @@ export class ServicePersonRepository {
           include: { providerService: { select: { id: true, name: true, category: true } } },
         },
       },
-    }) as Promise<(ServicePerson & {
-      provider: { id: string; businessName: string | null; firstName: string; lastName: string };
-      servicePersonProviderServices: { providerService: { id: string; name: string; category: string | null } }[];
-    }) | null>;
+    }) as Promise<
+      | (ServicePerson & {
+          provider: {
+            id: string;
+            businessName: string | null;
+            firstName: string;
+            lastName: string;
+          };
+          servicePersonProviderServices: {
+            providerService: { id: string; name: string; category: string | null };
+          }[];
+        })
+      | null
+    >;
   }
 
   async findByProviderId(
     providerId: string,
     query?: ListServicePeopleQuery,
-  ): Promise<(ServicePerson & {
-    provider: { id: string; businessName: string | null; firstName: string; lastName: string };
-    servicePersonProviderServices: { providerService: { id: string; name: string; category: string | null } }[];
-  })[]> {
+  ): Promise<
+    (ServicePerson & {
+      provider: { id: string; businessName: string | null; firstName: string; lastName: string };
+      servicePersonProviderServices: {
+        providerService: { id: string; name: string; category: string | null };
+      }[];
+    })[]
+  > {
     const where: {
       providerId: string;
-      status?: unknown;
+      status?: ServicePersonStatus;
       isActive?: boolean;
       servicePersonProviderServices?: { some: { providerServiceId: string } };
     } = { providerId };
-    if (query?.status !== undefined) where.status = query.status;
+    if (query?.status !== undefined) where.status = query.status as ServicePersonStatus;
     if (query?.isActive !== undefined) where.isActive = query.isActive;
     if (query?.providerServiceId) {
       where.servicePersonProviderServices = {
@@ -108,15 +119,17 @@ export class ServicePersonRepository {
           include: { providerService: { select: { id: true, name: true, category: true } } },
         },
       },
-    }) as Promise<(ServicePerson & {
-      provider: { id: string; businessName: string | null; firstName: string; lastName: string };
-      servicePersonProviderServices: { providerService: { id: string; name: string; category: string | null } }[];
-    })[]>;
+    }) as Promise<
+      (ServicePerson & {
+        provider: { id: string; businessName: string | null; firstName: string; lastName: string };
+        servicePersonProviderServices: {
+          providerService: { id: string; name: string; category: string | null };
+        }[];
+      })[]
+    >;
   }
 
-  async findByAuthIdentityId(
-    authIdentityId: string,
-  ): Promise<ServicePerson | null> {
+  async findByAuthIdentityId(authIdentityId: string): Promise<ServicePerson | null> {
     return this.prisma.servicePerson.findUnique({
       where: { authIdentityId },
     });

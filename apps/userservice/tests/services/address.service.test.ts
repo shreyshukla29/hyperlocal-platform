@@ -1,11 +1,7 @@
 import { AddressRepository } from '../../src/repositories/address.repository';
 import { UserRepository } from '../../src/repositories/user.repository';
 import { AddressService } from '../../src/service/address.service';
-import {
-  NotFoundError,
-  BadRequestError,
-  ForbiddenError,
-} from '@hyperlocal/shared/errors';
+import { NotFoundError, BadRequestError, ForbiddenError } from '@hyperlocal/shared/errors';
 import {
   createMockUser,
   createMockAddress,
@@ -63,7 +59,9 @@ describe('AddressService', () => {
 
     it('should throw BadRequestError when authIdentityId is empty', async () => {
       await expect(service.listAddresses('user-123', '')).rejects.toThrow(BadRequestError);
-      await expect(service.listAddresses('user-123', '')).rejects.toThrow('Auth identity ID is required');
+      await expect(service.listAddresses('user-123', '')).rejects.toThrow(
+        'Auth identity ID is required',
+      );
     });
 
     it('should throw NotFoundError when user not found', async () => {
@@ -96,11 +94,14 @@ describe('AddressService', () => {
       const result = await service.createAddress(userId, payload, authIdentityId);
 
       expect(mockUserRepo.findById).toHaveBeenCalledWith(userId);
-      expect(mockAddressRepo.create).toHaveBeenCalledWith(userId, expect.objectContaining({
-        label: 'Home',
-        addressLine1: '123 Main St',
-        isDefault: false,
-      }));
+      expect(mockAddressRepo.create).toHaveBeenCalledWith(
+        userId,
+        expect.objectContaining({
+          label: 'Home',
+          addressLine1: '123 Main St',
+          isDefault: false,
+        }),
+      );
       expect(result).toEqual(mockAddress);
     });
 
@@ -118,7 +119,10 @@ describe('AddressService', () => {
       await service.createAddress(userId, payload, authIdentityId);
 
       expect(mockAddressRepo.unsetDefaultForUser).toHaveBeenCalledWith(userId);
-      expect(mockAddressRepo.create).toHaveBeenCalledWith(userId, expect.objectContaining({ isDefault: true }));
+      expect(mockAddressRepo.create).toHaveBeenCalledWith(
+        userId,
+        expect.objectContaining({ isDefault: true }),
+      );
     });
 
     it('should throw BadRequestError when userId is empty', async () => {
@@ -133,7 +137,9 @@ describe('AddressService', () => {
       const mockUser = createMockUser({ authIdentityId: 'other-auth' });
       mockUserRepo.findById.mockResolvedValue(mockUser as never);
 
-      await expect(service.createAddress('user-123', { label: 'Home' }, 'auth-123')).rejects.toThrow(ForbiddenError);
+      await expect(
+        service.createAddress('user-123', { label: 'Home' }, 'auth-123'),
+      ).rejects.toThrow(ForbiddenError);
     });
   });
 
@@ -152,40 +158,61 @@ describe('AddressService', () => {
       const result = await service.updateAddress(userId, addressId, payload, authIdentityId);
 
       expect(mockAddressRepo.findByIdWithUser).toHaveBeenCalledWith(addressId);
-      expect(mockAddressRepo.update).toHaveBeenCalledWith(addressId, expect.objectContaining({ label: 'Work' }));
+      expect(mockAddressRepo.update).toHaveBeenCalledWith(
+        addressId,
+        expect.objectContaining({ label: 'Work' }),
+      );
       expect(result).toEqual(updatedAddress);
     });
 
     it('should throw BadRequestError when userId or addressId is empty', async () => {
-      await expect(service.updateAddress('', 'addr-123', { label: 'Work' }, 'auth-123')).rejects.toThrow(BadRequestError);
-      await expect(service.updateAddress('user-123', '', { label: 'Work' }, 'auth-123')).rejects.toThrow(BadRequestError);
+      await expect(
+        service.updateAddress('', 'addr-123', { label: 'Work' }, 'auth-123'),
+      ).rejects.toThrow(BadRequestError);
+      await expect(
+        service.updateAddress('user-123', '', { label: 'Work' }, 'auth-123'),
+      ).rejects.toThrow(BadRequestError);
     });
 
     it('should throw BadRequestError when authIdentityId is empty', async () => {
-      await expect(service.updateAddress('user-123', 'addr-123', { label: 'Work' }, '')).rejects.toThrow(BadRequestError);
+      await expect(
+        service.updateAddress('user-123', 'addr-123', { label: 'Work' }, ''),
+      ).rejects.toThrow(BadRequestError);
     });
 
     it('should throw NotFoundError when address not found', async () => {
       mockAddressRepo.findByIdWithUser.mockResolvedValue(null);
 
-      await expect(service.updateAddress('user-123', 'addr-123', { label: 'Work' }, 'auth-123')).rejects.toThrow(NotFoundError);
-      await expect(service.updateAddress('user-123', 'addr-123', { label: 'Work' }, 'auth-123')).rejects.toThrow('Address not found');
+      await expect(
+        service.updateAddress('user-123', 'addr-123', { label: 'Work' }, 'auth-123'),
+      ).rejects.toThrow(NotFoundError);
+      await expect(
+        service.updateAddress('user-123', 'addr-123', { label: 'Work' }, 'auth-123'),
+      ).rejects.toThrow('Address not found');
     });
 
     it('should throw ForbiddenError when address does not belong to user', async () => {
       const mockAddressWithUser = createMockAddressWithUser({ userId: 'other-user' });
       mockAddressRepo.findByIdWithUser.mockResolvedValue(mockAddressWithUser as never);
 
-      await expect(service.updateAddress('user-123', 'addr-123', { label: 'Work' }, 'auth-123')).rejects.toThrow(ForbiddenError);
-      await expect(service.updateAddress('user-123', 'addr-123', { label: 'Work' }, 'auth-123')).rejects.toThrow('Address does not belong to user');
+      await expect(
+        service.updateAddress('user-123', 'addr-123', { label: 'Work' }, 'auth-123'),
+      ).rejects.toThrow(ForbiddenError);
+      await expect(
+        service.updateAddress('user-123', 'addr-123', { label: 'Work' }, 'auth-123'),
+      ).rejects.toThrow('Address does not belong to user');
     });
 
     it('should throw BadRequestError when no fields to update', async () => {
       const mockAddressWithUser = createMockAddressWithUser();
       mockAddressRepo.findByIdWithUser.mockResolvedValue(mockAddressWithUser as never);
 
-      await expect(service.updateAddress('user-123', 'addr-123', {}, 'auth-123')).rejects.toThrow(BadRequestError);
-      await expect(service.updateAddress('user-123', 'addr-123', {}, 'auth-123')).rejects.toThrow('No fields to update');
+      await expect(service.updateAddress('user-123', 'addr-123', {}, 'auth-123')).rejects.toThrow(
+        BadRequestError,
+      );
+      await expect(service.updateAddress('user-123', 'addr-123', {}, 'auth-123')).rejects.toThrow(
+        'No fields to update',
+      );
     });
   });
 
@@ -208,14 +235,20 @@ describe('AddressService', () => {
     });
 
     it('should throw BadRequestError when userId or addressId is empty', async () => {
-      await expect(service.setDefaultAddress('', 'addr-123', 'auth-123')).rejects.toThrow(BadRequestError);
-      await expect(service.setDefaultAddress('user-123', '', 'auth-123')).rejects.toThrow(BadRequestError);
+      await expect(service.setDefaultAddress('', 'addr-123', 'auth-123')).rejects.toThrow(
+        BadRequestError,
+      );
+      await expect(service.setDefaultAddress('user-123', '', 'auth-123')).rejects.toThrow(
+        BadRequestError,
+      );
     });
 
     it('should throw NotFoundError when address not found', async () => {
       mockAddressRepo.findByIdWithUser.mockResolvedValue(null);
 
-      await expect(service.setDefaultAddress('user-123', 'addr-123', 'auth-123')).rejects.toThrow(NotFoundError);
+      await expect(service.setDefaultAddress('user-123', 'addr-123', 'auth-123')).rejects.toThrow(
+        NotFoundError,
+      );
     });
   });
 
@@ -245,8 +278,12 @@ describe('AddressService', () => {
       mockUserRepo.findById.mockResolvedValue(mockUser as never);
       mockAddressRepo.findDefaultByUserId.mockResolvedValue(null);
 
-      await expect(service.getDefaultAddress('user-123', 'auth-123')).rejects.toThrow(NotFoundError);
-      await expect(service.getDefaultAddress('user-123', 'auth-123')).rejects.toThrow('No default address set');
+      await expect(service.getDefaultAddress('user-123', 'auth-123')).rejects.toThrow(
+        NotFoundError,
+      );
+      await expect(service.getDefaultAddress('user-123', 'auth-123')).rejects.toThrow(
+        'No default address set',
+      );
     });
   });
 
@@ -266,17 +303,22 @@ describe('AddressService', () => {
 
       expect(mockUserRepo.findById).toHaveBeenCalledWith(userId);
       expect(mockAddressRepo.unsetDefaultForUser).toHaveBeenCalledWith(userId);
-      expect(mockAddressRepo.create).toHaveBeenCalledWith(userId, expect.objectContaining({
-        latitude: 12.34,
-        longitude: 56.78,
-        label: 'Current Location',
-        isDefault: true,
-      }));
+      expect(mockAddressRepo.create).toHaveBeenCalledWith(
+        userId,
+        expect.objectContaining({
+          latitude: 12.34,
+          longitude: 56.78,
+          label: 'Current Location',
+          isDefault: true,
+        }),
+      );
       expect(result).toEqual(mockAddress);
     });
 
     it('should throw BadRequestError when userId is empty', async () => {
-      await expect(service.saveCurrentLocation('', { latitude: 12, longitude: 56 }, 'auth-123')).rejects.toThrow(BadRequestError);
+      await expect(
+        service.saveCurrentLocation('', { latitude: 12, longitude: 56 }, 'auth-123'),
+      ).rejects.toThrow(BadRequestError);
     });
   });
 
@@ -316,21 +358,29 @@ describe('AddressService', () => {
     });
 
     it('should throw BadRequestError when userId or addressId is empty', async () => {
-      await expect(service.deleteAddress('', 'addr-123', 'auth-123')).rejects.toThrow(BadRequestError);
-      await expect(service.deleteAddress('user-123', '', 'auth-123')).rejects.toThrow(BadRequestError);
+      await expect(service.deleteAddress('', 'addr-123', 'auth-123')).rejects.toThrow(
+        BadRequestError,
+      );
+      await expect(service.deleteAddress('user-123', '', 'auth-123')).rejects.toThrow(
+        BadRequestError,
+      );
     });
 
     it('should throw NotFoundError when address not found', async () => {
       mockAddressRepo.findByIdWithUser.mockResolvedValue(null);
 
-      await expect(service.deleteAddress('user-123', 'addr-123', 'auth-123')).rejects.toThrow(NotFoundError);
+      await expect(service.deleteAddress('user-123', 'addr-123', 'auth-123')).rejects.toThrow(
+        NotFoundError,
+      );
     });
 
     it('should throw ForbiddenError when address does not belong to user', async () => {
       const mockAddressWithUser = createMockAddressWithUser({ userId: 'other-user' });
       mockAddressRepo.findByIdWithUser.mockResolvedValue(mockAddressWithUser as never);
 
-      await expect(service.deleteAddress('user-123', 'addr-123', 'auth-123')).rejects.toThrow(ForbiddenError);
+      await expect(service.deleteAddress('user-123', 'addr-123', 'auth-123')).rejects.toThrow(
+        ForbiddenError,
+      );
     });
   });
 });

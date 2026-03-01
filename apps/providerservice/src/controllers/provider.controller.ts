@@ -1,7 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { ForbiddenError } from '@hyperlocal/shared/errors';
+import {
+  getAuthIdentityIdFromRequest,
+  getAccountTypeFromRequest,
+} from '@hyperlocal/shared/constants';
+import { getRequestParam } from '@hyperlocal/shared/utils';
 import { ProviderService } from '../service/index.js';
-import { getAuthIdentityIdFromRequest } from '@hyperlocal/shared/constants';
 import {
   UpdateProviderProfilePayload,
   UpdateVerificationStatusPayload,
@@ -18,9 +23,7 @@ export class ProviderController {
   ): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
-      const provider = await this.providerService.getProviderByAuthIdentityId(
-        authIdentityId,
-      );
+      const provider = await this.providerService.getProviderByAuthIdentityId(authIdentityId);
       return res.status(StatusCodes.OK).json({
         success: true,
         data: provider,
@@ -37,11 +40,8 @@ export class ProviderController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const parsed = topProvidersByLocationQuerySchema.safeParse(req.query);
-      const query = parsed.success ? parsed.data : undefined;
-      const data = await this.providerService.getTopProvidersByLocation(
-        query ?? {},
-      );
+      const query = topProvidersByLocationQuerySchema.parse(req.query);
+      const data = await this.providerService.getTopProvidersByLocation(query);
       return res.status(StatusCodes.OK).json({
         success: true,
         data,
@@ -58,7 +58,7 @@ export class ProviderController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const { id: providerId } = req.params;
+      const providerId = getRequestParam(req, 'id');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const payload = req.body as UpdateProviderProfilePayload;
 
@@ -78,19 +78,24 @@ export class ProviderController {
     }
   }
 
-  /** Admin-only: set provider verification status (VERIFIED | PENDING | REJECTED). */
+  /** Admin-only: set provider verification status (VERIFIED | PENDING | REJECTED). verifiedBy required when VERIFIED. Caller must have accountType ADMIN. */
   async updateVerificationStatus(
     req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const { providerId } = req.params;
+      const accountType = getAccountTypeFromRequest(req.headers);
+      if (accountType !== 'ADMIN') {
+        throw new ForbiddenError('Admin account type required to update verification status');
+      }
+      const providerId = getRequestParam(req, 'providerId');
       const payload = req.body as UpdateVerificationStatusPayload;
 
       const provider = await this.providerService.updateVerificationStatus(
         providerId,
         payload.verificationStatus,
+        payload.verifiedBy,
       );
 
       return res.status(StatusCodes.OK).json({

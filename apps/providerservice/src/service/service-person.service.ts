@@ -13,11 +13,7 @@ import type {
 } from '../validators/service-person.schema.js';
 import { VerificationStatus } from '../enums/index.js';
 import { logger } from '@hyperlocal/shared/logger';
-import {
-  NotFoundError,
-  BadRequestError,
-  ForbiddenError,
-} from '@hyperlocal/shared/errors';
+import { NotFoundError, BadRequestError, ForbiddenError } from '@hyperlocal/shared/errors';
 
 export class ServicePersonService {
   constructor(
@@ -50,15 +46,12 @@ export class ServicePersonService {
     }
 
     const providerServiceIds = payload.providerServiceIds ?? [];
-    const valid =
-      await this.servicePersonRepo.validateProviderServiceIdsBelongToProvider(
-        provider.id,
-        providerServiceIds,
-      );
+    const valid = await this.servicePersonRepo.validateProviderServiceIdsBelongToProvider(
+      provider.id,
+      providerServiceIds,
+    );
     if (!valid) {
-      throw new BadRequestError(
-        'One or more service type IDs do not belong to this provider',
-      );
+      throw new BadRequestError('One or more service type IDs do not belong to this provider');
     }
 
     const createPayload: CreateServicePersonPayload = {
@@ -123,9 +116,7 @@ export class ServicePersonService {
       phone: sp.phone,
       status: sp.status,
       isActive: sp.isActive,
-      providerServices: sp.servicePersonProviderServices.map(
-        (s) => s.providerService,
-      ),
+      providerServices: sp.servicePersonProviderServices.map((s) => s.providerService),
     }));
   }
 
@@ -145,9 +136,7 @@ export class ServicePersonService {
     providerServices: { id: string; name: string; category: string | null }[];
   }> {
     const servicePerson =
-      await this.servicePersonRepo.findByIdWithProviderAndServices(
-        servicePersonId,
-      );
+      await this.servicePersonRepo.findByIdWithProviderAndServices(servicePersonId);
     if (!servicePerson) {
       throw new NotFoundError('Service person not found');
     }
@@ -172,9 +161,7 @@ export class ServicePersonService {
       role: servicePerson.role,
       status: servicePerson.status,
       isActive: servicePerson.isActive,
-      providerServices: servicePerson.servicePersonProviderServices.map(
-        (s) => s.providerService,
-      ),
+      providerServices: servicePerson.servicePersonProviderServices.map((s) => s.providerService),
     };
   }
 
@@ -202,18 +189,14 @@ export class ServicePersonService {
     if (payload.email !== undefined) updatePayload.email = payload.email;
     if (payload.role !== undefined) updatePayload.role = payload.role;
     if (payload.isActive !== undefined) updatePayload.isActive = payload.isActive;
-    const providerServiceIds = (payload as { providerServiceIds?: string[] })
-      .providerServiceIds;
+    const providerServiceIds = (payload as { providerServiceIds?: string[] }).providerServiceIds;
     if (providerServiceIds !== undefined) {
-      const valid =
-        await this.servicePersonRepo.validateProviderServiceIdsBelongToProvider(
-          servicePerson.providerId,
-          providerServiceIds,
-        );
+      const valid = await this.servicePersonRepo.validateProviderServiceIdsBelongToProvider(
+        servicePerson.providerId,
+        providerServiceIds,
+      );
       if (!valid) {
-        throw new BadRequestError(
-          'One or more service type IDs do not belong to this provider',
-        );
+        throw new BadRequestError('One or more service type IDs do not belong to this provider');
       }
       updatePayload.providerServiceIds = providerServiceIds;
     }

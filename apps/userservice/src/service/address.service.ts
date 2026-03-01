@@ -1,9 +1,5 @@
 import { AddressRepository, UserRepository } from '../repositories/index.js';
-import {
-  NotFoundError,
-  BadRequestError,
-  ForbiddenError,
-} from '@hyperlocal/shared/errors';
+import { NotFoundError, BadRequestError, ForbiddenError } from '@hyperlocal/shared/errors';
 import type { CreateAddressData, UpdateAddressRepositoryPayload } from '../types/index.js';
 import type {
   CreateAddressPayload as CreateAddressValidatorPayload,
@@ -17,12 +13,17 @@ export class AddressService {
     private readonly userRepo: UserRepository,
   ) {}
 
-  private async ensureUserCanAccessAddress(userId: string, addressId: string, authIdentityId: string) {
+  private async ensureUserCanAccessAddress(
+    userId: string,
+    addressId: string,
+    authIdentityId: string,
+  ) {
     const row = await this.addressRepo.findByIdWithUser(addressId);
     if (!row) throw new NotFoundError('Address not found');
     if (row.userId !== userId) throw new ForbiddenError('Address does not belong to user');
     if (row.user.authIdentityId !== authIdentityId) throw new ForbiddenError('Access denied');
-    if (!row.user.isActive || row.user.isDeleted) throw new ForbiddenError('User account is inactive or deleted');
+    if (!row.user.isActive || row.user.isDeleted)
+      throw new ForbiddenError('User account is inactive or deleted');
     if (!row.isActive) throw new NotFoundError('Address not found or has been deleted');
     return row;
   }
@@ -32,7 +33,8 @@ export class AddressService {
     if (!row) throw new NotFoundError('Address not found');
     if (row.userId !== userId) throw new ForbiddenError('Address does not belong to user');
     if (row.user.authIdentityId !== authIdentityId) throw new ForbiddenError('Access denied');
-    if (!row.user.isActive || row.user.isDeleted) throw new ForbiddenError('User account is inactive or deleted');
+    if (!row.user.isActive || row.user.isDeleted)
+      throw new ForbiddenError('User account is inactive or deleted');
     return row;
   }
 
@@ -40,7 +42,8 @@ export class AddressService {
     const user = await this.userRepo.findById(userId);
     if (!user) throw new NotFoundError('User not found');
     if (user.authIdentityId !== authIdentityId) throw new ForbiddenError('Access denied');
-    if (!user.isActive || user.isDeleted) throw new ForbiddenError('User account is inactive or deleted');
+    if (!user.isActive || user.isDeleted)
+      throw new ForbiddenError('User account is inactive or deleted');
   }
 
   async listAddresses(userId: string, authIdentityId?: string) {

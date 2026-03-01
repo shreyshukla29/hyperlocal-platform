@@ -1,3 +1,4 @@
+import type { Channel } from 'amqplib';
 import { createChannel } from '@hyperlocal/shared/rabbitmq';
 import { AUTH_EXCHANGE, ROUTING_KEYS } from '@hyperlocal/shared/constants';
 import { UserSignedUpEvent, MessageMetadata } from '@hyperlocal/shared/events';
@@ -34,10 +35,7 @@ function parseMessage(msg: Buffer): {
   };
 }
 
-function createRetryMessage(
-  payload: UserSignedUpEvent,
-  metadata: MessageMetadata,
-): Buffer {
+function createRetryMessage(payload: UserSignedUpEvent, metadata: MessageMetadata): Buffer {
   return Buffer.from(
     JSON.stringify({
       payload,
@@ -53,7 +51,7 @@ export async function startProviderSignedUpConsumer(): Promise<void> {
   const providerRepository = new ProviderRepository();
   const providerService = new ProviderService(providerRepository);
 
-  let channel;
+  let channel: Channel | undefined;
 
   try {
     channel = await createChannel(ServerConfig.RABBITMQ_URL);
@@ -90,18 +88,14 @@ export async function startProviderSignedUpConsumer(): Promise<void> {
 
     await channel.assertQueue(DLQ_QUEUE, { durable: true });
 
-    await channel.bindQueue(
-      MAIN_QUEUE,
-      AUTH_EXCHANGE,
-      ROUTING_KEYS.USER_SIGNED_UP,
-    );
+    await channel.bindQueue(MAIN_QUEUE, AUTH_EXCHANGE, ROUTING_KEYS.USER_SIGNED_UP);
 
     await channel.prefetch(10);
 
     channel.consume(
       MAIN_QUEUE,
       async (msg) => {
-        if (!msg) return;
+        if (!msg || !channel) return;
 
         try {
           const { payload, metadata } = parseMessage(msg.content);

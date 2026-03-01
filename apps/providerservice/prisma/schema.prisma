@@ -67,7 +67,12 @@ model Provider {
   longitude          Float?
   city               String?
 
+  averageRating      Float?             // 1–5, denormalized from reviews
+  reviewCount        Int                @default(0)
+
   verificationStatus VerificationStatus @default(PENDING)
+  verifiedAt         DateTime?         // set when status set to VERIFIED by admin
+  verifiedBy         String?           // admin auth identity id who verified
   idDocumentUrl      String?
   businessLicenseUrl String?
 

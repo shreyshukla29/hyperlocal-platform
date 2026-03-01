@@ -26,7 +26,7 @@ describe('provider validators', () => {
 
     it('accepts availabilityStatus', () => {
       const result = updateProviderProfileSchema.safeParse({
-        availabilityStatus: AvailabilityStatus.AVAILABLE,
+        availabilityStatus: AvailabilityStatus.ONLINE,
       });
       expect(result.success).toBe(true);
     });
@@ -57,9 +57,17 @@ describe('provider validators', () => {
   });
 
   describe('updateVerificationStatusSchema', () => {
-    it('accepts verificationStatus', () => {
+    it('accepts verificationStatus with verifiedBy when VERIFIED', () => {
       const result = updateVerificationStatusSchema.safeParse({
         verificationStatus: VerificationStatus.VERIFIED,
+        verifiedBy: 'admin-auth-id',
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('accepts verificationStatus without verifiedBy when PENDING', () => {
+      const result = updateVerificationStatusSchema.safeParse({
+        verificationStatus: VerificationStatus.PENDING,
       });
       expect(result.success).toBe(true);
     });

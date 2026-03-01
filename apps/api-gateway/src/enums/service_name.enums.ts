@@ -1,7 +1,8 @@
 export enum ServiceName {
   AUTH = 'auth',
   USER = 'user',
+  ADDRESS = 'address',
   PROVIDER = 'provider',
-  BOOKING = 'booking',
-  NOTIFICATION = 'notification',
+  BOOKING = 'bookings',
+  NOTIFICATION = 'notifications',
 }

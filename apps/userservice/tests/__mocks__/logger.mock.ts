@@ -6,4 +6,3 @@ export const mockLogger = {
   error: jest.fn(),
   debug: jest.fn(),
 };
-

@@ -32,11 +32,7 @@ export function createWebhookController(
       if (!sig) {
         return res.status(StatusCodes.BAD_REQUEST).send('Missing signature');
       }
-      const valid = verifyWebhookSignature(
-        bodyStr,
-        sig,
-        ServerConfig.RAZORPAY_WEBHOOK_SECRET,
-      );
+      const valid = verifyWebhookSignature(bodyStr, sig, ServerConfig.RAZORPAY_WEBHOOK_SECRET);
       if (!valid) {
         logger.warn('Razorpay webhook signature verification failed');
         return res.status(StatusCodes.BAD_REQUEST).send('Invalid signature');
@@ -53,7 +49,9 @@ export function createWebhookController(
       }
 
       const eventType = payload.event;
-      const eventId = (payload as { id?: string }).id ?? `${eventType}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      const eventId =
+        (payload as { id?: string }).id ??
+        `${eventType}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
       const claimed = await webhookEventRepo.createStrict(eventId, eventType);
       if (!claimed) {

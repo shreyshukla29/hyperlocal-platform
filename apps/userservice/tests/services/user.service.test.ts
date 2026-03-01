@@ -5,7 +5,11 @@ import {
   ConflictError,
   ForbiddenError,
 } from '@hyperlocal/shared/errors';
-import { createMockUser, createMockUserPayload, createMockPrismaError } from '../helpers/test-helpers';
+import {
+  createMockUser,
+  createMockUserPayload,
+  createMockPrismaError,
+} from '../helpers/test-helpers';
 import { jest } from '@jest/globals';
 
 await jest.unstable_mockModule('../../src/utils', async () => {
@@ -102,7 +106,9 @@ describe('UserService', () => {
 
     it('should throw BadRequestError when authIdentityId is empty', async () => {
       await expect(service.getUserByAuthIdentityId('')).rejects.toThrow(BadRequestError);
-      await expect(service.getUserByAuthIdentityId('')).rejects.toThrow('Auth identity ID is required');
+      await expect(service.getUserByAuthIdentityId('')).rejects.toThrow(
+        'Auth identity ID is required',
+      );
     });
 
     it('should throw NotFoundError when user not found', async () => {
@@ -118,7 +124,9 @@ describe('UserService', () => {
       mockRepository.findByAuthIdentityId.mockResolvedValue(mockUser);
 
       await expect(service.getUserByAuthIdentityId('auth-123')).rejects.toThrow(ForbiddenError);
-      await expect(service.getUserByAuthIdentityId('auth-123')).rejects.toThrow('User account is inactive or deleted');
+      await expect(service.getUserByAuthIdentityId('auth-123')).rejects.toThrow(
+        'User account is inactive or deleted',
+      );
     });
 
     it('should throw ForbiddenError when user is deleted', async () => {
@@ -194,14 +202,20 @@ describe('UserService', () => {
     });
 
     it('should throw BadRequestError when payload is empty', async () => {
-      await expect(service.updateUserProfile('user-123', {}, 'auth-123')).rejects.toThrow(BadRequestError);
-      await expect(service.updateUserProfile('user-123', {}, 'auth-123')).rejects.toThrow('No fields provided to update');
+      await expect(service.updateUserProfile('user-123', {}, 'auth-123')).rejects.toThrow(
+        BadRequestError,
+      );
+      await expect(service.updateUserProfile('user-123', {}, 'auth-123')).rejects.toThrow(
+        'No fields provided to update',
+      );
     });
 
     it('should throw NotFoundError when user not found', async () => {
       mockRepository.findById.mockResolvedValue(null);
 
-      await expect(service.updateUserProfile('user-123', { firstName: 'Jane' }, 'auth-123')).rejects.toThrow(NotFoundError);
+      await expect(
+        service.updateUserProfile('user-123', { firstName: 'Jane' }, 'auth-123'),
+      ).rejects.toThrow(NotFoundError);
     });
 
     it('should throw ForbiddenError when unauthorized', async () => {
@@ -209,7 +223,9 @@ describe('UserService', () => {
 
       mockRepository.findById.mockResolvedValue(mockUser);
 
-      await expect(service.updateUserProfile('user-123', { firstName: 'Jane' }, 'auth-123')).rejects.toThrow(ForbiddenError);
+      await expect(
+        service.updateUserProfile('user-123', { firstName: 'Jane' }, 'auth-123'),
+      ).rejects.toThrow(ForbiddenError);
     });
 
     it('should throw ConflictError for duplicate username', async () => {
@@ -219,13 +235,13 @@ describe('UserService', () => {
       mockRepository.findById.mockResolvedValue(mockUser);
       mockRepository.updateProfile.mockRejectedValue(error);
 
-      await expect(service.updateUserProfile('user-123', { username: 'existing' }, 'auth-123')).rejects.toThrow(ConflictError);
+      await expect(
+        service.updateUserProfile('user-123', { username: 'existing' }, 'auth-123'),
+      ).rejects.toThrow(ConflictError);
     });
   });
 
   describe('uploadUserAvatar', () => {
-  
-
     beforeEach(() => {
       jest.clearAllMocks();
     });
@@ -259,27 +275,33 @@ describe('UserService', () => {
     });
 
     it('should throw BadRequestError when userId is empty', async () => {
-      await expect(service.uploadUserAvatar({
-        userId: '',
-        fileBuffer: Buffer.from('test'),
-        requestingAuthId: 'auth-123',
-      })).rejects.toThrow(BadRequestError);
+      await expect(
+        service.uploadUserAvatar({
+          userId: '',
+          fileBuffer: Buffer.from('test'),
+          requestingAuthId: 'auth-123',
+        }),
+      ).rejects.toThrow(BadRequestError);
     });
 
     it('should throw BadRequestError when requestingAuthId is empty', async () => {
-      await expect(service.uploadUserAvatar({
-        userId: 'user-123',
-        fileBuffer: Buffer.from('test'),
-        requestingAuthId: '',
-      })).rejects.toThrow(BadRequestError);
+      await expect(
+        service.uploadUserAvatar({
+          userId: 'user-123',
+          fileBuffer: Buffer.from('test'),
+          requestingAuthId: '',
+        }),
+      ).rejects.toThrow(BadRequestError);
     });
 
     it('should throw BadRequestError when fileBuffer is empty', async () => {
-      await expect(service.uploadUserAvatar({
-        userId: 'user-123',
-        fileBuffer: Buffer.alloc(0),
-        requestingAuthId: 'auth-123',
-      })).rejects.toThrow(BadRequestError);
+      await expect(
+        service.uploadUserAvatar({
+          userId: 'user-123',
+          fileBuffer: Buffer.alloc(0),
+          requestingAuthId: 'auth-123',
+        }),
+      ).rejects.toThrow(BadRequestError);
     });
 
     it('should throw BadRequestError when image validation fails', async () => {
@@ -290,11 +312,13 @@ describe('UserService', () => {
         error: 'Invalid file type',
       });
 
-      await expect(service.uploadUserAvatar({
-        userId: 'user-123',
-        fileBuffer,
-        requestingAuthId: 'auth-123',
-      })).rejects.toThrow(BadRequestError);
+      await expect(
+        service.uploadUserAvatar({
+          userId: 'user-123',
+          fileBuffer,
+          requestingAuthId: 'auth-123',
+        }),
+      ).rejects.toThrow(BadRequestError);
     });
 
     it('should delete old avatar before uploading new one', async () => {
@@ -332,17 +356,17 @@ describe('UserService', () => {
       utils.validateImageFile.mockResolvedValue({ isValid: true });
       mockRepository.findById.mockResolvedValue(mockUser);
 
-      await expect(service.uploadUserAvatar({
-        userId: 'user-123',
-        fileBuffer,
-        requestingAuthId: 'auth-123',
-      })).rejects.toThrow(ForbiddenError);
+      await expect(
+        service.uploadUserAvatar({
+          userId: 'user-123',
+          fileBuffer,
+          requestingAuthId: 'auth-123',
+        }),
+      ).rejects.toThrow(ForbiddenError);
     });
   });
 
   describe('deleteUserAvatar', () => {
-
-
     it('should delete avatar successfully', async () => {
       const userId = 'user-123';
       const requestingAuthId = 'auth-123';
@@ -377,7 +401,9 @@ describe('UserService', () => {
 
       mockRepository.findById.mockResolvedValue(mockUser);
 
-      await expect(service.deleteUserAvatar('user-123', 'auth-123')).rejects.toThrow(ForbiddenError);
+      await expect(service.deleteUserAvatar('user-123', 'auth-123')).rejects.toThrow(
+        ForbiddenError,
+      );
     });
   });
 });

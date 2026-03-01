@@ -7,11 +7,7 @@ import { listNotificationsQuerySchema } from '../validators/index.js';
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
-  async list(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async list(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
       if (!userAuthId) {
@@ -34,14 +30,10 @@ export class NotificationController {
     }
   }
 
-  async getById(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async getById(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
-      const { id } = req.params;
+      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
       if (!userAuthId || !id) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,
@@ -60,14 +52,10 @@ export class NotificationController {
     }
   }
 
-  async markAsRead(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async markAsRead(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
-      const { id } = req.params;
+      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
       if (!userAuthId || !id) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,
@@ -86,11 +74,7 @@ export class NotificationController {
     }
   }
 
-  async markAllAsRead(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async markAllAsRead(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
       if (!userAuthId) {

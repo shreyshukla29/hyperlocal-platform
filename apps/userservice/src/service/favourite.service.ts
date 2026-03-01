@@ -24,7 +24,13 @@ export class FavouriteService {
   async list(
     userAuthId: string,
     query?: { page?: number; limit?: number },
-  ): Promise<{ items: FavouriteResponse[]; total: number; page: number; limit: number; totalPages: number }> {
+  ): Promise<{
+    items: FavouriteResponse[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     const user = await this.userRepo.findByAuthIdentityId(userAuthId);
     if (!user) {
       throw new NotFoundError('User not found');

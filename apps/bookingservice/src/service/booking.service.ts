@@ -8,7 +8,12 @@ import type {
   RefundPolicyResult,
   AvailableSlot,
 } from '../types/index.js';
-import { createRazorpayOrder, createRazorpayRefund, getBookingQuote, getProviderOpenIntervals } from '../utils/index.js';
+import {
+  createRazorpayOrder,
+  createRazorpayRefund,
+  getBookingQuote,
+  getProviderOpenIntervals,
+} from '../utils/index.js';
 import { ServerConfig } from '../config/index.js';
 import {
   NotFoundError,
@@ -22,10 +27,7 @@ import { publishNotification } from '../events/index.js';
 
 const MIN_AMOUNT_PAISE = 100;
 
-export function computeUserCancelRefund(
-  amountPaise: number,
-  slotStart: Date,
-): RefundPolicyResult {
+export function computeUserCancelRefund(amountPaise: number, slotStart: Date): RefundPolicyResult {
   const now = new Date();
   const hoursUntilSlot = (slotStart.getTime() - now.getTime()) / (1000 * 60 * 60);
   let refundPercentage: number;
@@ -68,7 +70,7 @@ export class BookingService {
           providerId: existing.providerId,
           providerServiceId: existing.providerServiceId,
           assignedServicePersonId: existing.assignedServicePersonId,
-          status: existing.status,
+          status: existing.status as BookingStatus,
           slotStart: existing.slotStart,
           slotEnd: existing.slotEnd,
           addressLine1: existing.addressLine1,
@@ -87,7 +89,7 @@ export class BookingService {
           razorpayRefundId: existing.razorpayRefundId,
           createdAt: existing.createdAt,
           updatedAt: existing.updatedAt,
-        };
+        } as BookingResponse;
         if (existing.status === BookingStatus.PENDING_PAYMENT && existing.razorpayOrderId) {
           return {
             booking,
@@ -99,7 +101,10 @@ export class BookingService {
             },
           };
         }
-        if (existing.status === BookingStatus.CONFIRMED || existing.status === BookingStatus.CANCELLED) {
+        if (
+          existing.status === BookingStatus.CONFIRMED ||
+          existing.status === BookingStatus.CANCELLED
+        ) {
           return {
             booking,
             razorpayOrder: {
@@ -155,7 +160,7 @@ export class BookingService {
             providerId: existing.providerId,
             providerServiceId: existing.providerServiceId,
             assignedServicePersonId: existing.assignedServicePersonId,
-            status: existing.status,
+            status: existing.status as BookingStatus,
             slotStart: existing.slotStart,
             slotEnd: existing.slotEnd,
             addressLine1: existing.addressLine1,
@@ -174,7 +179,7 @@ export class BookingService {
             razorpayRefundId: existing.razorpayRefundId,
             createdAt: existing.createdAt,
             updatedAt: existing.updatedAt,
-          };
+          } as BookingResponse;
           return {
             booking,
             razorpayOrder: {
@@ -237,7 +242,7 @@ export class BookingService {
       razorpayRefundId: booking.razorpayRefundId,
       createdAt: booking.createdAt,
       updatedAt: booking.updatedAt,
-    };
+    } as BookingResponse;
   }
 
   async getByIdForProvider(bookingId: string, providerId: string): Promise<BookingResponse> {
@@ -273,7 +278,7 @@ export class BookingService {
       razorpayRefundId: booking.razorpayRefundId,
       createdAt: booking.createdAt,
       updatedAt: booking.updatedAt,
-    };
+    } as BookingResponse;
   }
 
   async cancelByUser(bookingId: string, userAuthId: string): Promise<BookingResponse> {
@@ -284,17 +289,17 @@ export class BookingService {
     if (booking.userAuthId !== userAuthId) {
       throw new ForbiddenError('Access denied: not your booking');
     }
-    if (booking.status !== BookingStatus.CONFIRMED && booking.status !== BookingStatus.PENDING_PAYMENT) {
+    if (
+      booking.status !== BookingStatus.CONFIRMED &&
+      booking.status !== BookingStatus.PENDING_PAYMENT
+    ) {
       if (booking.status === BookingStatus.CANCELLED) {
         throw new ConflictError('Booking is already cancelled');
       }
       throw new BadRequestError('Booking cannot be cancelled in current status');
     }
 
-    const { refundAmountPaise } = computeUserCancelRefund(
-      booking.amountPaise,
-      booking.slotStart,
-    );
+    const { refundAmountPaise } = computeUserCancelRefund(booking.amountPaise, booking.slotStart);
 
     let razorpayRefundId: string | null = null;
     if (refundAmountPaise > 0 && booking.razorpayPaymentId) {
@@ -306,9 +311,7 @@ export class BookingService {
         });
         razorpayRefundId = refund.id;
       } catch (err) {
-        throw new BadRequestError(
-          'Refund could not be processed. Please contact support.',
-        );
+        throw new BadRequestError('Refund could not be processed. Please contact support.');
       }
     }
 
@@ -358,7 +361,10 @@ export class BookingService {
     if (booking.providerId !== providerId) {
       throw new ForbiddenError('Access denied: not your provider booking');
     }
-    if (booking.status !== BookingStatus.CONFIRMED && booking.status !== BookingStatus.PENDING_PAYMENT) {
+    if (
+      booking.status !== BookingStatus.CONFIRMED &&
+      booking.status !== BookingStatus.PENDING_PAYMENT
+    ) {
       if (booking.status === BookingStatus.CANCELLED) {
         throw new ConflictError('Booking is already cancelled');
       }
@@ -375,9 +381,7 @@ export class BookingService {
         });
         razorpayRefundId = refund.id;
       } catch (err) {
-        throw new BadRequestError(
-          'Full refund could not be processed. Please contact support.',
-        );
+        throw new BadRequestError('Full refund could not be processed. Please contact support.');
       }
     }
 
@@ -420,10 +424,7 @@ export class BookingService {
   async handlePaymentCaptured(razorpayOrderId: string, razorpayPaymentId: string) {
     const booking = await this.bookingRepo.findByRazorpayOrderId(razorpayOrderId);
     if (!booking) return;
-    const updated = await this.bookingRepo.updatePaymentCaptured(
-      booking.id,
-      razorpayPaymentId,
-    );
+    const updated = await this.bookingRepo.updatePaymentCaptured(booking.id, razorpayPaymentId);
     if (updated) {
       publishNotification({
         userAuthId: booking.userAuthId,

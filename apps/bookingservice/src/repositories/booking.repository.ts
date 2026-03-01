@@ -1,4 +1,6 @@
-import { prisma as defaultPrisma } from '../config';
+import type { Booking } from '../generated/prisma/client.js';
+import { BookingStatus as PrismaBookingStatus } from '../generated/prisma/enums.js';
+import { prisma as defaultPrisma } from '../config/index.js';
 import type {
   CreateBookingPayload,
   BookingResponse,
@@ -11,33 +13,7 @@ const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
-function toResponse(row: {
-  id: string;
-  userAuthId: string;
-  providerId: string;
-  providerServiceId: string;
-  providerAuthId: string | null;
-  assignedServicePersonId: string | null;
-  status: BookingStatus;
-  slotStart: Date;
-  slotEnd: Date;
-  addressLine1: string | null;
-  city: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  notes: string | null;
-  confirmedAt: Date | null;
-  cancelledAt: Date | null;
-  cancelledBy: string | null;
-  amountPaise: number;
-  currency: string;
-  razorpayOrderId: string | null;
-  razorpayPaymentId: string | null;
-  refundAmountPaise: number | null;
-  razorpayRefundId: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}): BookingResponse {
+function toResponse(row: Booking): BookingResponse {
   return {
     id: row.id,
     userAuthId: row.userAuthId,
@@ -87,7 +63,7 @@ export class BookingRepository {
         currency: payload.currency ?? 'INR',
         idempotencyKey: payload.idempotencyKey ?? null,
         razorpayOrderId,
-        status: BookingStatus.PENDING_PAYMENT,
+        status: PrismaBookingStatus.PENDING_PAYMENT,
       },
     });
     return toResponse(row);
@@ -125,11 +101,11 @@ export class BookingRepository {
     const limit = Math.min(MAX_LIMIT, Math.max(1, query?.limit ?? DEFAULT_LIMIT));
     const skip = (page - 1) * limit;
 
-    const where: { userAuthId: string; status?: BookingStatus } = {
+    const where: { userAuthId: string; status?: PrismaBookingStatus } = {
       userAuthId,
     };
     if (query?.status !== undefined) {
-      where.status = query.status;
+      where.status = query.status as PrismaBookingStatus;
     }
 
     const [items, total] = await Promise.all([
@@ -143,7 +119,7 @@ export class BookingRepository {
     ]);
 
     return {
-      items: items.map((row) => toResponse(row)),
+      items: items.map((row: Booking) => toResponse(row)),
       total,
       page,
       limit,
@@ -159,11 +135,11 @@ export class BookingRepository {
     const limit = Math.min(MAX_LIMIT, Math.max(1, query?.limit ?? DEFAULT_LIMIT));
     const skip = (page - 1) * limit;
 
-    const where: { providerId: string; status?: BookingStatus } = {
+    const where: { providerId: string; status?: PrismaBookingStatus } = {
       providerId,
     };
     if (query?.status !== undefined) {
-      where.status = query.status;
+      where.status = query.status as PrismaBookingStatus;
     }
 
     const [items, total] = await Promise.all([
@@ -177,7 +153,7 @@ export class BookingRepository {
     ]);
 
     return {
-      items: items.map((row) => toResponse(row)),
+      items: items.map((row: Booking) => toResponse(row)),
       total,
       page,
       limit,
@@ -195,9 +171,9 @@ export class BookingRepository {
   ): Promise<BookingResponse | null> {
     try {
       const row = await this.prisma.booking.updateMany({
-        where: { id, status: BookingStatus.PENDING_PAYMENT },
+        where: { id, status: PrismaBookingStatus.PENDING_PAYMENT },
         data: {
-          status: BookingStatus.CONFIRMED,
+          status: PrismaBookingStatus.CONFIRMED,
           razorpayPaymentId,
           confirmedAt: new Date(),
           updatedAt: new Date(),
@@ -219,9 +195,9 @@ export class BookingRepository {
   async updatePaymentFailed(id: string): Promise<BookingResponse | null> {
     try {
       const row = await this.prisma.booking.updateMany({
-        where: { id, status: BookingStatus.PENDING_PAYMENT },
+        where: { id, status: PrismaBookingStatus.PENDING_PAYMENT },
         data: {
-          status: BookingStatus.PAYMENT_FAILED,
+          status: PrismaBookingStatus.PAYMENT_FAILED,
           updatedAt: new Date(),
         },
       });
@@ -249,10 +225,10 @@ export class BookingRepository {
       const row = await this.prisma.booking.updateMany({
         where: {
           id,
-          status: { in: [BookingStatus.CONFIRMED, BookingStatus.PENDING_PAYMENT] },
+          status: { in: [PrismaBookingStatus.CONFIRMED, PrismaBookingStatus.PENDING_PAYMENT] },
         },
         data: {
-          status: BookingStatus.CANCELLED,
+          status: PrismaBookingStatus.CANCELLED,
           cancelledAt: new Date(),
           cancelledBy,
           refundAmountPaise,
@@ -279,7 +255,7 @@ export class BookingRepository {
   ): Promise<BookingResponse | null> {
     try {
       const row = await this.prisma.booking.updateMany({
-        where: { id, status: BookingStatus.CONFIRMED },
+        where: { id, status: PrismaBookingStatus.CONFIRMED },
         data: {
           assignedServicePersonId,
           updatedAt: new Date(),
@@ -301,9 +277,9 @@ export class BookingRepository {
   async updateArrivalConfirmed(id: string): Promise<BookingResponse | null> {
     try {
       const row = await this.prisma.booking.updateMany({
-        where: { id, status: BookingStatus.CONFIRMED },
+        where: { id, status: PrismaBookingStatus.CONFIRMED },
         data: {
-          status: BookingStatus.ARRIVAL_CONFIRMED,
+          status: PrismaBookingStatus.ARRIVAL_CONFIRMED,
           arrivalConfirmedAt: new Date(),
           updatedAt: new Date(),
         },
@@ -324,9 +300,9 @@ export class BookingRepository {
   async updatePendingCompletionVerification(id: string): Promise<BookingResponse | null> {
     try {
       const row = await this.prisma.booking.updateMany({
-        where: { id, status: BookingStatus.ARRIVAL_CONFIRMED },
+        where: { id, status: PrismaBookingStatus.ARRIVAL_CONFIRMED },
         data: {
-          status: BookingStatus.PENDING_COMPLETION_VERIFICATION,
+          status: PrismaBookingStatus.PENDING_COMPLETION_VERIFICATION,
           updatedAt: new Date(),
         },
       });
@@ -346,9 +322,9 @@ export class BookingRepository {
   async updateCompleted(id: string): Promise<BookingResponse | null> {
     try {
       const row = await this.prisma.booking.updateMany({
-        where: { id, status: BookingStatus.PENDING_COMPLETION_VERIFICATION },
+        where: { id, status: PrismaBookingStatus.PENDING_COMPLETION_VERIFICATION },
         data: {
-          status: BookingStatus.COMPLETED,
+          status: PrismaBookingStatus.COMPLETED,
           completedAt: new Date(),
           updatedAt: new Date(),
         },
@@ -377,7 +353,7 @@ export class BookingRepository {
     const rows = await this.prisma.booking.findMany({
       where: {
         providerId,
-        status: { not: BookingStatus.CANCELLED },
+        status: { not: PrismaBookingStatus.CANCELLED },
         slotStart: { lt: endOfDay },
         slotEnd: { gt: startOfDay },
       },

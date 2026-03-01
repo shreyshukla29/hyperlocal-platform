@@ -9,15 +9,11 @@ import type {
 export class SearchService {
   constructor(private readonly searchRepo: SearchRepository) {}
 
-  async searchServices(
-    query: SearchQuery,
-  ): Promise<PaginatedSearchResult<SearchServiceItem>> {
+  async searchServices(query: SearchQuery): Promise<PaginatedSearchResult<SearchServiceItem>> {
     return this.searchRepo.searchServices(query);
   }
 
-  async getTopServices(
-    query: TopServicesQuery,
-  ): Promise<PaginatedSearchResult<SearchServiceItem>> {
+  async getTopServices(query: TopServicesQuery): Promise<PaginatedSearchResult<SearchServiceItem>> {
     return this.searchRepo.getTopServices(query);
   }
 }

@@ -6,7 +6,7 @@ export type UserResponse = UserModel;
 export interface CreateUserPayload {
   authIdentityId: string;
   firstName: string;
-  lastName?: string | null;
+  lastName: string;
   email?: string | null;
   phone?: string | null;
   username?: string | null;

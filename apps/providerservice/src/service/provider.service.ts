@@ -7,11 +7,7 @@ import {
 } from '../types/index.js';
 import { UpdateProviderProfilePayload } from '../validators/index.js';
 import { logger } from '@hyperlocal/shared/logger';
-import {
-  NotFoundError,
-  BadRequestError,
-  ForbiddenError,
-} from '@hyperlocal/shared/errors';
+import { NotFoundError, BadRequestError, ForbiddenError } from '@hyperlocal/shared/errors';
 import { VerificationStatus } from '../enums/index.js';
 
 export class ProviderService {
@@ -69,9 +65,7 @@ export class ProviderService {
     }
 
     if (provider.authIdentityId !== requestingAuthId) {
-      throw new ForbiddenError(
-        'Access denied: Cannot update another provider profile',
-      );
+      throw new ForbiddenError('Access denied: Cannot update another provider profile');
     }
 
     if (!provider.isActive || provider.isDeleted) {
@@ -83,20 +77,15 @@ export class ProviderService {
     if (payload.lastName !== undefined) updateData.lastName = payload.lastName;
     if (payload.email !== undefined) updateData.email = payload.email;
     if (payload.phone !== undefined) updateData.phone = payload.phone;
-    if (payload.businessName !== undefined)
-      updateData.businessName = payload.businessName;
-    if (payload.businessAddress !== undefined)
-      updateData.businessAddress = payload.businessAddress;
+    if (payload.businessName !== undefined) updateData.businessName = payload.businessName;
+    if (payload.businessAddress !== undefined) updateData.businessAddress = payload.businessAddress;
     if (payload.latitude !== undefined) updateData.latitude = payload.latitude;
     if (payload.longitude !== undefined) updateData.longitude = payload.longitude;
     if (payload.city !== undefined) updateData.city = payload.city;
     if (payload.availabilityStatus !== undefined)
       updateData.availabilityStatus = payload.availabilityStatus;
 
-    const updatedProvider = await this.providerRepo.updateProfile(
-      providerId,
-      updateData,
-    );
+    const updatedProvider = await this.providerRepo.updateProfile(providerId, updateData);
 
     logger.info('Provider profile updated', {
       providerId,
@@ -112,10 +101,11 @@ export class ProviderService {
     return this.providerRepo.findTopByLocation(query);
   }
 
-  /** Admin-only: set provider verification status (VERIFIED | PENDING | REJECTED). */
+  /** Admin-only: set provider verification status (VERIFIED | PENDING | REJECTED). verifiedBy required when VERIFIED. */
   async updateVerificationStatus(
     providerId: string,
     verificationStatus: VerificationStatus,
+    verifiedBy?: string,
   ) {
     if (!providerId) {
       throw new BadRequestError('Provider ID is required');
@@ -129,11 +119,13 @@ export class ProviderService {
     const updated = await this.providerRepo.updateVerificationStatus(
       providerId,
       verificationStatus,
+      verificationStatus === 'VERIFIED' ? verifiedBy : undefined,
     );
 
     logger.info('Provider verification status updated', {
       providerId,
       verificationStatus,
+      verifiedBy: verificationStatus === 'VERIFIED' ? verifiedBy : undefined,
     });
 
     return updated;

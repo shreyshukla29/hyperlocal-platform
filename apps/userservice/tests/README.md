@@ -33,13 +33,14 @@ npm run test:coverage
 ## Test Coverage
 
 Tests are organized by layer:
+
 - **Repository Tests**: Test database operations with mocked Prisma
 - **Service Tests**: Test business logic with mocked repository
 - **Controller Tests**: Test HTTP layer with mocked service
 
 Each test file covers:
+
 - Happy path scenarios
 - Error handling
 - Edge cases
 - Validation logic
-

@@ -12,11 +12,7 @@ export const createServicePersonSchema = z
       .max(200)
       .transform(trimString)
       .refine((val) => val.length > 0, 'Name cannot be empty'),
-    phone: z
-      .string()
-      .min(1, 'Phone is required')
-      .max(20)
-      .transform(trimString),
+    phone: z.string().min(1, 'Phone is required').max(20).transform(trimString),
     email: z.string().email().max(255).nullable().optional(),
     role: z.string().max(100).transform(trimString).nullable().optional(),
     providerServiceIds: z.array(z.string().uuid()).optional(),
@@ -33,10 +29,7 @@ export const updateServicePersonSchema = z
     providerServiceIds: z.array(z.string().uuid()).optional(),
   })
   .strict()
-  .refine(
-    (data) => Object.keys(data).length > 0,
-    'At least one field must be provided for update',
-  );
+  .refine((data) => Object.keys(data).length > 0, 'At least one field must be provided for update');
 
 export const updateServicePersonStatusSchema = z
   .object({
@@ -53,15 +46,7 @@ export const listServicePeopleQuerySchema = z.object({
   providerServiceId: z.string().uuid().optional(),
 });
 
-export type CreateServicePersonPayload = z.infer<
-  typeof createServicePersonSchema
->;
-export type UpdateServicePersonPayload = z.infer<
-  typeof updateServicePersonSchema
->;
-export type UpdateServicePersonStatusPayload = z.infer<
-  typeof updateServicePersonStatusSchema
->;
-export type ListServicePeopleQueryPayload = z.infer<
-  typeof listServicePeopleQuerySchema
->;
+export type CreateServicePersonPayload = z.infer<typeof createServicePersonSchema>;
+export type UpdateServicePersonPayload = z.infer<typeof updateServicePersonSchema>;
+export type UpdateServicePersonStatusPayload = z.infer<typeof updateServicePersonStatusSchema>;
+export type ListServicePeopleQueryPayload = z.infer<typeof listServicePeopleQuerySchema>;

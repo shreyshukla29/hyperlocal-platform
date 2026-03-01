@@ -9,11 +9,7 @@ export const searchQuerySchema = z
       .union([z.boolean(), z.literal('true'), z.literal('false')])
       .optional()
       .transform((v) =>
-        v === true || v === 'true'
-          ? true
-          : v === false || v === 'false'
-            ? false
-            : undefined,
+        v === true || v === 'true' ? true : v === false || v === 'false' ? false : undefined,
       ),
     page: z.coerce.number().int().min(1).optional(),
     limit: z.coerce.number().int().min(1).max(100).optional(),
@@ -29,11 +25,7 @@ export const topServicesQuerySchema = z
       .union([z.boolean(), z.literal('true'), z.literal('false')])
       .optional()
       .transform((v) =>
-        v === true || v === 'true'
-          ? true
-          : v === false || v === 'false'
-            ? false
-            : undefined,
+        v === true || v === 'true' ? true : v === false || v === 'false' ? false : undefined,
       ),
     page: z.coerce.number().int().min(1).optional(),
     limit: z.coerce.number().int().min(1).max(100).optional(),

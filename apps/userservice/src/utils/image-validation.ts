@@ -1,13 +1,7 @@
 import { fileTypeFromBuffer } from 'file-type';
 import { ImageValidationResult } from '../types/index.js';
 
-const ALLOWED_MIME_TYPES = [
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/webp',
-  'image/gif',
-];
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
 
 const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
 
@@ -15,9 +9,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_DIMENSION = 4000;
 const MIN_DIMENSION = 50;
 
-export async function validateImageFile(
-  buffer: Buffer,
-): Promise<ImageValidationResult> {
+export async function validateImageFile(buffer: Buffer): Promise<ImageValidationResult> {
   if (buffer.length === 0) {
     return { isValid: false, error: 'File is empty' };
   }
@@ -57,20 +49,14 @@ export async function validateImageFile(
       return { isValid: false, error: 'Unable to read image dimensions' };
     }
 
-    if (
-      metadata.width > MAX_DIMENSION ||
-      metadata.height > MAX_DIMENSION
-    ) {
+    if (metadata.width > MAX_DIMENSION || metadata.height > MAX_DIMENSION) {
       return {
         isValid: false,
         error: `Image dimensions exceed ${MAX_DIMENSION}x${MAX_DIMENSION}px limit`,
       };
     }
 
-    if (
-      metadata.width < MIN_DIMENSION ||
-      metadata.height < MIN_DIMENSION
-    ) {
+    if (metadata.width < MIN_DIMENSION || metadata.height < MIN_DIMENSION) {
       return {
         isValid: false,
         error: `Image dimensions must be at least ${MIN_DIMENSION}x${MIN_DIMENSION}px`,
@@ -86,7 +72,7 @@ export async function validateImageFile(
   } catch (error: unknown) {
     return {
       isValid: false,
-      error: `Image validation failed: ${error.message}`,
+      error: `Image validation failed: ${error instanceof Error ? error.message : String(error)}`,
     };
   }
 }

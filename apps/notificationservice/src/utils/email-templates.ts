@@ -35,7 +35,6 @@ export function getEmailSubjectAndHtml(ctx: EmailTemplateContext): {
   subject: string;
   html: string;
 } {
-  const meta = ctx.metadata ?? {};
   switch (ctx.type) {
     case 'booking_confirmation':
       return {
@@ -97,7 +96,10 @@ export function getEmailSubjectAndHtml(ctx: EmailTemplateContext): {
     default:
       return {
         subject: ctx.title,
-        html: wrapHtml(ctx.title, `<h2 style="margin-top: 0;">${escapeHtml(ctx.title)}</h2><p>${escapeHtml(ctx.body)}</p>`),
+        html: wrapHtml(
+          ctx.title,
+          `<h2 style="margin-top: 0;">${escapeHtml(ctx.title)}</h2><p>${escapeHtml(ctx.body)}</p>`,
+        ),
       };
   }
 }

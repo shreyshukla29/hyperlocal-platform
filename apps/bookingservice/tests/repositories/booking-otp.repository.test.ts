@@ -17,7 +17,13 @@ describe('BookingOtpRepository', () => {
 
   describe('create', () => {
     it('calls prisma.bookingOtp.create', async () => {
-      const created = { id: 'o1', bookingId: 'b1', type: BookingOtpType.ARRIVAL, otpHash: 'h', expiresAt: new Date() };
+      const created = {
+        id: 'o1',
+        bookingId: 'b1',
+        type: BookingOtpType.ARRIVAL,
+        otpHash: 'h',
+        expiresAt: new Date(),
+      };
       mockedPrisma.bookingOtp.create.mockResolvedValue(created as never);
       const result = await repository.create({
         bookingId: 'b1',

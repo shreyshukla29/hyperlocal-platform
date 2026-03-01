@@ -3,12 +3,12 @@ import { User } from '../generated/prisma/client.js';
 import { CreateUserPayload, UpdateUserRepositoryPayload } from '../types/index.js';
 
 export class UserRepository {
-   constructor(private prisma = defaultPrisma) {}
+  constructor(private prisma = defaultPrisma) {}
   async createUser(payload: CreateUserPayload): Promise<User> {
     const {
       authIdentityId,
       firstName,
-      lastName = null,
+      lastName,
       email = null,
       phone = null,
       username = null,
@@ -22,10 +22,10 @@ export class UserRepository {
       create: {
         authIdentityId,
         firstName,
-        lastName,
-        email,
-        phone,
-        username,
+        lastName: lastName,
+        email: email,
+        phone: phone,
+        username: username,
       },
     });
   }
@@ -56,16 +56,23 @@ export class UserRepository {
     return user !== null;
   }
 
-  async updateProfile(
-    userId: string,
-    payload: UpdateUserRepositoryPayload,
-  ): Promise<User> {
+  async updateProfile(userId: string, payload: UpdateUserRepositoryPayload): Promise<User> {
+    const data: {
+      updatedAt: Date;
+      firstName?: string;
+      lastName?: string;
+      username?: string;
+      avatarUrl?: string | null;
+    } = {
+      updatedAt: new Date(),
+    };
+    if (payload.firstName !== undefined) data.firstName = payload.firstName;
+    if (payload.lastName !== undefined) data.lastName = payload.lastName ?? undefined;
+    if (payload.username !== undefined) data.username = payload.username ?? undefined;
+    if (payload.avatarUrl !== undefined) data.avatarUrl = payload.avatarUrl;
     return this.prisma.user.update({
       where: { id: userId },
-      data: {
-        ...payload,
-        updatedAt: new Date(),
-      },
+      data,
     });
   }
 

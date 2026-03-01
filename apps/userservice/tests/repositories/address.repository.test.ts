@@ -6,7 +6,11 @@ jest.mock('../../src/config', () => ({
 }));
 
 import { AddressRepository } from '../../src/repositories/address.repository';
-import { createMockAddress, createMockAddressWithUser, createMockCreateAddressPayload } from '../helpers/test-helpers';
+import {
+  createMockAddress,
+  createMockAddressWithUser,
+  createMockCreateAddressPayload,
+} from '../helpers/test-helpers';
 
 describe('AddressRepository', () => {
   let repository: AddressRepository;
@@ -187,7 +191,9 @@ describe('AddressRepository', () => {
         },
       };
 
-      mockedPrisma.$transaction.mockImplementation(async (fn: (tx: typeof mockTx) => Promise<unknown>) => fn(mockTx));
+      mockedPrisma.$transaction.mockImplementation(
+        async (fn: (tx: typeof mockTx) => Promise<unknown>) => fn(mockTx),
+      );
 
       const result = await repository.setAsDefault(addressId, userId);
 

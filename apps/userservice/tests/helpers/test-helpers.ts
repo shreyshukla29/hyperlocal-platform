@@ -30,7 +30,10 @@ export const createMockUserPayload = (
   ...overrides,
 });
 
-export const createMockPrismaError = (code: string, target?: string[]): Prisma.PrismaClientKnownRequestError => {
+export const createMockPrismaError = (
+  code: string,
+  target?: string[],
+): Prisma.PrismaClientKnownRequestError => {
   const error = new Error('Prisma error') as Prisma.PrismaClientKnownRequestError;
   error.code = code as unknown;
   error.meta = { target };
@@ -84,7 +87,9 @@ export interface MockAddressWithUser extends MockAddress {
   };
 }
 
-export const createMockAddressWithUser = (overrides?: Partial<MockAddressWithUser>): MockAddressWithUser => ({
+export const createMockAddressWithUser = (
+  overrides?: Partial<MockAddressWithUser>,
+): MockAddressWithUser => ({
   ...createMockAddress(),
   user: {
     id: 'user-123',
@@ -95,7 +100,9 @@ export const createMockAddressWithUser = (overrides?: Partial<MockAddressWithUse
   ...overrides,
 });
 
-export const createMockCreateAddressPayload = (overrides?: Partial<CreateAddressData>): CreateAddressData => ({
+export const createMockCreateAddressPayload = (
+  overrides?: Partial<CreateAddressData>,
+): CreateAddressData => ({
   label: 'Home',
   addressLine1: '123 Main St',
   addressLine2: null,

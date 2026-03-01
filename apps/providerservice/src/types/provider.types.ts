@@ -1,7 +1,4 @@
-import type {
-  VerificationStatus,
-  AvailabilityStatus,
-} from '../enums/index.js';
+import type { VerificationStatus, AvailabilityStatus } from '../enums/index.js';
 
 export interface ProviderResponse {
   id: string;
@@ -32,6 +29,8 @@ export interface TopProviderListItem {
   city: string | null;
   latitude: number | null;
   longitude: number | null;
+  averageRating: number | null;
+  reviewCount: number;
   verificationStatus: VerificationStatus;
   availabilityStatus: AvailabilityStatus;
   createdAt: Date;

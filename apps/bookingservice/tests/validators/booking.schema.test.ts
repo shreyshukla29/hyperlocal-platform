@@ -13,10 +13,10 @@ describe('booking validators', () => {
       const slotStart = new Date(Date.now() + 86400000);
       const slotEnd = new Date(slotStart.getTime() + 3600000);
       const result = createBookingSchema.safeParse({
-        providerId: '11111111-1111-1111-1111-111111111111',
-        providerServiceId: '22222222-2222-2222-2222-222222222222',
-        slotStart,
-        slotEnd,
+        providerId: '550e8400-e29b-41d4-a716-446655440000',
+        providerServiceId: '550e8400-e29b-41d4-a716-446655440001',
+        slotStart: slotStart.toISOString(),
+        slotEnd: slotEnd.toISOString(),
       });
       expect(result.success).toBe(true);
     });
@@ -25,10 +25,10 @@ describe('booking validators', () => {
       const slotStart = new Date(Date.now() + 86400000);
       const slotEnd = new Date(slotStart.getTime() - 3600000);
       const result = createBookingSchema.safeParse({
-        providerId: '11111111-1111-1111-1111-111111111111',
-        providerServiceId: '22222222-2222-2222-2222-222222222222',
-        slotStart,
-        slotEnd,
+        providerId: '550e8400-e29b-41d4-a716-446655440000',
+        providerServiceId: '550e8400-e29b-41d4-a716-446655440001',
+        slotStart: slotStart.toISOString(),
+        slotEnd: slotEnd.toISOString(),
       });
       expect(result.success).toBe(false);
     });
@@ -36,9 +36,9 @@ describe('booking validators', () => {
     it('rejects invalid uuid for providerId', () => {
       const result = createBookingSchema.safeParse({
         providerId: 'not-uuid',
-        providerServiceId: '22222222-2222-2222-2222-222222222222',
-        slotStart: new Date(Date.now() + 86400000),
-        slotEnd: new Date(Date.now() + 86400000 + 3600000),
+        providerServiceId: '550e8400-e29b-41d4-a716-446655440001',
+        slotStart: new Date(Date.now() + 86400000).toISOString(),
+        slotEnd: new Date(Date.now() + 86400000 + 3600000).toISOString(),
       });
       expect(result.success).toBe(false);
     });
@@ -88,7 +88,7 @@ describe('booking validators', () => {
   describe('listReviewsQuerySchema', () => {
     it('accepts providerId only', () => {
       const result = listReviewsQuerySchema.safeParse({
-        providerId: '11111111-1111-1111-1111-111111111111',
+        providerId: '550e8400-e29b-41d4-a716-446655440000',
       });
       expect(result.success).toBe(true);
     });

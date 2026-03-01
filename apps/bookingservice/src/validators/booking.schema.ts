@@ -27,16 +27,18 @@ export const listBookingsQuerySchema = z
   .object({
     page: z.coerce.number().int().min(1).optional(),
     limit: z.coerce.number().int().min(1).max(100).optional(),
-    status: z.enum([
-      'PENDING_PAYMENT',
-      'PAYMENT_FAILED',
-      'CONFIRMED',
-      'IN_PROGRESS',
-      'ARRIVAL_CONFIRMED',
-      'PENDING_COMPLETION_VERIFICATION',
-      'COMPLETED',
-      'CANCELLED',
-    ]).optional(),
+    status: z
+      .enum([
+        'PENDING_PAYMENT',
+        'PAYMENT_FAILED',
+        'CONFIRMED',
+        'IN_PROGRESS',
+        'ARRIVAL_CONFIRMED',
+        'PENDING_COMPLETION_VERIFICATION',
+        'COMPLETED',
+        'CANCELLED',
+      ])
+      .optional(),
   })
   .strict();
 

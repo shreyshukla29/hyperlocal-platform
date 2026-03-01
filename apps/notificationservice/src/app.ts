@@ -1,8 +1,5 @@
 import express, { type Application, type Request, type Response } from 'express';
-import {
-  createGatewayAuthMiddleware,
-  globalErrorHandler,
-} from '@hyperlocal/shared/middlewares';
+import { createGatewayAuthMiddleware, globalErrorHandler } from '@hyperlocal/shared/middlewares';
 import { ServerConfig } from './config/index.js';
 import { router } from './routes/index.js';
 import cookieParser from 'cookie-parser';

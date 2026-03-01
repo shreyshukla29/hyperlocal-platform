@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { validateBody } from '@hyperlocal/shared/middlewares';
+import { validateBody, validateQuery } from '@hyperlocal/shared/middlewares';
 import { ProviderController } from '../../controllers/provider.controller.js';
 import { ServicePersonController } from '../../controllers/service-person.controller.js';
 import { ProviderOfferingController } from '../../controllers/provider-offering.controller.js';
@@ -20,6 +20,9 @@ import {
   updateServicePersonStatusSchema,
   createProviderOfferingSchema,
   updateProviderOfferingSchema,
+  topProvidersByLocationQuerySchema,
+  listProviderOfferingsQuerySchema,
+  listServicePeopleQuerySchema,
 } from '../../validators/index.js';
 
 export const providerRouter = Router();
@@ -29,17 +32,11 @@ const providerService = new ProviderService(providerRepository);
 const providerController = new ProviderController(providerService);
 
 const servicePersonRepository = new ServicePersonRepository();
-const servicePersonService = new ServicePersonService(
-  providerRepository,
-  servicePersonRepository,
-);
+const servicePersonService = new ServicePersonService(providerRepository, servicePersonRepository);
 const servicePersonController = new ServicePersonController(servicePersonService);
 
 const offeringRepository = new ProviderOfferingRepository();
-const offeringService = new ProviderOfferingService(
-  providerRepository,
-  offeringRepository,
-);
+const offeringService = new ProviderOfferingService(providerRepository, offeringRepository);
 const offeringController = new ProviderOfferingController(offeringService);
 
 const availabilityRepository = new ProviderAvailabilityRepository();
@@ -52,6 +49,7 @@ const availabilityController = new ProviderAvailabilityController(availabilitySe
 // Top providers by location (for dashboard / discovery – paginated)
 providerRouter.get(
   '/top-by-location',
+  validateQuery(topProvidersByLocationQuerySchema),
   providerController.getTopProvidersByLocation.bind(providerController),
 );
 
@@ -62,10 +60,7 @@ providerRouter.get(
 );
 
 // Provider profile
-providerRouter.get(
-  '/profile',
-  providerController.getProviderProfile.bind(providerController),
-);
+providerRouter.get('/profile', providerController.getProviderProfile.bind(providerController));
 
 providerRouter.patch(
   '/profile/:id',
@@ -89,13 +84,11 @@ providerRouter.post(
 
 providerRouter.get(
   '/services',
+  validateQuery(listProviderOfferingsQuerySchema),
   offeringController.list.bind(offeringController),
 );
 
-providerRouter.get(
-  '/services/:id',
-  offeringController.getById.bind(offeringController),
-);
+providerRouter.get('/services/:id', offeringController.getById.bind(offeringController));
 
 // Booking quote: price from backend only (no auth; called by Booking service). GET /api/v1/provider/:providerId/services/:providerServiceId/booking-quote
 providerRouter.get(
@@ -109,10 +102,7 @@ providerRouter.patch(
   offeringController.update.bind(offeringController),
 );
 
-providerRouter.delete(
-  '/services/:id',
-  offeringController.delete.bind(offeringController),
-);
+providerRouter.delete('/services/:id', offeringController.delete.bind(offeringController));
 
 // Service persons (field workers) – only verified provider can create
 providerRouter.post(
@@ -123,6 +113,7 @@ providerRouter.post(
 
 providerRouter.get(
   '/service-people',
+  validateQuery(listServicePeopleQuerySchema),
   servicePersonController.list.bind(servicePersonController),
 );
 

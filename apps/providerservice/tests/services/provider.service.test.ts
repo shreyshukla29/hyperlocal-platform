@@ -4,7 +4,13 @@ import { ProviderService } from '../../src/service/provider.service.js';
 import { NotFoundError, BadRequestError, ForbiddenError } from '@hyperlocal/shared/errors';
 
 jest.mock('@hyperlocal/shared/logger', () => ({
-  logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn(), child: jest.fn() },
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+    child: jest.fn(),
+  },
 }));
 
 describe('ProviderService', () => {
@@ -35,7 +41,10 @@ describe('ProviderService', () => {
     });
 
     it('throws ForbiddenError when provider is inactive', async () => {
-      mockRepo.findByAuthIdentityId.mockResolvedValue({ isActive: false, isDeleted: false } as never);
+      mockRepo.findByAuthIdentityId.mockResolvedValue({
+        isActive: false,
+        isDeleted: false,
+      } as never);
       await expect(service.getProviderByAuthIdentityId('auth-123')).rejects.toThrow(ForbiddenError);
     });
 
@@ -49,27 +58,41 @@ describe('ProviderService', () => {
 
   describe('updateProviderProfile', () => {
     it('throws BadRequestError when providerId is empty', async () => {
-      await expect(service.updateProviderProfile('', { firstName: 'J' }, 'auth-123')).rejects.toThrow(BadRequestError);
+      await expect(
+        service.updateProviderProfile('', { firstName: 'J' }, 'auth-123'),
+      ).rejects.toThrow(BadRequestError);
     });
 
     it('throws BadRequestError when payload is empty', async () => {
-      await expect(service.updateProviderProfile('p1', {}, 'auth-123')).rejects.toThrow(BadRequestError);
+      await expect(service.updateProviderProfile('p1', {}, 'auth-123')).rejects.toThrow(
+        BadRequestError,
+      );
     });
 
     it('throws NotFoundError when provider not found', async () => {
       mockRepo.findById.mockResolvedValue(null);
-      await expect(service.updateProviderProfile('p1', { firstName: 'J' }, 'auth-123')).rejects.toThrow(NotFoundError);
+      await expect(
+        service.updateProviderProfile('p1', { firstName: 'J' }, 'auth-123'),
+      ).rejects.toThrow(NotFoundError);
     });
 
     it('throws ForbiddenError when updating another provider', async () => {
       mockRepo.findById.mockResolvedValue({ authIdentityId: 'other-auth' } as never);
-      await expect(service.updateProviderProfile('p1', { firstName: 'J' }, 'auth-123')).rejects.toThrow(ForbiddenError);
+      await expect(
+        service.updateProviderProfile('p1', { firstName: 'J' }, 'auth-123'),
+      ).rejects.toThrow(ForbiddenError);
     });
   });
 
   describe('getTopProvidersByLocation', () => {
     it('delegates to repository', async () => {
-      mockRepo.findTopByLocation.mockResolvedValue({ items: [], total: 0, page: 1, limit: 20, totalPages: 0 });
+      mockRepo.findTopByLocation.mockResolvedValue({
+        items: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+        totalPages: 0,
+      });
       const result = await service.getTopProvidersByLocation({});
       expect(mockRepo.findTopByLocation).toHaveBeenCalledWith({});
       expect(result).toMatchObject({ items: [], total: 0 });

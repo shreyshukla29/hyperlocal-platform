@@ -1,44 +1,39 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { logger } from '@hyperlocal/shared/logger';
-import { getAuthIdentityIdFromRequest } from '@hyperlocal/shared/constants';
 import { AuthService } from '../services/index.js';
-
 import {
   SignupRequest,
   LoginWithEmailRequest,
   LoginWithPhoneRequest,
   SendVerificationRequest,
   VerifyRequest,
+  RefreshRequest,
 } from '../types/index.js';
-import { ServerConfig } from '../config/index.js';
+import { setAuthCookie } from '../utils/index.js';
 
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  async signup(req: Request, res: Response, next: NextFunction): Promise<Response> {
+  async signup(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
-      const context = req.context;
-
       const payload: SignupRequest = req.body;
-
       const result = await this.authService.signup(payload);
 
       logger.info('Signup successful', {
-        context,
-        userId: result.userId,
+        context: req.context,
+        authId: result.data.authId,
       });
 
-        res.cookie('access_token', result.token, {
-      httpOnly: true,
-      secure: ServerConfig.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000, 
-    });
+      setAuthCookie(res, result.token);
 
       return res.status(StatusCodes.CREATED).json({
         success: true,
-        data: result.data,
+        data: {
+          ...result.data,
+          token: result.token,
+          refreshToken: result.refreshToken,
+        },
         error: null,
       });
     } catch (error) {
@@ -46,58 +41,51 @@ export class AuthController {
     }
   }
 
-  async loginWithEmail(req: Request, res: Response, next: NextFunction): Promise<Response> {
+  async loginWithEmail(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
-      const context = req.context;
       const payload: LoginWithEmailRequest = req.body;
-
       const result = await this.authService.loginWithEmail(payload);
 
       logger.info('Login with email successful', {
-        context,
-        userId: result.userId,
+        context: req.context,
+        authId: result.data.authId,
       });
 
-        res.cookie('access_token', result.token, {
-      httpOnly: true,
-      secure: ServerConfig.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000,
-    });
+      setAuthCookie(res, result.token);
 
       return res.status(StatusCodes.OK).json({
         success: true,
-        data: result.data,
+        data: {
+          ...result.data,
+          token: result.token,
+          refreshToken: result.refreshToken,
+        },
         error: null,
       });
     } catch (error) {
-      console.log(error)
       next(error);
     }
   }
 
-  async loginWithPhone(req: Request, res: Response, next: NextFunction): Promise<Response> {
+  async loginWithPhone(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
-      const context = req.context;
       const payload: LoginWithPhoneRequest = req.body;
-
       const result = await this.authService.loginWithPhone(payload);
 
       logger.info('Login with phone successful', {
-        context,
-        userId: result.userId,
+        context: req.context,
+        authId: result.data.authId,
       });
 
-        res.cookie('access_token', result.token, {
-      httpOnly: true,
-      secure: ServerConfig.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000,
-    });
+      setAuthCookie(res, result.token);
 
       return res.status(StatusCodes.OK).json({
         success: true,
-        data: result.data,
+        data: {
+          ...result.data,
+          token: result.token,
+          refreshToken: result.refreshToken,
+        },
         error: null,
       });
     } catch (error) {
@@ -105,21 +93,17 @@ export class AuthController {
     }
   }
 
-  async sendVerification(req: Request, res: Response, next: NextFunction): Promise<Response> {
+  async sendVerification(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> {
     try {
-      const identityId = getAuthIdentityIdFromRequest(req.headers);
-      if (!identityId) {
-        return res.status(StatusCodes.UNAUTHORIZED).json({
-          success: false,
-          data: null,
-          error: 'Authentication required',
-        });
-      }
       const payload = req.body as SendVerificationRequest;
-      await this.authService.sendVerification(identityId, payload);
+      const result = await this.authService.sendVerification(payload);
       return res.status(StatusCodes.OK).json({
         success: true,
-        data: { success: true },
+        data: { success: true, alreadyVerified: result.alreadyVerified ?? false },
         error: null,
       });
     } catch (error) {
@@ -127,13 +111,39 @@ export class AuthController {
     }
   }
 
-  async verify(req: Request, res: Response, next: NextFunction): Promise<Response> {
+  async verify(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const payload = req.body as VerifyRequest;
       await this.authService.verify(payload);
       return res.status(StatusCodes.OK).json({
         success: true,
         data: { success: true },
+        error: null,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async refresh(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
+    try {
+      const payload = req.body as RefreshRequest;
+      const result = await this.authService.refresh(payload);
+
+      logger.info('Refresh token successful', {
+        context: req.context,
+        authId: result.data.authId,
+      });
+
+      setAuthCookie(res, result.token);
+
+      return res.status(StatusCodes.OK).json({
+        success: true,
+        data: {
+          ...result.data,
+          token: result.token,
+          refreshToken: result.refreshToken,
+        },
         error: null,
       });
     } catch (error) {

@@ -12,11 +12,12 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test",
-    "lint": "turbo run lint",
     "format": "turbo run format",
+    "format:check": "turbo run format:check",
     "dev:gateway": "turbo run dev --filter=api-gateway"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.10.5",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
     "@types/http-proxy-middleware": "^0.19.3",

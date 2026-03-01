@@ -1,11 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { HEADERS } from '../constants/index.js';
 
-export function requestContextMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void {
+export function requestContextMiddleware(req: Request, res: Response, next: NextFunction): void {
   const correlationId = req.header(HEADERS.CORRELATION_ID);
   const sessionId = req.header(HEADERS.SESSION_ID);
 

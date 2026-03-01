@@ -1,23 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { UserService } from '../service/index.js';
 import { getAuthIdentityIdFromRequest } from '@hyperlocal/shared/constants';
+import { getRequestParam } from '@hyperlocal/shared/utils';
+import { UserService } from '../service/index.js';
 import { UpdateUserProfilePayload } from '../validators/index.js';
 
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  async getUserProfile(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<Response | void> {
+  async getUserProfile(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
 
-      const user = await this.userService.getUserByAuthIdentityId(
-        authIdentityId,
-      );
+      const user = await this.userService.getUserByAuthIdentityId(authIdentityId);
 
       return res.status(StatusCodes.OK).json({
         success: true,
@@ -35,15 +30,11 @@ export class UserController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const { id: userId } = req.params;
+      const userId = getRequestParam(req, 'id');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const payload = req.body as UpdateUserProfilePayload;
 
-      const user = await this.userService.updateUserProfile(
-        userId,
-        payload,
-        authIdentityId,
-      );
+      const user = await this.userService.updateUserProfile(userId, payload, authIdentityId);
 
       return res.status(StatusCodes.OK).json({
         success: true,
@@ -61,7 +52,7 @@ export class UserController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const { id: userId } = req.params;
+      const userId = getRequestParam(req, 'id');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const file = req.file;
 
@@ -87,13 +78,10 @@ export class UserController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const { id: userId } = req.params;
+      const userId = getRequestParam(req, 'id');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
 
-      const user = await this.userService.deleteUserAvatar(
-        userId,
-        authIdentityId,
-      );
+      const user = await this.userService.deleteUserAvatar(userId, authIdentityId);
 
       return res.status(StatusCodes.OK).json({
         success: true,

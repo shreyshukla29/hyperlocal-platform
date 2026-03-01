@@ -1,23 +1,20 @@
-import amqp, { Connection, Channel } from 'amqplib';
+import amqp, { Channel, ChannelModel } from 'amqplib';
 
-let connection: Connection | null = null;
+let connection: ChannelModel | null = null;
 
-export async function getRabbitConnection(
-  url: string,
-): Promise<Connection> {
-  if (!connection) {
-    connection = await amqp.connect(url);
-
-    connection.on('error', () => {
+export async function getRabbitConnection(url: string): Promise<ChannelModel> {
+  let conn = connection;
+  if (!conn) {
+    conn = await amqp.connect(url);
+    connection = conn;
+    conn.on('error', () => {
       connection = null;
     });
-
-    connection.on('close', () => {
+    conn.on('close', () => {
       connection = null;
     });
   }
-
-  return connection;
+  return conn;
 }
 
 export async function createChannel(url: string): Promise<Channel> {

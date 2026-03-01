@@ -1,5 +1,9 @@
 import express from 'express';
-import { requestContextMiddleware, errorMiddleware, rateLimitMiddleware } from './middlewares/index.js';
+import {
+  requestContextMiddleware,
+  errorMiddleware,
+  rateLimitMiddleware,
+} from './middlewares/index.js';
 import { rootRouter } from './routes/index.js';
 import { healthRouter } from './routes/health.route.js';
 import { docsRouter } from './routes/docs.route.js';

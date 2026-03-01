@@ -39,9 +39,9 @@ OTPs expire after **15 minutes** (`OTP_TTL_MS` in `src/utils/otp.ts`). Validity:
 ## Refund policy
 
 - **Provider cancels**: Full refund.
-- **User cancels**:  
-  - 24+ hours before slot: 100%  
-  - 12–24 hours before slot: 50%  
+- **User cancels**:
+  - 24+ hours before slot: 100%
+  - 12–24 hours before slot: 50%
   - Less than 12 hours: 0%
 
 ## API (via gateway)

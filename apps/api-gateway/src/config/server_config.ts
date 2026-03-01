@@ -15,8 +15,7 @@ interface ServerConfigType {
   NODE_ENV: string;
   JWT_SECRET: string;
   services: ServicesConfig;
-  GATEWAY_API_KEY: string,
-
+  GATEWAY_API_KEY: string;
 }
 
 const required = (key: string): string => {

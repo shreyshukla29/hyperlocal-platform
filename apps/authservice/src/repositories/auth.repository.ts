@@ -1,4 +1,4 @@
-import { prisma } from '../config/index.js';
+import { prisma as defaultPrisma } from '../config/index.js';
 import {
   Identity,
   IdentityVerification,
@@ -10,10 +10,10 @@ import { CreateIdentityInput, LoginLookupInput } from '../types/index.js';
 import { normalizeEmail, normalizePhone } from '../utils/index.js';
 
 export class AuthRepository {
-
+  constructor(private prisma = defaultPrisma) {}
 
   async createIdentity(input: CreateIdentityInput): Promise<Identity> {
-    return prisma.identity.create({
+    return this.prisma.identity.create({
       data: {
         email: input.email ? normalizeEmail(input.email) : null,
         phone: input.phone ? normalizePhone(input.phone) : null,
@@ -23,19 +23,14 @@ export class AuthRepository {
     });
   }
 
-
-
   async findById(identityId: string): Promise<Identity | null> {
-    return prisma.identity.findUnique({
+    return this.prisma.identity.findUnique({
       where: { id: identityId },
     });
   }
 
-  async findByEmail(
-    email: string,
-    accountType: AccountType,
-  ): Promise<Identity | null> {
-    return prisma.identity.findUnique({
+  async findByEmail(email: string, accountType: AccountType): Promise<Identity | null> {
+    return this.prisma.identity.findUnique({
       where: {
         email_accountType: {
           email: normalizeEmail(email),
@@ -45,11 +40,8 @@ export class AuthRepository {
     });
   }
 
-  async findByPhone(
-    phone: string,
-    accountType: AccountType,
-  ): Promise<Identity | null> {
-    return prisma.identity.findUnique({
+  async findByPhone(phone: string, accountType: AccountType): Promise<Identity | null> {
+    return this.prisma.identity.findUnique({
       where: {
         phone_accountType: {
           phone: normalizePhone(phone),
@@ -58,8 +50,6 @@ export class AuthRepository {
       },
     });
   }
-
-
 
   async findForLogin(input: LoginLookupInput): Promise<Identity | null> {
     const { email, phone, accountType } = input;
@@ -79,30 +69,26 @@ export class AuthRepository {
     return null;
   }
 
-
-
   async deactivateIdentity(identityId: string): Promise<void> {
-    await prisma.identity.update({
+    await this.prisma.identity.update({
       where: { id: identityId },
       data: { isActive: false },
     });
   }
 
   async activateIdentity(identityId: string): Promise<void> {
-    await prisma.identity.update({
+    await this.prisma.identity.update({
       where: { id: identityId },
       data: { isActive: true },
     });
   }
-
-
 
   async createVerification(
     identityId: string,
     type: VerificationType,
     value: string,
   ): Promise<IdentityVerification> {
-    return prisma.identityVerification.create({
+    return this.prisma.identityVerification.create({
       data: {
         identityId,
         type,
@@ -115,10 +101,27 @@ export class AuthRepository {
     type: VerificationType,
     value: string,
   ): Promise<IdentityVerification | null> {
-    return prisma.identityVerification.findFirst({
+    return this.prisma.identityVerification.findFirst({
       where: {
         type,
         value: type === VerificationType.EMAIL ? normalizeEmail(value) : normalizePhone(value),
+        verifiedAt: null,
+      },
+    });
+  }
+
+  async findPendingByIdentityTypeValue(
+    identityId: string,
+    type: VerificationType,
+    value: string,
+  ): Promise<IdentityVerification | null> {
+    const normalizedValue =
+      type === VerificationType.EMAIL ? normalizeEmail(value) : normalizePhone(value);
+    return this.prisma.identityVerification.findFirst({
+      where: {
+        identityId,
+        type,
+        value: normalizedValue,
         verifiedAt: null,
       },
     });
@@ -134,7 +137,7 @@ export class AuthRepository {
     const normalizedValue =
       type === VerificationType.EMAIL ? normalizeEmail(value) : normalizePhone(value);
 
-    const existing = await prisma.identityVerification.findFirst({
+    const existing = await this.prisma.identityVerification.findFirst({
       where: {
         identityId,
         type,
@@ -144,13 +147,13 @@ export class AuthRepository {
     });
 
     if (existing) {
-      return prisma.identityVerification.update({
+      return this.prisma.identityVerification.update({
         where: { id: existing.id },
         data: { otpHash, otpExpiresAt },
       });
     }
 
-    return prisma.identityVerification.create({
+    return this.prisma.identityVerification.create({
       data: {
         identityId,
         type,
@@ -161,11 +164,8 @@ export class AuthRepository {
     });
   }
 
-  async isVerified(
-    identityId: string,
-    type: VerificationType,
-  ): Promise<boolean> {
-    const record = await prisma.identityVerification.findFirst({
+  async isVerified(identityId: string, type: VerificationType): Promise<boolean> {
+    const record = await this.prisma.identityVerification.findFirst({
       where: {
         identityId,
         type,
@@ -177,11 +177,8 @@ export class AuthRepository {
     return Boolean(record);
   }
 
-  async markVerified(
-    identityId: string,
-    type: VerificationType,
-  ): Promise<void> {
-    await prisma.identityVerification.updateMany({
+  async markVerified(identityId: string, type: VerificationType): Promise<void> {
+    await this.prisma.identityVerification.updateMany({
       where: {
         identityId,
         type,
@@ -193,12 +190,8 @@ export class AuthRepository {
     });
   }
 
-
-  async existsByEmail(
-    email: string,
-    accountType: AccountType,
-  ): Promise<boolean> {
-    const record = await prisma.identity.findUnique({
+  async existsByEmail(email: string, accountType: AccountType): Promise<boolean> {
+    const record = await this.prisma.identity.findUnique({
       where: {
         email_accountType: {
           email: normalizeEmail(email),
@@ -211,11 +204,8 @@ export class AuthRepository {
     return Boolean(record);
   }
 
-  async existsByPhone(
-    phone: string,
-    accountType: AccountType,
-  ): Promise<boolean> {
-    const record = await prisma.identity.findUnique({
+  async existsByPhone(phone: string, accountType: AccountType): Promise<boolean> {
+    const record = await this.prisma.identity.findUnique({
       where: {
         phone_accountType: {
           phone: normalizePhone(phone),
@@ -228,10 +218,8 @@ export class AuthRepository {
     return Boolean(record);
   }
 
-
-
   async getIdentityWithVerifications(identityId: string) {
-    return prisma.identity.findUnique({
+    return this.prisma.identity.findUnique({
       where: { id: identityId },
       include: {
         verifications: true,
