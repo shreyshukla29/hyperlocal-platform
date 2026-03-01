@@ -61,11 +61,11 @@ jobs:
       - run: npm ci
       - name: Generate Prisma clients
         run: |
-          npx prisma generate --schema=apps/authservice/prisma/schema.prisma
-          npx prisma generate --schema=apps/bookingservice/prisma/schema.prisma
-          npx prisma generate --schema=apps/notificationservice/prisma/schema.prisma
-          npx prisma generate --schema=apps/providerservice/prisma/schema.prisma
-          npx prisma generate --schema=apps/userservice/prisma/schema.prisma
+          # npx prisma generate --schema=apps/authservice/prisma/schema.prisma
+          # npx prisma generate --schema=apps/bookingservice/prisma/schema.prisma
+          # npx prisma generate --schema=apps/notificationservice/prisma/schema.prisma
+          # npx prisma generate --schema=apps/providerservice/prisma/schema.prisma
+          # npx prisma generate --schema=apps/userservice/prisma/schema.prisma
       - run: npm run build
 
   test-authservice:
