@@ -57,7 +57,12 @@ export class SearchRepository {
 
     const whereBase: {
       status: (typeof ProviderServiceStatus)[keyof typeof ProviderServiceStatus];
-      provider: { isActive: boolean; isDeleted: boolean; verificationStatus?: string; city?: { equals: string; mode: 'insensitive' } };
+      provider: {
+        isActive: boolean;
+        isDeleted: boolean;
+        verificationStatus?: string;
+        city?: { equals: string; mode: 'insensitive' };
+      };
     } = {
       status: ProviderServiceStatus.ACTIVE,
       provider: { isActive: true, isDeleted: false },
@@ -121,7 +126,12 @@ export class SearchRepository {
 
     const where: {
       status: (typeof ProviderServiceStatus)[keyof typeof ProviderServiceStatus];
-      provider: { isActive: boolean; isDeleted: boolean; verificationStatus?: string; city?: { equals: string; mode: 'insensitive' } };
+      provider: {
+        isActive: boolean;
+        isDeleted: boolean;
+        verificationStatus?: string;
+        city?: { equals: string; mode: 'insensitive' };
+      };
     } = {
       status: ProviderServiceStatus.ACTIVE,
       provider: { isActive: true, isDeleted: false },

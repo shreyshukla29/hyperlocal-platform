@@ -61,9 +61,7 @@ export class BookingController {
         });
       }
       const parsed = listBookingsQuerySchema.safeParse(req.query);
-      const query = parsed.success
-        ? (parsed.data as unknown as ListBookingsQuery)
-        : undefined;
+      const query = parsed.success ? (parsed.data as unknown as ListBookingsQuery) : undefined;
       const data = await this.bookingService.listByUser(userAuthId, query);
       return res.status(StatusCodes.OK).json({
         success: true,
@@ -86,9 +84,7 @@ export class BookingController {
         });
       }
       const parsed = listBookingsQuerySchema.safeParse(req.query);
-      const query = parsed.success
-        ? (parsed.data as unknown as ListBookingsQuery)
-        : undefined;
+      const query = parsed.success ? (parsed.data as unknown as ListBookingsQuery) : undefined;
       const data = await this.bookingService.listByProvider(providerId, query);
       return res.status(StatusCodes.OK).json({
         success: true,

@@ -10,7 +10,9 @@ export class FavouriteController {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
       const providerIdRaw = req.body?.providerId ?? req.params?.providerId;
-      const providerId = Array.isArray(providerIdRaw) ? providerIdRaw[0] ?? '' : (providerIdRaw ?? '');
+      const providerId = Array.isArray(providerIdRaw)
+        ? (providerIdRaw[0] ?? '')
+        : (providerIdRaw ?? '');
       if (!userAuthId || !providerId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,
@@ -56,7 +58,7 @@ export class FavouriteController {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
       const providerId = Array.isArray(req.params.providerId)
-        ? req.params.providerId[0] ?? ''
+        ? (req.params.providerId[0] ?? '')
         : (req.params.providerId ?? '');
       if (!userAuthId || !providerId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
