@@ -41,7 +41,7 @@ export class NotificationController {
   ): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
-      const { id } = req.params;
+      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
       if (!userAuthId || !id) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,
@@ -67,7 +67,7 @@ export class NotificationController {
   ): Promise<Response | void> {
     try {
       const userAuthId = getAuthIdentityIdFromRequest(req.headers);
-      const { id } = req.params;
+      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
       if (!userAuthId || !id) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,

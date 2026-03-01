@@ -1,4 +1,5 @@
 import { createChannel } from '@hyperlocal/shared/rabbitmq';
+import type { ConsumeMessage } from 'amqplib';
 import { logger } from '@hyperlocal/shared/logger';
 import { ServerConfig } from '../config/index.js';
 import {
@@ -30,6 +31,8 @@ function parsePayload(msg: Buffer): RawNotificationPayload {
   };
 }
 
+type AmqpChannel = Awaited<ReturnType<typeof createChannel>>;
+
 export async function startNotificationConsumer(): Promise<void> {
   if (!ServerConfig.RABBITMQ_URL) {
     logger.info('RABBITMQ_URL not set, notification consumer skipped');
@@ -39,11 +42,11 @@ export async function startNotificationConsumer(): Promise<void> {
   initDefaultChannels();
   const registry = getRegistry();
 
-  let channel;
+  let channel: AmqpChannel | undefined;
   try {
     channel = await createChannel(ServerConfig.RABBITMQ_URL);
 
-    channel.on('error', (err : unknown) => {
+    channel.on('error', (err: unknown) => {
       logger.error('Notification consumer channel error', err);
     });
 
@@ -59,8 +62,8 @@ export async function startNotificationConsumer(): Promise<void> {
 
     await channel.consume(
       NOTIFICATION_QUEUE,
-      async (msg) => {
-        if (!msg) return;
+      async (msg: ConsumeMessage | null) => {
+        if (!msg || !channel) return;
         try {
           const raw = parsePayload(msg.content);
           const payload = normalizePayload(raw);

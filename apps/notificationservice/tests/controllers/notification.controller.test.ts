@@ -53,7 +53,7 @@ describe('NotificationController', () => {
         mockResponse as Response,
         mockNext,
       );
-      expect(mockService.listByUser).toHaveBeenCalledWith('auth-123', undefined);
+      expect(mockService.listByUser).toHaveBeenCalledWith('auth-123', { unreadOnly: false });
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
     });
   });
