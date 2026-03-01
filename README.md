@@ -205,8 +205,8 @@ From the **repository root** (Turbo runs across workspaces).
 | Command | Description |
 |--------|-------------|
 | `npm ci` | Install dependencies (all workspaces) |
-| `npm run lint` | Lint all apps and shared |
-| `npm run format` | Format with Prettier |
+| `npm run format` | Format all with Prettier (writes files) |
+| `npm run format:check` | Check if code is formatted (no writes; use in CI) |
 | `npm run build` | Build all (run Prisma generate first if needed) |
 | `npm run test` | Run all tests |
 | `npm run dev` | Run all services in dev |
@@ -216,7 +216,8 @@ From the **repository root** (Turbo runs across workspaces).
 
 | Task | From root | From app dir |
 |------|-----------|--------------|
-| Lint | `npm run lint --workspace=authservice` | `npm run lint` |
+| Format check (no writes) | `npm run format:check --workspace=authservice` | `npm run format:check` |
+| Format (writes files) | `npm run format --workspace=authservice` | `npm run format` |
 | Build | `npm run build --workspace=authservice` | `npm run build` |
 | Test | `npm run test --workspace=authservice` | `npm run test` |
 | Dev | `npm run dev -- --filter=authservice` | `npm run dev` |
@@ -280,8 +281,8 @@ Use `.env` in each app or set in Docker/Compose.
 
 ## CI/CD
 
-- **Lint**: On every push/PR.
-- **Build**: After lint; Prisma generate then build all.
+- **Format check**: On every push/PR; runs `prettier --check` (no file changes).
+- **Build**: After format-check; Prisma generate then build all.
 - **Test**: Per-service jobs (auth, booking, notification, provider, user) only when that app or `packages/shared` changes; API Gateway has no unit tests in this pipeline.
 - **Docker**: On `main` (and on manual workflow run), build and push images to **GitHub Container Registry** (`ghcr.io/<org>/<repo>/<service>:latest` and `:<sha>`). Uses `GITHUB_TOKEN`; no extra config.
 - **Deploy**: Runs only when the workflow is triggered **manually** (Actions → Run workflow). Placeholder; add your deploy steps there.
@@ -301,8 +302,8 @@ Use `.env` in each app or set in Docker/Compose.
 | What | Where / Command |
 |------|------------------|
 | Swagger | http://localhost:3000/api-docs |
-| Lint | `npm run lint` |
-| Format | `npm run format` |
+| Format check (CI) | `npm run format:check` |
+| Format (write) | `npm run format` |
 | Build | Prisma generate (see above) then `npm run build` |
 | Test | `npm run test` or `npm run test --workspace=<app>` |
 | Dev (all) | `npm run dev` |
