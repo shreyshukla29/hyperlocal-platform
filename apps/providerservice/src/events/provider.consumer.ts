@@ -1,3 +1,4 @@
+import type { Channel } from 'amqplib';
 import { createChannel } from '@hyperlocal/shared/rabbitmq';
 import { AUTH_EXCHANGE, ROUTING_KEYS } from '@hyperlocal/shared/constants';
 import { UserSignedUpEvent, MessageMetadata } from '@hyperlocal/shared/events';
@@ -50,7 +51,7 @@ export async function startProviderSignedUpConsumer(): Promise<void> {
   const providerRepository = new ProviderRepository();
   const providerService = new ProviderService(providerRepository);
 
-  let channel;
+  let channel: Channel | undefined;
 
   try {
     channel = await createChannel(ServerConfig.RABBITMQ_URL);
@@ -94,7 +95,7 @@ export async function startProviderSignedUpConsumer(): Promise<void> {
     channel.consume(
       MAIN_QUEUE,
       async (msg) => {
-        if (!msg) return;
+        if (!msg || !channel) return;
 
         try {
           const { payload, metadata } = parseMessage(msg.content);

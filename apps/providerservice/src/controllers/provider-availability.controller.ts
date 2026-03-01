@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { getRequestParam } from '@hyperlocal/shared/utils';
 import { ProviderAvailabilityService } from '../service/provider-availability.service.js';
 
 export class ProviderAvailabilityController {
@@ -11,7 +12,7 @@ export class ProviderAvailabilityController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const { providerId } = req.params;
+      const providerId = getRequestParam(req, 'providerId');
       const date = (req.query.date as string) ?? new Date().toISOString().slice(0, 10);
       if (!providerId) {
         return res.status(StatusCodes.BAD_REQUEST).json({

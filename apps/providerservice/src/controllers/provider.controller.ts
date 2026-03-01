@@ -5,6 +5,7 @@ import {
   getAuthIdentityIdFromRequest,
   getAccountTypeFromRequest,
 } from '@hyperlocal/shared/constants';
+import { getRequestParam } from '@hyperlocal/shared/utils';
 import { ProviderService } from '../service/index.js';
 import {
   UpdateProviderProfilePayload,
@@ -57,7 +58,7 @@ export class ProviderController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const { id: providerId } = req.params;
+      const providerId = getRequestParam(req, 'id');
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
       const payload = req.body as UpdateProviderProfilePayload;
 
@@ -88,7 +89,7 @@ export class ProviderController {
       if (accountType !== 'ADMIN') {
         throw new ForbiddenError('Admin account type required to update verification status');
       }
-      const { providerId } = req.params;
+      const providerId = getRequestParam(req, 'providerId');
       const payload = req.body as UpdateVerificationStatusPayload;
 
       const provider = await this.providerService.updateVerificationStatus(

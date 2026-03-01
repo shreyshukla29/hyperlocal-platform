@@ -7,6 +7,7 @@ import type {
   ProviderOfferingResponse,
 } from '../types/provider-offering.types.js';
 import { ProviderServiceStatus } from '../enums/index.js';
+import { ProviderServiceStatus as PrismaProviderServiceStatus } from '../generated/prisma/enums.js';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
@@ -20,7 +21,7 @@ function toResponse(row: {
   category: string | null;
   price: { toString(): string };
   durationMinutes: number | null;
-  status: ProviderServiceStatus;
+  status: string;
   createdAt: Date;
   updatedAt: Date;
 }): ProviderOfferingResponse {
@@ -35,7 +36,7 @@ function toResponse(row: {
         ? row.price.toString()
         : String(row.price),
     durationMinutes: row.durationMinutes,
-    status: row.status,
+    status: row.status as ProviderServiceStatus,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -53,7 +54,7 @@ export class ProviderOfferingRepository {
         category: payload.category ?? null,
         price: payload.price,
         durationMinutes: payload.durationMinutes ?? null,
-        status: payload.status ?? ProviderServiceStatus.ACTIVE,
+        status: payload.status ?? PrismaProviderServiceStatus.ACTIVE,
       },
     });
     return toResponse(row);
@@ -79,11 +80,14 @@ export class ProviderOfferingRepository {
     const limit = Math.min(MAX_LIMIT, Math.max(1, query?.limit ?? DEFAULT_LIMIT));
     const skip = (page - 1) * limit;
 
-    const where: { providerId: string; status?: ProviderServiceStatus } = {
+    const where: {
+      providerId: string;
+      status?: PrismaProviderServiceStatus;
+    } = {
       providerId,
     };
     if (query?.status !== undefined) {
-      where.status = query.status;
+      where.status = query.status as PrismaProviderServiceStatus;
     }
 
     const [items, total] = await Promise.all([
@@ -114,7 +118,9 @@ export class ProviderOfferingRepository {
         ...(payload.category !== undefined && { category: payload.category }),
         ...(payload.price !== undefined && { price: payload.price }),
         ...(payload.durationMinutes !== undefined && { durationMinutes: payload.durationMinutes }),
-        ...(payload.status !== undefined && { status: payload.status }),
+        ...(payload.status !== undefined && {
+          status: payload.status as PrismaProviderServiceStatus,
+        }),
         updatedAt: new Date(),
       },
     });

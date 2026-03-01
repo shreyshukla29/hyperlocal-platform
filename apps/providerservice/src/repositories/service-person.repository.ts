@@ -1,5 +1,6 @@
 import { prisma as defaultPrisma } from '../config/index.js';
 import { ServicePerson } from '../generated/prisma/client.js';
+import { ServicePersonStatus } from '../generated/prisma/enums.js';
 import {
   CreateServicePersonPayload,
   UpdateServicePersonRepositoryPayload,
@@ -95,11 +96,11 @@ export class ServicePersonRepository {
   > {
     const where: {
       providerId: string;
-      status?: unknown;
+      status?: ServicePersonStatus;
       isActive?: boolean;
       servicePersonProviderServices?: { some: { providerServiceId: string } };
     } = { providerId };
-    if (query?.status !== undefined) where.status = query.status;
+    if (query?.status !== undefined) where.status = query.status as ServicePersonStatus;
     if (query?.isActive !== undefined) where.isActive = query.isActive;
     if (query?.providerServiceId) {
       where.servicePersonProviderServices = {

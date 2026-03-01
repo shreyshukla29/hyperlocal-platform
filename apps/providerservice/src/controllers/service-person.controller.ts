@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { getRequestParam, getAuthIdentityIdFromRequest } from '@hyperlocal/shared';
 import { ServicePersonService } from '../service/service-person.service.js';
-import { getAuthIdentityIdFromRequest } from '@hyperlocal/shared/constants';
 import { listServicePeopleQuerySchema } from '../validators/index.js';
+import type { UpdateServicePersonStatusPayload } from '../validators/index.js';
+import { updateServicePersonStatusSchema } from '../validators/index.js';
 
 export class ServicePersonController {
   constructor(private readonly servicePersonService: ServicePersonService) {}
@@ -56,7 +58,7 @@ export class ServicePersonController {
   async getById(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: servicePersonId } = req.params;
+      const servicePersonId = getRequestParam(req, 'id');
       if (!authIdentityId || !servicePersonId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,
@@ -78,7 +80,7 @@ export class ServicePersonController {
   async update(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: servicePersonId } = req.params;
+      const servicePersonId = getRequestParam(req, 'id');
       const payload = req.body;
       if (!authIdentityId || !servicePersonId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
@@ -101,8 +103,8 @@ export class ServicePersonController {
   async updateStatus(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: servicePersonId } = req.params;
-      const payload = req.body as { status: string };
+      const servicePersonId = getRequestParam(req, 'id');
+      const parsed = updateServicePersonStatusSchema.safeParse(req.body);
       if (!authIdentityId || !servicePersonId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,
@@ -110,10 +112,17 @@ export class ServicePersonController {
           error: { message: 'Auth identity ID and service person ID are required' },
         });
       }
+      if (!parsed.success) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          success: false,
+          data: null,
+          error: { message: parsed.error.message ?? 'Invalid body' },
+        });
+      }
       const data = await this.servicePersonService.updateStatus(
         servicePersonId,
         authIdentityId,
-        payload,
+        parsed.data,
       );
       return res.status(StatusCodes.OK).json({
         success: true,
@@ -128,7 +137,7 @@ export class ServicePersonController {
   async deactivate(req: Request, res: Response, next: NextFunction): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: servicePersonId } = req.params;
+      const servicePersonId = getRequestParam(req, 'id');
       if (!authIdentityId || !servicePersonId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,

@@ -79,7 +79,7 @@ export class ProviderOfferingService {
           ? record.price.toString()
           : String(record.price),
       durationMinutes: record.durationMinutes,
-      status: record.status,
+      status: record.status as ProviderServiceStatus,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
     };

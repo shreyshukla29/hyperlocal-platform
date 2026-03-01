@@ -48,9 +48,21 @@ export class ProviderRepository {
     providerId: string,
     payload: UpdateProviderRepositoryPayload,
   ): Promise<Provider> {
+    const data: Record<string, unknown> = { updatedAt: new Date() };
+    if (payload.firstName !== undefined) data.firstName = payload.firstName;
+    if (payload.lastName !== undefined) data.lastName = payload.lastName ?? undefined;
+    if (payload.email !== undefined) data.email = payload.email;
+    if (payload.phone !== undefined) data.phone = payload.phone;
+    if (payload.avatarUrl !== undefined) data.avatarUrl = payload.avatarUrl;
+    if (payload.businessName !== undefined) data.businessName = payload.businessName;
+    if (payload.businessAddress !== undefined) data.businessAddress = payload.businessAddress;
+    if (payload.latitude !== undefined) data.latitude = payload.latitude;
+    if (payload.longitude !== undefined) data.longitude = payload.longitude;
+    if (payload.city !== undefined) data.city = payload.city;
+    if (payload.isActive !== undefined) data.isActive = payload.isActive;
     return this.prisma.provider.update({
       where: { id: providerId },
-      data: { ...payload, updatedAt: new Date() },
+      data: data as Parameters<typeof this.prisma.provider.update>[0]['data'],
     });
   }
 
@@ -106,13 +118,11 @@ export class ProviderRepository {
           city: true,
           latitude: true,
           longitude: true,
-          averageRating: true,
-          reviewCount: true,
           verificationStatus: true,
           availabilityStatus: true,
           createdAt: true,
         },
-        orderBy: [{ averageRating: 'desc' }, { verificationStatus: 'desc' }, { createdAt: 'desc' }],
+        orderBy: [{ verificationStatus: 'desc' }, { createdAt: 'desc' }],
         skip,
         take: limit,
       }),
@@ -125,10 +135,10 @@ export class ProviderRepository {
       city: row.city,
       latitude: row.latitude,
       longitude: row.longitude,
-      averageRating: row.averageRating,
-      reviewCount: row.reviewCount ?? 0,
-      verificationStatus: row.verificationStatus,
-      availabilityStatus: row.availabilityStatus,
+      averageRating: null,
+      reviewCount: 0,
+      verificationStatus: row.verificationStatus as TopProviderListItem['verificationStatus'],
+      availabilityStatus: row.availabilityStatus as TopProviderListItem['availabilityStatus'],
       createdAt: row.createdAt,
     }));
 
