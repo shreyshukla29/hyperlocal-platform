@@ -20,7 +20,7 @@ export function jwtAuthMiddleware(req: Request, res: Response, next: NextFunctio
     logger.info('JWT authenticated', {
       correlationId: req.context.correlationId,
       sessionId: req.context.sessionId,
-      userId: payload.userId,
+      userId: (payload as { authId?: string }).authId ?? payload.sub,
     });
     next();
   } catch (error) {

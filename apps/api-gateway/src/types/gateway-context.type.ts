@@ -1,3 +1,5 @@
+import type { JwtPayload } from 'jsonwebtoken';
+
 export interface GatewayRequestContext {
   correlationId: string;
   sessionId: string;

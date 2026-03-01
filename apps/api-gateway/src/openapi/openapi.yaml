@@ -222,7 +222,7 @@ paths:
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
 
   # ---- Address (JWT) ----
-  /user/{userId}/addresses:
+  /address/user/{userId}/addresses:
     get:
       tags: [Address]
       summary: List addresses
@@ -263,7 +263,7 @@ paths:
         "201": { description: "Created" }
         "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  /user/{userId}/addresses/current-location:
+  /address/user/{userId}/addresses/current-location:
     get:
       tags: [Address]
       summary: Get current location
@@ -299,7 +299,7 @@ paths:
         "200": { description: "OK" }
         "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  /user/{userId}/addresses/default:
+  /address/user/{userId}/addresses/default:
     get:
       tags: [Address]
       summary: Get default address
@@ -312,7 +312,7 @@ paths:
       responses:
         "200": { description: "OK" }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  /user/{userId}/addresses/{addressId}:
+  /address/user/{userId}/addresses/{addressId}:
     patch:
       tags: [Address]
       summary: Update address
@@ -360,7 +360,7 @@ paths:
       responses:
         "200": { description: "OK" }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  /user/{userId}/addresses/{addressId}/default:
+  /address/user/{userId}/addresses/{addressId}/default:
     patch:
       tags: [Address]
       summary: Set default address
@@ -432,7 +432,8 @@ paths:
   /provider/{providerId}/verification:
     patch:
       tags: [Provider]
-      summary: Update verification status (admin)
+      summary: Update verification status (admin only)
+      description: Requires identity with accountType ADMIN (single account type from auth DB). When setting status to VERIFIED, verifiedBy (admin auth identity id) is required; verifiedAt is set server-side.
       security: [{ bearerAuth: [] }]
       parameters:
         - name: providerId
@@ -440,17 +441,20 @@ paths:
           required: true
           schema: { type: string, format: uuid }
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               type: object
-              required: [status]
+              required: [verificationStatus]
               properties:
-                status: { type: string, enum: [VERIFIED, PENDING, REJECTED] }
+                verificationStatus: { type: string, enum: [VERIFIED, PENDING, REJECTED] }
+                verifiedBy: { type: string, description: "Admin auth identity id; required when verificationStatus is VERIFIED" }
       responses:
         "200": { description: "OK" }
         "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
+        "403": { description: "Forbidden - Admin account type required", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
   /provider/{providerId}/availability/open-intervals:
     get:
       tags: [Provider]
@@ -658,7 +662,7 @@ paths:
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
 
   # ---- Booking (JWT) ----
-  /booking:
+  /bookings:
     get:
       tags: [Booking]
       summary: List my bookings (paginated, optional status filter)
@@ -713,7 +717,7 @@ paths:
         "201": { description: "Created" }
         "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  /booking/available-slots:
+  /bookings/available-slots:
     get:
       tags: [Booking]
       summary: Get available slots for a provider on a date
@@ -733,7 +737,7 @@ paths:
       responses:
         "200": { description: "OK" }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  /booking/reviews:
+  /bookings/reviews:
     get:
       tags: [Booking]
       summary: List reviews by provider
@@ -755,7 +759,7 @@ paths:
       responses:
         "200": { description: "OK" }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  /booking/{id}:
+  /bookings/{id}:
     get:
       tags: [Booking]
       summary: Get my booking by id
@@ -789,7 +793,7 @@ paths:
         "200": { description: "OK" }
         "400": { description: "Bad request", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  /booking/{id}/verify-completion:
+  /bookings/{id}/verify-completion:
     post:
       tags: [Booking]
       summary: Verify completion OTP to mark booking completed
@@ -812,7 +816,7 @@ paths:
         "200": { description: "OK" }
         "400": { description: "Invalid OTP", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  /booking/{id}/review:
+  /bookings/{id}/review:
     post:
       tags: [Booking]
       summary: Add review for completed booking (one per booking)
@@ -836,8 +840,8 @@ paths:
         "201": { description: "Created" }
         "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  # Provider booking routes (gateway path is /booking/provider -> backend /bookings/provider)
-  /booking/provider:
+  # Provider booking routes (gateway path is /bookings/provider -> backend /bookings/provider)
+  /bookings/provider:
     get:
       tags: [Booking]
       summary: List provider bookings
@@ -863,7 +867,7 @@ paths:
       responses:
         "200": { description: "OK" }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  /booking/provider/{id}:
+  /bookings/provider/{id}:
     get:
       tags: [Booking]
       summary: Get booking by id (provider)
@@ -889,7 +893,7 @@ paths:
       responses:
         "200": { description: "OK" }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  /booking/provider/{id}/assign:
+  /bookings/provider/{id}/assign:
     patch:
       tags: [Booking]
       summary: Assign service person to booking
@@ -912,7 +916,7 @@ paths:
         "200": { description: "OK" }
         "400": { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  /booking/provider/{id}/confirm-arrival:
+  /bookings/provider/{id}/confirm-arrival:
     post:
       tags: [Booking]
       summary: Confirm arrival (OTP)
@@ -935,7 +939,7 @@ paths:
         "200": { description: "OK" }
         "400": { description: "Invalid OTP", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  /booking/provider/{id}/mark-complete:
+  /bookings/provider/{id}/mark-complete:
     post:
       tags: [Booking]
       summary: Mark booking complete
@@ -995,7 +999,7 @@ paths:
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
 
   # ---- Notification (JWT) ----
-  /notification:
+  /notifications:
     get:
       tags: [Notification]
       summary: List my notifications
@@ -1010,7 +1014,7 @@ paths:
       responses:
         "200": { description: "OK" }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  /notification/read-all:
+  /notifications/read-all:
     patch:
       tags: [Notification]
       summary: Mark all as read
@@ -1018,7 +1022,7 @@ paths:
       responses:
         "200": { description: "OK" }
         "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } }
-  /notification/{id}:
+  /notifications/{id}:
     get:
       tags: [Notification]
       summary: Get notification by id

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { GatewayError } from '../errors/index.js';
 import { logger } from '@hyperlocal/shared/logger';
 
@@ -6,7 +6,7 @@ export function errorMiddleware(
   err: unknown,
   req: Request,
   res: Response,
-_next: NextFunction,
+  _next: NextFunction,
 ): void {
   let statusCode = 500;
   let message = 'Internal gateway error';
@@ -19,7 +19,7 @@ _next: NextFunction,
   if (err instanceof Error && statusCode === 500) {
     message = err.message;
   }
-console.log(err)
+
   logger.error('Gateway request failed', {
     statusCode,
     errorMessage: err instanceof Error ? err.message : 'Unknown error',
