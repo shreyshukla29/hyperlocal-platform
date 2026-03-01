@@ -8,8 +8,8 @@ jest.mock('../../src/config/index', () => ({ prisma: {}, ServerConfig: { PROVIDE
 jest.mock('../../src/utils/index.js', () => ({
   getBookingQuote: jest.fn().mockResolvedValue({ pricePaise: 10000 }),
   getProviderOpenIntervals: jest.fn().mockResolvedValue([]),
-  createRazorpayOrder: jest.fn().mockResolvedValue({ orderId: 'order_1', amountPaise: 10000 }),
-  createRazorpayRefund: jest.fn().mockResolvedValue({ refundId: 'rf_1' }),
+  createRazorpayOrder: jest.fn().mockResolvedValue({ id: 'order_1', amount: 10000, currency: 'INR', receipt: 'r1', status: 'created' }),
+  createRazorpayRefund: jest.fn().mockResolvedValue({ id: 'rf_1', payment_id: 'pay_1', amount: 0, status: 'processed' }),
 }));
 jest.mock('../../src/events/index.js', () => ({ publishNotification: jest.fn() }));
 

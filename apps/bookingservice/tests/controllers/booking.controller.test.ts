@@ -87,7 +87,7 @@ describe('BookingController', () => {
         mockResponse as Response,
         mockNext,
       );
-      expect(mockBookingService.listByUser).toHaveBeenCalledWith('auth-123', undefined);
+      expect(mockBookingService.listByUser).toHaveBeenCalledWith('auth-123', {});
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
     });
   });
