@@ -33,6 +33,10 @@
       "node": "./dist/middlewares/index.js",
       "default": "./middlewares/index.ts"
     },
+    "./utils": {
+      "node": "./dist/utils/index.js",
+      "default": "./utils/index.ts"
+    },
     "./rabbitmq": {
       "node": "./dist/rabbitmq/index.js",
       "default": "./rabbitmq/index.ts"

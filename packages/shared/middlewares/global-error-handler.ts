@@ -1,10 +1,10 @@
-import type { ErrorRequestHandler, Request } from 'express';
+import type { ErrorRequestHandler } from 'express';
 import { BaseError } from '../errors/index.js';
 import { logger } from '../logger/index.js';
 import { HTTP_STATUS } from '../constants/index.js';
 
 export const globalErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
-  const context = (req as Request & { context?: unknown }).context;
+  const context = (req as { context?: unknown }).context;
   if (err instanceof BaseError) {
     logger.error('Operational error', {
       context,
