@@ -12,9 +12,8 @@ export class SearchController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const parsed = searchQuerySchema.safeParse(req.query);
-      const query = parsed.success ? parsed.data : {};
-      const data = await this.searchService.searchServices(query ?? {});
+      const query = searchQuerySchema.parse(req.query);
+      const data = await this.searchService.searchServices(query);
       return res.status(StatusCodes.OK).json({
         success: true,
         data,
@@ -31,9 +30,8 @@ export class SearchController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const parsed = topServicesQuerySchema.safeParse(req.query);
-      const query = parsed.success ? parsed.data : {};
-      const data = await this.searchService.getTopServices(query ?? {});
+      const query = topServicesQuerySchema.parse(req.query);
+      const data = await this.searchService.getTopServices(query);
       return res.status(StatusCodes.OK).json({
         success: true,
         data,

@@ -49,8 +49,7 @@ export class ServicePersonController {
           error: { message: 'Auth identity ID is required' },
         });
       }
-      const parsed = listServicePeopleQuerySchema.safeParse(req.query);
-      const query = parsed.success ? parsed.data : undefined;
+      const query = listServicePeopleQuerySchema.parse(req.query);
       const data = await this.servicePersonService.list(authIdentityId, query);
       return res.status(StatusCodes.OK).json({
         success: true,

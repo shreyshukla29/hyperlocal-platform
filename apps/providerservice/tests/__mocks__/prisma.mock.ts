@@ -6,4 +6,5 @@ export const mockedPrisma = {
   providerAvailability: { create: jest.fn(), findMany: jest.fn(), findFirst: jest.fn(), update: jest.fn(), deleteMany: jest.fn() },
   servicePerson: { create: jest.fn(), findMany: jest.fn(), findUnique: jest.fn(), update: jest.fn(), count: jest.fn() },
   $transaction: jest.fn(),
+  $queryRaw: jest.fn(),
 } as unknown as Record<string, { [k: string]: jest.Mock }>;

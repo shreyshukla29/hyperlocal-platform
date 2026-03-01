@@ -112,10 +112,11 @@ export class ProviderService {
     return this.providerRepo.findTopByLocation(query);
   }
 
-  /** Admin-only: set provider verification status (VERIFIED | PENDING | REJECTED). */
+  /** Admin-only: set provider verification status (VERIFIED | PENDING | REJECTED). verifiedBy required when VERIFIED. */
   async updateVerificationStatus(
     providerId: string,
     verificationStatus: VerificationStatus,
+    verifiedBy?: string,
   ) {
     if (!providerId) {
       throw new BadRequestError('Provider ID is required');
@@ -129,11 +130,13 @@ export class ProviderService {
     const updated = await this.providerRepo.updateVerificationStatus(
       providerId,
       verificationStatus,
+      verificationStatus === 'VERIFIED' ? verifiedBy : undefined,
     );
 
     logger.info('Provider verification status updated', {
       providerId,
       verificationStatus,
+      verifiedBy: verificationStatus === 'VERIFIED' ? verifiedBy : undefined,
     });
 
     return updated;

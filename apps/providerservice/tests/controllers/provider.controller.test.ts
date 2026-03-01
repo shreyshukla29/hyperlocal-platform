@@ -104,14 +104,15 @@ describe('ProviderController', () => {
   describe('updateVerificationStatus', () => {
     it('returns 200 when service succeeds', async () => {
       mockRequest.params = { providerId: 'p1' };
-      mockRequest.body = { verificationStatus: 'VERIFIED' };
+      mockRequest.headers = { 'x-user-id': 'auth-123', 'x-account-type': 'ADMIN' };
+      mockRequest.body = { verificationStatus: 'VERIFIED', verifiedBy: 'admin-auth-id' };
       mockService.updateVerificationStatus.mockResolvedValue({ id: 'p1', verificationStatus: 'VERIFIED' } as never);
       await controller.updateVerificationStatus(
         mockRequest as Request,
         mockResponse as Response,
         mockNext,
       );
-      expect(mockService.updateVerificationStatus).toHaveBeenCalledWith('p1', 'VERIFIED');
+      expect(mockService.updateVerificationStatus).toHaveBeenCalledWith('p1', 'VERIFIED', 'admin-auth-id');
       expect(mockResponse.status).toHaveBeenCalledWith(StatusCodes.OK);
     });
   });

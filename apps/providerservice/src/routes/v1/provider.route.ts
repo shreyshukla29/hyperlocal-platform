@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { validateBody } from '@hyperlocal/shared/middlewares';
+import { validateBody, validateQuery } from '@hyperlocal/shared/middlewares';
 import { ProviderController } from '../../controllers/provider.controller.js';
 import { ServicePersonController } from '../../controllers/service-person.controller.js';
 import { ProviderOfferingController } from '../../controllers/provider-offering.controller.js';
@@ -20,6 +20,9 @@ import {
   updateServicePersonStatusSchema,
   createProviderOfferingSchema,
   updateProviderOfferingSchema,
+  topProvidersByLocationQuerySchema,
+  listProviderOfferingsQuerySchema,
+  listServicePeopleQuerySchema,
 } from '../../validators/index.js';
 
 export const providerRouter = Router();
@@ -52,6 +55,7 @@ const availabilityController = new ProviderAvailabilityController(availabilitySe
 // Top providers by location (for dashboard / discovery – paginated)
 providerRouter.get(
   '/top-by-location',
+  validateQuery(topProvidersByLocationQuerySchema),
   providerController.getTopProvidersByLocation.bind(providerController),
 );
 
@@ -89,6 +93,7 @@ providerRouter.post(
 
 providerRouter.get(
   '/services',
+  validateQuery(listProviderOfferingsQuerySchema),
   offeringController.list.bind(offeringController),
 );
 
@@ -123,6 +128,7 @@ providerRouter.post(
 
 providerRouter.get(
   '/service-people',
+  validateQuery(listServicePeopleQuerySchema),
   servicePersonController.list.bind(servicePersonController),
 );
 

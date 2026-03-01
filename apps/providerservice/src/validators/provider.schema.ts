@@ -64,8 +64,15 @@ export const topProvidersByLocationQuerySchema = z
 export const updateVerificationStatusSchema = z
   .object({
     verificationStatus: z.nativeEnum(VerificationStatus),
+    verifiedBy: z.string().min(1, 'verifiedBy (admin auth identity id) is required when setting VERIFIED').optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (data) =>
+      data.verificationStatus !== 'VERIFIED' ||
+      (data.verifiedBy != null && data.verifiedBy.trim().length > 0),
+    { message: 'verifiedBy is required when verificationStatus is VERIFIED', path: ['verifiedBy'] },
+  );
 
 export type UpdateVerificationStatusPayload = z.infer<
   typeof updateVerificationStatusSchema

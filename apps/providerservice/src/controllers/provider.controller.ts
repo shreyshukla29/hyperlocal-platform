@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { ForbiddenError } from '@hyperlocal/shared/errors';
+import { getAuthIdentityIdFromRequest, getAccountTypeFromRequest } from '@hyperlocal/shared/constants';
 import { ProviderService } from '../service/index.js';
-import { getAuthIdentityIdFromRequest } from '@hyperlocal/shared/constants';
 import {
   UpdateProviderProfilePayload,
   UpdateVerificationStatusPayload,
@@ -37,11 +38,8 @@ export class ProviderController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const parsed = topProvidersByLocationQuerySchema.safeParse(req.query);
-      const query = parsed.success ? parsed.data : undefined;
-      const data = await this.providerService.getTopProvidersByLocation(
-        query ?? {},
-      );
+      const query = topProvidersByLocationQuerySchema.parse(req.query);
+      const data = await this.providerService.getTopProvidersByLocation(query);
       return res.status(StatusCodes.OK).json({
         success: true,
         data,
@@ -78,19 +76,24 @@ export class ProviderController {
     }
   }
 
-  /** Admin-only: set provider verification status (VERIFIED | PENDING | REJECTED). */
+  /** Admin-only: set provider verification status (VERIFIED | PENDING | REJECTED). verifiedBy required when VERIFIED. Caller must have accountType ADMIN. */
   async updateVerificationStatus(
     req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> {
     try {
+      const accountType = getAccountTypeFromRequest(req.headers);
+      if (accountType !== 'ADMIN') {
+        throw new ForbiddenError('Admin account type required to update verification status');
+      }
       const { providerId } = req.params;
       const payload = req.body as UpdateVerificationStatusPayload;
 
       const provider = await this.providerService.updateVerificationStatus(
         providerId,
         payload.verificationStatus,
+        payload.verifiedBy,
       );
 
       return res.status(StatusCodes.OK).json({

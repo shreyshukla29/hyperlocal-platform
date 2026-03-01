@@ -47,8 +47,7 @@ export class ProviderOfferingController {
           error: { message: 'Auth identity ID is required' },
         });
       }
-      const parsed = listProviderOfferingsQuerySchema.safeParse(req.query);
-      const query = parsed.success ? parsed.data : undefined;
+      const query = listProviderOfferingsQuerySchema.parse(req.query);
       const data = await this.offeringService.list(authIdentityId, query);
       return res.status(StatusCodes.OK).json({
         success: true,
@@ -67,7 +66,7 @@ export class ProviderOfferingController {
   ): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: offeringId } = req.params;
+      const offeringId = typeof req.params.id === 'string' ? req.params.id : req.params.id?.[0];
       if (!authIdentityId || !offeringId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,
@@ -93,7 +92,7 @@ export class ProviderOfferingController {
   ): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: offeringId } = req.params;
+      const offeringId = typeof req.params.id === 'string' ? req.params.id : req.params.id?.[0];
       const payload = req.body;
       if (!authIdentityId || !offeringId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
@@ -124,7 +123,7 @@ export class ProviderOfferingController {
   ): Promise<Response | void> {
     try {
       const authIdentityId = getAuthIdentityIdFromRequest(req.headers);
-      const { id: offeringId } = req.params;
+      const offeringId = typeof req.params.id === 'string' ? req.params.id : req.params.id?.[0];
       if (!authIdentityId || !offeringId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,
@@ -146,7 +145,8 @@ export class ProviderOfferingController {
     next: NextFunction,
   ): Promise<Response | void> {
     try {
-      const { providerId, providerServiceId } = req.params;
+      const providerId = typeof req.params.providerId === 'string' ? req.params.providerId : req.params.providerId?.[0];
+      const providerServiceId = typeof req.params.providerServiceId === 'string' ? req.params.providerServiceId : req.params.providerServiceId?.[0];
       if (!providerId || !providerServiceId) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,

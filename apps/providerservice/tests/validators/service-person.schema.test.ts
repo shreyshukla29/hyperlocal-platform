@@ -24,11 +24,11 @@ describe('service-person validators', () => {
       expect(result.success).toBe(false);
     });
 
-    it('accepts optional providerServiceIds', () => {
+    it('accepts optional providerServiceIds as array of UUIDs', () => {
       const result = createServicePersonSchema.safeParse({
         name: 'Jane',
         phone: '9876543210',
-        providerServiceIds: ['11111111-1111-1111-1111-111111111111'],
+        providerServiceIds: ['550e8400-e29b-41d4-a716-446655440000'],
       });
       expect(result.success).toBe(true);
     });
@@ -49,7 +49,7 @@ describe('service-person validators', () => {
   describe('updateServicePersonStatusSchema', () => {
     it('accepts status', () => {
       const result = updateServicePersonStatusSchema.safeParse({
-        status: ServicePersonStatus.ACTIVE,
+        status: ServicePersonStatus.AVAILABLE,
       });
       expect(result.success).toBe(true);
     });
