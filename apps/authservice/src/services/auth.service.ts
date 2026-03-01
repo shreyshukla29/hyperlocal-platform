@@ -68,7 +68,7 @@ export class AuthService {
       lastName,
       email,
       phone,
-      accountType,
+      accountType: accountType === 'ADMIN' ? 'USER' : accountType,
       occurredAt: new Date().toISOString(),
     });
 
@@ -99,7 +99,7 @@ export class AuthService {
         authId: identity.id,
         email: identity.email,
         phone: identity.phone,
-        accountType: identity.accountType,
+        accountType: identity.accountType as AccountType,
       },
       token,
       refreshToken,
@@ -109,7 +109,14 @@ export class AuthService {
   async loginWithEmail(payload: LoginWithEmailRequest): Promise<LoginResponse> {
     const { email, password, loginAs } = payload;
 
-    const identity = await this.repo.findByEmail(email!, loginAs);
+    if (!loginAs) {
+      throw new BadRequestError(AUTH_ERRORS.INVALID_PAYLOAD);
+    }
+    if (!email || !password) {
+      throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
+    }
+
+    const identity = await this.repo.findByEmail(email, loginAs);
     if (!identity) {
       throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
     }
@@ -133,7 +140,7 @@ export class AuthService {
         authId: identity.id,
         email: identity.email ?? undefined,
         phone: identity.phone ?? undefined,
-        accountType: identity.accountType,
+        accountType: identity.accountType as AccountType,
       },
       secretKey: ServerConfig.JWT_SECRET,
       options: { expiresIn: ServerConfig.JWT_EXPIRY as SignOptions['expiresIn'] },
@@ -144,7 +151,7 @@ export class AuthService {
         authId: identity.id,
         email: identity.email ?? undefined,
         phone: identity.phone ?? undefined,
-        accountType: identity.accountType,
+        accountType: identity.accountType as AccountType,
       },
       secretKey: ServerConfig.JWT_REFRESH_SECRET,
       options: { expiresIn: ServerConfig.JWT_REFRESH_EXPIRY as SignOptions['expiresIn'] },
@@ -155,7 +162,7 @@ export class AuthService {
         authId: identity.id,
         email: identity.email,
         phone: identity.phone,
-        accountType: identity.accountType,
+        accountType: identity.accountType as AccountType,
       },
       token,
       refreshToken,
@@ -165,7 +172,14 @@ export class AuthService {
   async loginWithPhone(payload: LoginWithPhoneRequest): Promise<LoginResponse> {
     const { phone, password, loginAs } = payload;
 
-    const identity = await this.repo.findByPhone(phone!, loginAs);
+    if (!loginAs) {
+      throw new BadRequestError(AUTH_ERRORS.INVALID_PAYLOAD);
+    }
+    if (!phone || !password) {
+      throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
+    }
+
+    const identity = await this.repo.findByPhone(phone, loginAs);
     if (!identity) {
       throw new BadRequestError(AUTH_ERRORS.INVALID_CREDENTIALS);
     }
@@ -211,7 +225,7 @@ export class AuthService {
         authId: identity.id,
         email: identity.email,
         phone: identity.phone,
-        accountType: identity.accountType,
+        accountType: identity.accountType as AccountType,
       },
       token,
       refreshToken,
